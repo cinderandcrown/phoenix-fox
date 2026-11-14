@@ -9,7 +9,9 @@ name: TestFlight
 #   - A pull request that changes signing (this file, the scripts it runs, the
 #     entitlements, Info.plist): signs and checks only. Nothing is uploaded.
 #
-# It skips cleanly when the secrets are missing, as they are for a fork.
+# A pull request from a fork never reaches the signing steps: the job is skipped, and
+# GitHub gives a fork's pull request no secrets in any case. Only someone who can push a
+# branch to this repository can start a run that signs.
 # The secrets are listed in SETUP.md.
 
 on:
@@ -46,10 +48,13 @@ env:
 jobs:
   testflight:
     name: Sign, check, and upload
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     runs-on: macos-26
     timeout-minutes: 120
     steps:
       - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
 
       - name: Stop if Apple or Meta secrets are missing
         id: gate

@@ -13,6 +13,11 @@ concurrency:
   group: ci-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
+# This workflow builds code from pull requests, including forks. It uses no secrets and
+# its token can only read.
+permissions:
+  contents: read
+
 env:
   DEVELOPER_DIR: /Applications/Xcode_26.6.app/Contents/Developer
 
@@ -23,6 +28,8 @@ jobs:
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
       - name: Tests for the signing and project scripts
         run: python3 -m unittest discover -s scripts -v
 
@@ -32,6 +39,8 @@ jobs:
     timeout-minutes: 90
     steps:
       - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
 
       # The project file is maintained by scripts/xcodeproj_sync.py. A Swift file that is
       # on disk but not in the project would silently not be compiled.
