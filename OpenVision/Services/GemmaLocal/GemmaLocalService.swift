@@ -19,9 +19,6 @@ import MLX
 import MLXLLM            // text LLMs (Qwen 2.5, Gemma 2) via LLMModelFactory
 import MLXVLM            // vision models (Gemma 4, SmolVLM2) via VLMModelFactory
 import MLXLMCommon
-import MLXHuggingFace   // #hubDownloader() / #huggingFaceTokenizerLoader() macros
-import HuggingFace      // the macros expand to HuggingFace.HubClient …
-import Tokenizers       // … and Tokenizers.AutoTokenizer
 
 // MARK: - Selectable on-device models
 
@@ -418,11 +415,11 @@ final class GemmaLocalService: ObservableObject {
         await Self.registerGemma4TextType()
         if GemmaLocalModel.isVLM(modelId: modelId) {
             return try await VLMModelFactory.shared.loadContainer(
-                from: #hubDownloader(), using: #huggingFaceTokenizerLoader(),
+                from: LocalModelHub.downloader, using: LocalModelHub.tokenizerLoader,
                 configuration: configuration, progressHandler: handler)
         } else {
             return try await LLMModelFactory.shared.loadContainer(
-                from: #hubDownloader(), using: #huggingFaceTokenizerLoader(),
+                from: LocalModelHub.downloader, using: LocalModelHub.tokenizerLoader,
                 configuration: configuration, progressHandler: handler)
         }
     }

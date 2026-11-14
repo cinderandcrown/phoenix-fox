@@ -127,7 +127,7 @@
 		FCA8B46A222A0C469FF7873B /* KokoroTTSService.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE848862D72446F7BBDD3D89 /* KokoroTTSService.swift */; };
 		FCFECBF332943E64812DC931 /* AIBackendSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57A8327E5265287A0C89DE3D /* AIBackendSettingsView.swift */; };
 		FED4796E980F43C3C55F04B0 /* GrokService.swift in Sources */ = {isa = PBXBuildFile; fileRef = D2D074291D5EC56FE593A962 /* GrokService.swift */; };
-		FFFDF7E8B3F8E6A194E1571E /* MLXHuggingFace in Frameworks */ = {isa = PBXBuildFile; productRef = 4169E6A87853A9ECECC3C6E4 /* MLXHuggingFace */; };
+		HFHUB1000000000000000001 /* LocalModelHub.swift in Sources */ = {isa = PBXBuildFile; fileRef = HFHUB2000000000000000002 /* LocalModelHub.swift */; };
 		A11AA1000000000000000001 /* GestureMap.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11AA2000000000000000001 /* GestureMap.swift */; };
 		A11AA1000000000000000002 /* GlassesHUD.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11AA2000000000000000002 /* GlassesHUD.swift */; };
 		A11AA1000000000000000003 /* GlassesControlSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11AA2000000000000000003 /* GlassesControlSession.swift */; };
@@ -274,6 +274,7 @@
 		DD3DFE96152AAE9145F104D6 /* LocalAgentRouteTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalAgentRouteTests.swift; sourceTree = "<group>"; };
 		DDE95D6F288A9539CB1335B2 /* HermesService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HermesService.swift; sourceTree = "<group>"; };
 		DFBB8B07B4970CA5F63B3B2A /* GemmaLocalService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GemmaLocalService.swift; sourceTree = "<group>"; };
+		HFHUB2000000000000000002 /* LocalModelHub.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalModelHub.swift; sourceTree = "<group>"; };
 		E1C42DAF5F3F6F1D6E183B1D /* InfluxMetricsSink.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InfluxMetricsSink.swift; sourceTree = "<group>"; };
 		E553EFA930E3B93EEA8F0AB6 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		E6327DA000918E311DF6E9B8 /* CloudChat.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudChat.swift; sourceTree = "<group>"; };
@@ -320,7 +321,6 @@
 				408073C736E7EB74442648EF /* MLXLLM in Frameworks */,
 				B82C3BB7AED7C2367F729678 /* MLXVLM in Frameworks */,
 				6E678BA570E5148EE9D9B4FE /* MLXLMCommon in Frameworks */,
-				FFFDF7E8B3F8E6A194E1571E /* MLXHuggingFace in Frameworks */,
 				67FDB8417ED64F0FF8B576F5 /* HuggingFace in Frameworks */,
 				08440F1603742AB28B2B4815 /* Tokenizers in Frameworks */,
 				CE2920AEAD476DFA9953169C /* KokoroSwift in Frameworks */,
@@ -641,6 +641,7 @@
 			isa = PBXGroup;
 			children = (
 				DFBB8B07B4970CA5F63B3B2A /* GemmaLocalService.swift */,
+				HFHUB2000000000000000002 /* LocalModelHub.swift */,
 			);
 			path = GemmaLocal;
 			sourceTree = "<group>";
@@ -852,7 +853,6 @@
 				0DB70D0CA14C70A3B9547241 /* MLXLLM */,
 				FEDC861C14CDA73BBCF6CCFD /* MLXVLM */,
 				6ADFD2818BFD4713F6BDA7F7 /* MLXLMCommon */,
-				4169E6A87853A9ECECC3C6E4 /* MLXHuggingFace */,
 				CCBF8A11015C4FD6F78FF103 /* HuggingFace */,
 				8F8A2A9D74F79603F186C7B4 /* Tokenizers */,
 				1DCD8AD4861E50005E48943D /* KokoroSwift */,
@@ -1006,6 +1006,7 @@
 				F1D86E9A3AB2A994A205AB83 /* GeminiSettingsView.swift in Sources */,
 				BFC445B65C5C0BE610EC719E /* GeminiVisionService.swift in Sources */,
 				62B472287A9628E0E6FB377D /* GemmaLocalService.swift in Sources */,
+				HFHUB1000000000000000001 /* LocalModelHub.swift in Sources */,
 				313177DDBE794549925682FA /* GemmaSettingsView.swift in Sources */,
 				587295A93FA82DEBB18139BB /* GlassCard.swift in Sources */,
 				BE99A2B1118292BBC7E1FC59 /* GlassesManager.swift in Sources */,
@@ -1426,11 +1427,6 @@
 		1DCD8AD4861E50005E48943D /* KokoroSwift */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = KokoroSwift;
-		};
-		4169E6A87853A9ECECC3C6E4 /* MLXHuggingFace */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = ECA8A07B405261A27FD7625B /* XCRemoteSwiftPackageReference "mlx-swift-lm" */;
-			productName = MLXHuggingFace;
 		};
 		6ADFD2818BFD4713F6BDA7F7 /* MLXLMCommon */ = {
 			isa = XCSwiftPackageProductDependency;

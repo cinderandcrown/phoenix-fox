@@ -92,9 +92,10 @@ targets:
           - MLXLLM           # text LLMs (Qwen 2.5, Gemma 2) via LLMModelFactory
           - MLXVLM           # vision models (Gemma 4, SmolVLM2) via VLMModelFactory
           - MLXLMCommon
-          - MLXHuggingFace   # #hubDownloader() / #huggingFaceTokenizerLoader()
-      # The macros above expand to HuggingFace.HubClient + Tokenizers.AutoTokenizer; mlx-swift-lm
-      # deliberately doesn't depend on these, so the consumer supplies them (same as OpenGlasses).
+      # MLXHuggingFace is the compiler-plugin product. Its prebuilt and from-source plugins
+      # both fail on the iOS simulator, so LocalModelHub.swift is the hub bridge instead.
+      # HuggingFace and Tokenizers are still required by that bridge. mlx-swift-lm does not
+      # depend on them; the app supplies them.
       - package: swift-huggingface
         products:
           - HuggingFace
