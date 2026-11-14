@@ -6,6 +6,9 @@ name: TestFlight
 #   - "Run workflow" on the Actions page: signs, checks, and uploads (or signs only, if
 #     the upload box is unticked).
 #   - A tag such as v1.0.0: signs, checks, and uploads. The tag must match the app version.
+#   - A tag under testflight/, such as testflight/2026-11-14: signs, checks, and uploads
+#     that commit without naming a release. It is the way to start an upload with git
+#     alone, by someone who cannot press "Run workflow".
 #   - A pull request that changes signing (this file, the scripts it runs, the
 #     entitlements, Info.plist): signs and checks only. Nothing is uploaded.
 #
@@ -22,7 +25,7 @@ on:
         type: boolean
         default: true
   push:
-    tags: ["v*"]
+    tags: ["v*", "testflight/*"]
   pull_request:
     paths:
       - .github/workflows/testflight.yml
@@ -32,10 +35,12 @@ on:
       - OpenVision/Resources/Info.plist
       - OpenVision/Resources/PrivacyInfo.xcprivacy
 
-# One signing run at a time: two uploads at once could take the same build number.
+# One upload at a time, and an upload is never cancelled. A pull request's check uploads
+# nothing, so each pull request has a queue of its own, where a newer push replaces an
+# older one. In one shared queue, checks waiting behind an upload cancelled each other.
 concurrency:
-  group: testflight
-  cancel-in-progress: false
+  group: testflight-${{ github.event_name == 'pull_request' && format('check-{0}', github.event.pull_request.number) || 'upload' }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 permissions:
   contents: read
@@ -94,7 +99,7 @@ jobs:
             echo "::error::No MARKETING_VERSION in project.yml."
             exit 1
           fi
-          if [ "$GITHUB_REF_TYPE" = tag ] && [ "$GITHUB_REF_NAME" != "v$version" ]; then
+          if [ "$GITHUB_REF_TYPE" = tag ] && [ "${GITHUB_REF_NAME#testflight/}" = "$GITHUB_REF_NAME" ] && [ "$GITHUB_REF_NAME" != "v$version" ]; then
             echo "::error::Tag $GITHUB_REF_NAME does not match app version $version. Change MARKETING_VERSION in project.yml and the project file, or tag v$version."
             exit 1
           fi

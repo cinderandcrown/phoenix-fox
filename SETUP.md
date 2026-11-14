@@ -51,7 +51,7 @@ If it is off, the signing step can stop because the profile Apple makes does not
 3. The run puts the build in an internal testing group named **Phoenix Fox team** and adds the account holder to it. If the summary says it could not add you, open App Store Connect → **TestFlight → Internal Testing → Phoenix Fox team** and add yourself.
 4. On the iPhone, install **TestFlight** from the App Store and sign in with the same Apple ID. Phoenix Fox appears there. Install it.
 
-Pushing a tag named `v` plus the app version, such as `v1.0.0`, does the same as step 1. A pull request that touches signing files runs the same workflow without the upload, as a rehearsal.
+Pushing a tag named `v` plus the app version, such as `v1.0.0`, does the same as step 1. So does a tag under `testflight/`, such as `testflight/2026-11-14`, which uploads that commit without naming a release. A pull request that touches signing files runs the same workflow without the upload, as a rehearsal.
 
 ## Set up the glasses
 

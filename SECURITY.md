@@ -55,4 +55,4 @@ Fixes go to `main` and to the next TestFlight build. Older builds are not patche
 
 ## Safety
 
-Some features help blind and low-vision people, and some read medicine labels. A failure there can hurt someone without being a security hole. Report those the same way if the details should not be public yet, or as an ordinary issue if they can be. Their limits are written down in `docs/`.
+Some features help blind and low-vision people, and some read medicine labels. A failure there can hurt someone without being a security hole. Report those the same way if the details should not be public yet, or as an ordinary issue if they can be. Their limits are in [docs/ACCESSIBILITY.md](docs/ACCESSIBILITY.md).
