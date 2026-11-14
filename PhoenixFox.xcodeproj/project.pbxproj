@@ -286,6 +286,8 @@
 		49E0E1341E78D3E6166E23A0 /* ProviderModelCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00C3228B3DE6A55B61FEE520 /* ProviderModelCatalog.swift */; };
 		FA1DC6774294E547C8DF9A2F /* ProviderRouter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F4B402D4097A6E92A8DAA0B /* ProviderRouter.swift */; };
 		876B670BF350C504B0B276B5 /* AIProviderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C1B2E8F44C4F8E9DF4497E0 /* AIProviderTests.swift */; };
+		51DC379730E532EDC5A9FD24 /* ClaudeSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEC14BA021F1D9079985414D /* ClaudeSettingsView.swift */; };
+		53668B6AD58B7F2F8D2C4FF5 /* ProviderKeyTestButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D2890A98299C4B809AE20C7 /* ProviderKeyTestButton.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -572,6 +574,8 @@
 		00C3228B3DE6A55B61FEE520 /* ProviderModelCatalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProviderModelCatalog.swift; sourceTree = "<group>"; };
 		1F4B402D4097A6E92A8DAA0B /* ProviderRouter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProviderRouter.swift; sourceTree = "<group>"; };
 		0C1B2E8F44C4F8E9DF4497E0 /* AIProviderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIProviderTests.swift; sourceTree = "<group>"; };
+		CEC14BA021F1D9079985414D /* ClaudeSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClaudeSettingsView.swift; sourceTree = "<group>"; };
+		4D2890A98299C4B809AE20C7 /* ProviderKeyTestButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProviderKeyTestButton.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -630,6 +634,8 @@
 				60DEAF35D69BF0991A5CB1A1 /* LookBadgeImage.swift */,
 				AFFC3AF4EF308F62AC2F633B /* LookToTalkSettingsView.swift */,
 				B89165C6810545BD34CDC61B /* GlassesCheckView.swift */,
+				CEC14BA021F1D9079985414D /* ClaudeSettingsView.swift */,
+				4D2890A98299C4B809AE20C7 /* ProviderKeyTestButton.swift */,
 			);
 			path = Settings;
 			sourceTree = "<group>";
@@ -1766,6 +1772,8 @@
 				B7FC51AE533D44F140B17270 /* ProviderFallback.swift in Sources */,
 				49E0E1341E78D3E6166E23A0 /* ProviderModelCatalog.swift in Sources */,
 				FA1DC6774294E547C8DF9A2F /* ProviderRouter.swift in Sources */,
+				51DC379730E532EDC5A9FD24 /* ClaudeSettingsView.swift in Sources */,
+				53668B6AD58B7F2F8D2C4FF5 /* ProviderKeyTestButton.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

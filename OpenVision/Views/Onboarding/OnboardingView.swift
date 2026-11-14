@@ -115,23 +115,28 @@ struct OnboardingView: View {
                     OutcomeLabel(text: relayOutcome.line, good: relayOutcome.isGood)
                 }
                 VStack(alignment: .leading, spacing: Theme.Space.tight) {
-                    Text("Grok API key (optional)")
+                    Text("Grok API key — default brain")
                         .font(.subheadline.weight(.semibold))
+                    Text("Paste your xAI key. Grok is the default cloud brain; you can switch to Claude or ChatGPT later in Settings.")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
                     SecureField("xai-…", text: $grokKey)
                         .textInputAutocapitalization(.never)
                         .autocorrectionDisabled()
                         .onChange(of: grokKey) { _, value in
-                            settingsManager.settings.grokAPIKey = value.trimmingCharacters(in: .whitespacesAndNewlines)
-                            if settingsManager.settings.isGrokConfigured,
-                               settingsManager.settings.aiBackend == .appleFoundation
-                                || settingsManager.settings.aiBackend == .ownAssistant {
-                                // Prefer Grok for fast looks when a key is saved and no other cloud brain is set.
-                                if !settingsManager.settings.isOwnAssistantConfigured {
-                                    settingsManager.settings.aiBackend = .grok
-                                }
+                            let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
+                            settingsManager.settings.grokAPIKey = trimmed
+                            if !trimmed.isEmpty {
+                                settingsManager.settings.aiBackend = .grok
                             }
                         }
-                    Text("Saved on this phone. Used for short looks when Fast mode is on.")
+                    ProviderKeyTestButton(provider: .grok, apiKey: grokKey, status: $grokTestStatus)
+                    if let grokTestStatus {
+                        Text(grokTestStatus)
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+                    }
+                    Text("Key stays in this phone's Keychain. Never logged.")
                         .font(.footnote)
                         .foregroundStyle(.secondary)
                 }

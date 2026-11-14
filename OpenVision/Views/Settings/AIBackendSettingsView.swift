@@ -47,6 +47,45 @@ struct AIBackendSettingsView: View {
             }
 
             Section {
+                let catalog = ProviderModelCatalogStore.load()
+                ForEach(AIProviderID.allCases, id: \.self) { provider in
+                    if let entry = catalog.entry(for: provider) {
+                        NavigationLink {
+                            providerSettings(provider)
+                        } label: {
+                            HStack {
+                                Label(entry.displayName, systemImage: provider == .grok ? "bolt" : "sparkles")
+                                Spacer()
+                                if provider == .grok {
+                                    Text("Default")
+                                        .font(.caption2.weight(.semibold))
+                                        .foregroundStyle(.secondary)
+                                }
+                                configurationBadge(configured: settingsManager.settings.isProviderKeyConfigured(provider))
+                            }
+                        }
+                    }
+                }
+            } header: {
+                Text("Cloud providers")
+            } footer: {
+                Text("Grok is the default. Swap Claude, ChatGPT, or Gemini without changing app logic — model ids live in the catalog.")
+            }
+
+            Section {
+                ForEach(Array(settingsManager.settings.resolvedProviderFallback.order.enumerated()), id: \.offset) { index, step in
+                    Text("\(index + 1). \(fallbackTitle(step))")
+                }
+                Button("Reset to catalog (Grok → Claude → OpenAI → on-device)") {
+                    settingsManager.settings.providerFallbackOrder = []
+                }
+            } header: {
+                Text("Fallback order")
+            } footer: {
+                Text("Used when a provider errors or cannot handle vision. The relay (Fire Fox / Indy / Driver / Rally) is a separate assistant route, not a model provider.")
+            }
+
+            Section {
                 let usage = settingsManager.settings.providerUsage
                 LabeledContent("This month (est.)", value: String(format: "$%.2f", usage.totalDollars))
                 Stepper(
@@ -109,16 +148,6 @@ struct AIBackendSettingsView: View {
                 }
 
                 NavigationLink {
-                    GrokSettingsView()
-                } label: {
-                    HStack {
-                        Label("Grok Settings", systemImage: "bolt")
-                        Spacer()
-                        configurationBadge(configured: settingsManager.settings.isGrokConfigured)
-                    }
-                }
-
-                NavigationLink {
                     HermesSettingsView()
                 } label: {
                     HStack {
@@ -156,6 +185,23 @@ struct AIBackendSettingsView: View {
     }
 
     // MARK: - Helper Views
+
+    @ViewBuilder
+    private func providerSettings(_ provider: AIProviderID) -> some View {
+        switch provider {
+        case .grok: GrokSettingsView()
+        case .openAI: OpenAISettingsView()
+        case .anthropic: ClaudeSettingsView()
+        case .gemini: GeminiSettingsView()
+        }
+    }
+
+    private func fallbackTitle(_ step: ProviderModelCatalog.FallbackStep) -> String {
+        switch step {
+        case .provider(let id): return id.displayName
+        case .onDevice: return "On-device (Apple Intelligence / local)"
+        }
+    }
 
     @ViewBuilder
     private func configurationBadge(configured: Bool) -> some View {

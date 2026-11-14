@@ -163,10 +163,13 @@ final class AIProviderTests: XCTestCase {
     }
 
     func testRouterTriesFallbackOnHTTPError() async throws {
-        var hits = 0
+        final class Counter: @unchecked Sendable {
+            var hits = 0
+        }
+        let counter = Counter()
         let transport = MockAITransport { request in
-            hits += 1
-            if hits == 1 {
+            counter.hits += 1
+            if counter.hits == 1 {
                 let response = HTTPURLResponse(
                     url: request.url!, statusCode: 500, httpVersion: nil, headerFields: nil
                 )!

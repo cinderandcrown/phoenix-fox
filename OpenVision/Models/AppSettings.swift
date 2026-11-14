@@ -239,7 +239,7 @@ struct AppSettings: Codable, Equatable {
 
     /// Anthropic API key. Stored in the Keychain, not in settings.json.
     var claudeAPIKey: String = ""
-    var claudeModel: String = InstantModels.claude
+    var claudeModel: String = "claude-haiku-4-5"
 
     // MARK: - Own assistants (relay)
 
