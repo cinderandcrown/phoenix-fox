@@ -68,6 +68,7 @@ Each score is 1 to 5, and 5 is always the good end.
 | W10 | Desk handoff | "Continue this on my computer": the page or screen in view goes to an assistant that opens it there. | 3 | 5 | 3 | 3 | 17 | |
 | W11 | Focus session | Head-down time from the motion sensor, with interruptions counted. | 2 | 3 | 5 | 5 | 17 | The motion sensor needs an open session, which takes over two touchpad gestures. |
 | W12 | Ear prompter | Cue lines whispered as a talk goes on, following the speaker's words. | 3 | 5 | 5 | 5 | 21 | **Shipped elsewhere** (EarHint, Tellie Nudge, Ear Prompter, and Glass Prompter on the lens). Not building. |
+| W13 | **Look to Talk** | Look at an assistant's chat window on the computer and talk to it without its name. The camera finds the name, a badge, or a marker, a tone confirms, and "lock on" holds it when you look away. "The future of a mouse": looking selects, the voice acts. | 5 | 3 | 5 | 4 | 22 | Lens: who is held, always in view. Band: a pinch to lock. Later targets: a document, a browser tab, a shop's order page, sent as context to the held assistant. Asked for by the owner after the ten. **Written, after the ten.** See [After the ten](#after-the-ten-look-to-talk). |
 
 ### Business owners
 
@@ -244,6 +245,14 @@ All ten are in the owner build only, under **Settings → Owner build → Worksh
 
 "Written" means what it means in [FEATURE_PARITY.md](FEATURE_PARITY.md): the decisions are covered by unit tests that run on Linux, the code that joins them to the phone was type-checked against stand-ins, and no Xcode build or pair of glasses has seen it.
 
+### After the ten: Look to Talk
+
+Look to Talk (W13) was asked for by the owner after the ten were chosen. It scores 22, with a 3 for "today": everything it needs exists on the Adventurer, but whether the camera can read a window's title from a desk is not known, so a badge or a marker may be needed.
+
+| Idea | Status | What is not done |
+| --- | --- | --- |
+| Look to Talk | Written | Never built by Xcode or run on glasses. Off by default, with its own switch under **Settings → Owner build → Workshop → Look to Talk**, and the owner profile does not turn it on. It is on its own branch, to be merged after the first release is stable. Reads text and QR codes only: avatars are not recognized. The lens gets the spoken lines as cards and no lasting mark of who is held. Other kinds of target (a document, a tab, an order page) are designed for and not built. Every threshold is untuned. See [LOOK_TO_TALK.md](LOOK_TO_TALK.md). |
+
 ## The next ten
 
 In order.
@@ -284,3 +293,4 @@ Found in a brief search on 14 November 2026. Each is worth a longer look before 
 | Loudwalk, Encodr, Cognicard, SmartGlasses.study | Flashcards asked and answered aloud | Why the walk quiz is not in the ten |
 | TapMe, Track My Medz, Aasa | Medication logs with a double-dose warning, by tap, by smart speaker, and by phone camera | Dose guard is not new as an idea. Reading the label through glasses was not found. |
 | Roundtable and similar | Several models answer one question and vote, from a command line | Council is not new as an idea. Asked aloud about what the wearer is looking at was not found. |
+| Meta, in patent application WO2023091403A2 | Glasses with eye tracking that work out which of several assistants on their display the wearer is speaking to, from the direction of their gaze | Look to Talk is not new as an idea. Ours reads a separate computer's screen through the outward camera and follows the head, not the eyes. Whether the application matters is a question for a lawyer before any public claim. See [LOOK_TO_TALK.md](LOOK_TO_TALK.md#who-else). |
