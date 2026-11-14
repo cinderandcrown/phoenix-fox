@@ -24,6 +24,11 @@
     <key>LSRequiresIPhoneOS</key>
     <true/>
 
+    <!-- The app uses only the encryption that iOS provides (HTTPS, and CryptoKit for data it
+         stores on the phone), which is exempt from export paperwork. -->
+    <key>ITSAppUsesNonExemptEncryption</key>
+    <false/>
+
     <!-- Supported Orientations -->
     <key>UISupportedInterfaceOrientations</key>
     <array>
@@ -57,7 +62,7 @@
     <!-- Required Device Capabilities -->
     <key>UIRequiredDeviceCapabilities</key>
     <array>
-        <string>armv7</string>
+        <string>arm64</string>
         <string>microphone</string>
     </array>
 
@@ -65,8 +70,6 @@
     <key>UIBackgroundModes</key>
     <array>
         <string>audio</string>
-        <string>fetch</string>
-        <string>processing</string>
         <string>bluetooth-central</string>
         <string>bluetooth-peripheral</string>
         <string>external-accessory</string>

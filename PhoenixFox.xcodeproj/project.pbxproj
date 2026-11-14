@@ -164,6 +164,7 @@
 		41BA82E53DC6B71605D98EAA /* RelayClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5109BFC57B90ADE2E95DBC71 /* RelayClient.swift */; };
 		4D00FDBCB04FB2E64CDBCACA /* RelayImages.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6AA41A16B55526CB60458427 /* RelayImages.swift */; };
 		B93FA675EE3094D186653ED3 /* RelayClientTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEF251501487FBCFE35139B7 /* RelayClientTests.swift */; };
+		5BEAA3380B2AAAE924270E28 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = B003816401C4A4C8035543AE /* PrivacyInfo.xcprivacy */; };
 		2BE06430EBD52AD493360F94 /* WearablesSDK.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3A02A6407C18B263A7FA388 /* WearablesSDK.swift */; };
 		7A3558B2ADF81CB0CABB1EF7 /* WearablesSDKTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA4F4112907EC707F95A12AC /* WearablesSDKTests.swift */; };
 		17071B87BC626664A102F829 /* PushAlerts.swift in Sources */ = {isa = PBXBuildFile; fileRef = F65548F5E24356AB1C1A022A /* PushAlerts.swift */; };
@@ -331,6 +332,7 @@
 		5109BFC57B90ADE2E95DBC71 /* RelayClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RelayClient.swift; sourceTree = "<group>"; };
 		6AA41A16B55526CB60458427 /* RelayImages.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RelayImages.swift; sourceTree = "<group>"; };
 		DEF251501487FBCFE35139B7 /* RelayClientTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RelayClientTests.swift; sourceTree = "<group>"; };
+		B003816401C4A4C8035543AE /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		D3A02A6407C18B263A7FA388 /* WearablesSDK.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WearablesSDK.swift; sourceTree = "<group>"; };
 		CA4F4112907EC707F95A12AC /* WearablesSDKTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WearablesSDKTests.swift; sourceTree = "<group>"; };
 		F65548F5E24356AB1C1A022A /* PushAlerts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushAlerts.swift; sourceTree = "<group>"; };
@@ -724,6 +726,7 @@
 				CDC538C538178747352D72C8 /* Sounds */,
 				2410F1B11CD5A7070F3E7590 /* Assets.xcassets */,
 				E553EFA930E3B93EEA8F0AB6 /* Info.plist */,
+				B003816401C4A4C8035543AE /* PrivacyInfo.xcprivacy */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -970,6 +973,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				6F8F4FD14445FC3FE1A771D2 /* Assets.xcassets in Resources */,
+				5BEAA3380B2AAAE924270E28 /* PrivacyInfo.xcprivacy in Resources */,
 				D78274C690CE91F7747815F8 /* thinking_loop.mp3 in Resources */,
 				E7CDE1FBC061C2DF4BDDD84E /* wake_activation.mp3 in Resources */,
 				7C118644498027D47E828115 /* wake_word_ding.mp3 in Resources */,
@@ -1225,7 +1229,7 @@
 				CLIENT_TOKEN = "${CLIENT_TOKEN}";
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 15;
+				CURRENT_PROJECT_VERSION = 1;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = "${DEVELOPMENT_TEAM}";
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
@@ -1246,7 +1250,7 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				INFOPLIST_FILE = OpenVision/Resources/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
-				MARKETING_VERSION = 2.14.0;
+				MARKETING_VERSION = 1.0.0;
 				META_APP_ID = "${META_APP_ID}";
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
@@ -1350,7 +1354,7 @@
 				CLIENT_TOKEN = "${CLIENT_TOKEN}";
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 15;
+				CURRENT_PROJECT_VERSION = 1;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = "${DEVELOPMENT_TEAM}";
 				ENABLE_NS_ASSERTIONS = NO;
@@ -1365,7 +1369,7 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				INFOPLIST_FILE = OpenVision/Resources/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
-				MARKETING_VERSION = 2.14.0;
+				MARKETING_VERSION = 1.0.0;
 				META_APP_ID = "${META_APP_ID}";
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
