@@ -230,7 +230,7 @@ An ask that is unknown or older than 15 minutes gets `404`.
 
 Token auth, ES256. The `.p8` contents, the key id, and the Apple team id are secrets. The topic is `com.cinderandcrown.phoenixfox`.
 
-Urgent pushes use an alert. Normal pushes are silent (`content-available`) so the phone pulls the inbox. Low messages stay in the inbox and do not wake the phone. The inbox is the source of truth; the push only wakes the app. If the APNs secrets are unset, pushes are skipped and the inbox still works.
+Urgent pushes use an alert, and also carry `content-available` so the app wakes and speaks the line without a tap. Normal pushes are silent (`content-available`) so the phone pulls the inbox. Low messages stay in the inbox and do not wake the phone. The inbox is the source of truth; the push only wakes the app. If the APNs secrets are unset, pushes are skipped and the inbox still works.
 
 Apple runs two push services, and a device token works on only one of them. **A build installed from TestFlight or the App Store uses production. Only a build run from Xcode uses sandbox.** The relay sends to the service the phone named in `POST /device`. If the phone did not name one, it tries production first, or sandbox first when `APNS_USE_SANDBOX` is `"true"`. When Apple rejects the token as bad, the relay tries the other service and remembers which one worked. A token that neither service accepts, or that Apple reports as unregistered, is forgotten; the app registers again the next time it starts.
 

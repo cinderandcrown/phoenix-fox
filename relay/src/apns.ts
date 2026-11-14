@@ -142,8 +142,10 @@ async function post(
 ): Promise<{ ok: boolean; status: number; reason: string }> {
   const urgent = notice.priority === "urgent";
   const extra = { id: notice.id, from_bot: notice.from_bot, priority: notice.priority };
+  // An urgent push shows a banner and also wakes the app, so the line is spoken on the
+  // glasses when the phone is in a pocket. A banner alone would wait for a tap.
   const body = JSON.stringify(urgent
-    ? { aps: { alert: { title: notice.from_bot, body: notice.text }, sound: "default" }, ...extra }
+    ? { aps: { alert: { title: notice.from_bot, body: notice.text }, sound: "default", "content-available": 1 }, ...extra }
     : { aps: { "content-available": 1 }, ...extra });
   // A rejected provider token is replaced once. Any other answer is final for this service.
   for (const fresh of [false, true]) {

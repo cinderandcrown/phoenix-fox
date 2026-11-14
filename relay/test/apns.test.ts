@@ -105,7 +105,7 @@ describe("APNs delivery", () => {
     expect(defaultEnvironment({ APNS_USE_SANDBOX: "true" })).toBe("sandbox");
   });
 
-  it("sends an alert for urgent and a silent wake for normal", async () => {
+  it("sends an alert that also wakes the app for urgent, and a silent wake for normal", async () => {
     const { deps, requests } = await apple({}, { APNS_BUNDLE_ID: "com.example.app" });
     await deliverApns(deps, URGENT, { token: DEVICE });
     await deliverApns(deps, { ...URGENT, priority: "normal" }, { token: DEVICE });
@@ -114,7 +114,10 @@ describe("APNs delivery", () => {
     expect(alert.headers.get("apns-topic")).toBe("com.example.app");
     expect(alert.headers.get("apns-push-type")).toBe("alert");
     expect(alert.headers.get("apns-priority")).toBe("10");
-    expect(JSON.parse(alert.body)).toMatchObject({ aps: { alert: { title: "Driver", body: "Gate is open" } }, id: "1" });
+    expect(JSON.parse(alert.body)).toMatchObject({
+      aps: { alert: { title: "Driver", body: "Gate is open" }, sound: "default", "content-available": 1 },
+      id: "1",
+    });
     expect(silent.headers.get("apns-push-type")).toBe("background");
     expect(silent.headers.get("apns-priority")).toBe("5");
     expect(JSON.parse(silent.body)).toMatchObject({ aps: { "content-available": 1 }, priority: "normal" });
