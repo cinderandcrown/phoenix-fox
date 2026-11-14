@@ -42,6 +42,10 @@ final class GlassesManager: ObservableObject {
     /// Error message for UI display
     @Published var errorMessage: String?
 
+    /// A connection that was started from the Meta AI app and waits for the wearer's answer.
+    /// Nothing is connected until `answerPendingRegistration(approve:)` says so.
+    @Published private(set) var pendingRegistration: RegistrationRequest?
+
     // MARK: - Private Properties
 
     private let wearables = Wearables.shared
@@ -118,6 +122,50 @@ final class GlassesManager: ObservableObject {
         } catch {
             errorMessage = "Unregister failed: \(error.localizedDescription)"
             print("[GlassesManager] Unregistration error: \(error)")
+        }
+    }
+
+    // MARK: - Meta AI callback
+
+    private var lastCallback: (url: URL, at: Date)?
+
+    /// Finishes a registration or permission round trip when the Meta AI app opens
+    /// Phoenix Fox through its universal link.
+    func handleCallback(_ url: URL) async {
+        // iOS can deliver one link through two routes. The SDK must see it once.
+        if let lastCallback, lastCallback.url == url, Date().timeIntervalSince(lastCallback.at) < 2 { return }
+        lastCallback = (url, Date())
+        do {
+            let handled = try await wearables.handleUrl(url) { [weak self] request in
+                Task { @MainActor in self?.pendingRegistration = request }
+            }
+            if handled {
+                errorMessage = nil
+                GlassesLink.shared.record("Meta AI callback handled.")
+            } else {
+                GlassesLink.shared.record("Opened by a link the glasses SDK did not recognise.")
+            }
+        } catch {
+            errorMessage = "Meta AI could not finish connecting. \(error.localizedDescription)"
+            GlassesLink.shared.record("Meta AI callback failed: \(error.localizedDescription)")
+        }
+    }
+
+    /// Answers a connection the Meta AI app started. Declining tells Meta AI to drop it.
+    func answerPendingRegistration(approve: Bool) async {
+        guard let request = pendingRegistration else { return }
+        pendingRegistration = nil
+        do {
+            if approve {
+                try await request.continueRegistration()
+            } else {
+                try await request.cancelRegistration()
+            }
+        } catch {
+            errorMessage = approve
+                ? "Connecting to Meta AI failed. \(error.localizedDescription)"
+                : "Meta AI did not confirm the cancel. \(error.localizedDescription)"
+            GlassesLink.shared.record("Registration request \(approve ? "approve" : "decline") failed: \(error.localizedDescription)")
         }
     }
 

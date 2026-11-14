@@ -159,6 +159,8 @@
 		8BF888E85180E71C520D45D0 /* ResumeOnce.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07CBBA601F8B713B0B004752 /* ResumeOnce.swift */; };
 		1E2FD51A71E410A32EDE2E74 /* JSONValueTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B1BCE95BFCBFB8E8855E0F8 /* JSONValueTests.swift */; };
 		339637E3354B17658B60A4DA /* SpeechPipelineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DE8BB8877F17EC12EE63410A /* SpeechPipelineTests.swift */; };
+		35C1B21220F9545774175F08 /* IncomingLink.swift in Sources */ = {isa = PBXBuildFile; fileRef = D721D43D709E9412709ACC90 /* IncomingLink.swift */; };
+		2CA4771EB603F66271733563 /* IncomingLinkTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B04CAE019F2258540EAB3B9 /* IncomingLinkTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -318,6 +320,8 @@
 		07CBBA601F8B713B0B004752 /* ResumeOnce.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResumeOnce.swift; sourceTree = "<group>"; };
 		9B1BCE95BFCBFB8E8855E0F8 /* JSONValueTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JSONValueTests.swift; sourceTree = "<group>"; };
 		DE8BB8877F17EC12EE63410A /* SpeechPipelineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpeechPipelineTests.swift; sourceTree = "<group>"; };
+		D721D43D709E9412709ACC90 /* IncomingLink.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IncomingLink.swift; sourceTree = "<group>"; };
+		1B04CAE019F2258540EAB3B9 /* IncomingLinkTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IncomingLinkTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -514,6 +518,7 @@
 			isa = PBXGroup;
 			children = (
 				C3FFDFCB5AA5A664CC70E183 /* OpenVisionApp.swift */,
+				D721D43D709E9412709ACC90 /* IncomingLink.swift */,
 			);
 			path = App;
 			sourceTree = "<group>";
@@ -752,6 +757,7 @@
 				D31AA2000000000000000004 /* MindMeldTests.swift */,
 				9B1BCE95BFCBFB8E8855E0F8 /* JSONValueTests.swift */,
 				DE8BB8877F17EC12EE63410A /* SpeechPipelineTests.swift */,
+				1B04CAE019F2258540EAB3B9 /* IncomingLinkTests.swift */,
 			);
 			path = OpenVisionTests;
 			sourceTree = "<group>";
@@ -989,6 +995,8 @@
 				8BF888E85180E71C520D45D0 /* ResumeOnce.swift in Sources */,
 				1E2FD51A71E410A32EDE2E74 /* JSONValueTests.swift in Sources */,
 				339637E3354B17658B60A4DA /* SpeechPipelineTests.swift in Sources */,
+				35C1B21220F9545774175F08 /* IncomingLink.swift in Sources */,
+				2CA4771EB603F66271733563 /* IncomingLinkTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1153,7 +1161,6 @@
 			baseConfigurationReference = C2FFA22452C8901C2424D466 /* Config.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				APP_LINK_URL_SCHEME = "${APP_LINK_URL_SCHEME}";
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
@@ -1279,7 +1286,6 @@
 			baseConfigurationReference = C2FFA22452C8901C2424D466 /* Config.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				APP_LINK_URL_SCHEME = "${APP_LINK_URL_SCHEME}";
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";

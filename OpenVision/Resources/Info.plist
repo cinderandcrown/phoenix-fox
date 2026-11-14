@@ -46,21 +46,6 @@
         <string>LaunchBackground</string>
     </dict>
 
-    <!-- URL Schemes for Meta AI Callback -->
-    <key>CFBundleURLTypes</key>
-    <array>
-        <dict>
-            <key>CFBundleTypeRole</key>
-            <string>Editor</string>
-            <key>CFBundleURLName</key>
-            <string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
-            <key>CFBundleURLSchemes</key>
-            <array>
-                <string>$(APP_LINK_URL_SCHEME)</string>
-            </array>
-        </dict>
-    </array>
-
     <!-- Queried URL Schemes (Meta AI app) -->
     <key>LSApplicationQueriesSchemes</key>
     <array>
@@ -155,13 +140,15 @@
         <true/>
     </dict>
 
-    <!-- Wearables Device Access Toolkit configuration -->
+    <!-- Wearables Device Access Toolkit configuration. The Meta AI app returns to this
+         universal link. It is written out here, not read from a build setting, because
+         an xcconfig file treats the two slashes in a URL as the start of a comment. -->
     <key>MWDAT</key>
     <dict>
+        <key>AppLinkURLScheme</key>
+        <string>https://phoenix-fox-links.cinderandcrown.workers.dev/dat</string>
         <key>MetaAppID</key>
         <string>1651172483404286</string>
-        <key>AppLinkURLScheme</key>
-        <string>$(APP_LINK_URL_SCHEME)://</string>
         <key>ClientToken</key>
         <string>$(META_CLIENT_TOKEN)</string>
         <key>TeamID</key>

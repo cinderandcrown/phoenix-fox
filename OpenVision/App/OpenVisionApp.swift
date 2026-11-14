@@ -1,5 +1,5 @@
 // OpenVision - OpenVisionApp.swift
-// App entry point with URL scheme handling for Meta AI registration
+// App entry point. Receives the universal link the Meta AI app uses to return from registration.
 
 import SwiftUI
 import MWDATCore
@@ -21,6 +21,8 @@ struct OpenVisionApp: App {
     // MARK: - Initialization
 
     init() {
+        // Unit tests run inside this app. They need its code, not its services.
+        guard !AppLaunch.isHostingTests else { return }
         // Show timer/alarm notifications even when the app is in the foreground.
         NotificationForegroundPresenter.shared.register()
         // Create the location manager on the main thread + warm the cache for contextual notes.
@@ -45,41 +47,71 @@ struct OpenVisionApp: App {
 
     var body: some Scene {
         WindowGroup {
-            Group {
-                if hasCompletedOnboarding {
-                    MainTabView()
-                        .environmentObject(settingsManager)
-                        .environmentObject(glassesManager)
-                        .environmentObject(conversationManager)
-                } else {
-                    OnboardingView(hasCompletedOnboarding: $hasCompletedOnboarding)
-                }
-            }
-            .preferredColorScheme(.dark)
-            .task {
-                // Telemetry settings persist, but the sink lives in memory — without this a
-                // relaunch (or a jetsam kill during a model switch) silently stopped pushing.
-                MetricsCollector.shared.restoreAtLaunch()
-            }
-            .onOpenURL { url in
-                handleURL(url)
+            if AppLaunch.isHostingTests {
+                Color.clear
+            } else {
+                content
             }
         }
     }
 
-    // MARK: - URL Handling
-
-    /// Handle URL callback from Meta AI app for glasses registration
-    private func handleURL(_ url: URL) {
-        print("[OpenVisionApp] Received URL: \(url)")
-
-        Task {
-            do {
-                _ = try await Wearables.shared.handleUrl(url)
-                print("[OpenVisionApp] URL handled successfully")
-            } catch {
-                print("[OpenVisionApp] Error handling URL: \(error)")
+    private var content: some View {
+        Group {
+            if hasCompletedOnboarding {
+                MainTabView()
+                    .environmentObject(settingsManager)
+                    .environmentObject(glassesManager)
+                    .environmentObject(conversationManager)
+            } else {
+                OnboardingView(hasCompletedOnboarding: $hasCompletedOnboarding)
             }
         }
+        .preferredColorScheme(.dark)
+        .task {
+            // Telemetry settings persist, but the sink lives in memory — without this a
+            // relaunch (or a jetsam kill during a model switch) silently stopped pushing.
+            MetricsCollector.shared.restoreAtLaunch()
+        }
+        .onOpenURL { url in
+            open(url)
+        }
+        .onContinueUserActivity(NSUserActivityTypeBrowsingWeb) { activity in
+            if let url = activity.webpageURL { open(url) }
+        }
+        .alert(
+            "Connect your glasses?",
+            isPresented: Binding(
+                get: { glassesManager.pendingRegistration != nil },
+                set: { _ in }
+            )
+        ) {
+            Button("Connect") {
+                Task { await glassesManager.answerPendingRegistration(approve: true) }
+            }
+            Button("Not now", role: .cancel) {
+                Task { await glassesManager.answerPendingRegistration(approve: false) }
+            }
+        } message: {
+            Text("The Meta AI app is asking to connect your glasses to Phoenix Fox. Phoenix Fox uses the glasses camera and microphones only when you ask it to, and the capture light on the glasses is on whenever the camera is.")
+        }
     }
+
+    // MARK: - Incoming links
+
+    /// Routes a universal link. The Meta AI app returns through `/dat` after registration
+    /// or a permission prompt; that link goes to the glasses SDK and nowhere else.
+    private func open(_ url: URL) {
+        switch IncomingLink(url) {
+        case .wearables(let callback):
+            Task { await glassesManager.handleCallback(callback) }
+        case .app, nil:
+            break
+        }
+    }
+}
+
+/// How this process was started.
+enum AppLaunch {
+    /// True when Xcode launched the app only to host the unit-test bundle.
+    static let isHostingTests = ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil
 }

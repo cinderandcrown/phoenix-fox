@@ -21,7 +21,6 @@ settings:
     PRODUCT_BUNDLE_IDENTIFIER: com.cinderandcrown.phoenixfox
     META_APP_ID: "1651172483404286"
     META_CLIENT_TOKEN: ${META_CLIENT_TOKEN}
-    APP_LINK_URL_SCHEME: phoenixfox
 
 configs:
   Debug:

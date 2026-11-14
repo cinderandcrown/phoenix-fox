@@ -8,5 +8,10 @@
     <true/>
     <key>aps-environment</key>
     <string>development</string>
+    <!-- Universal links. The Meta AI app returns here after glasses registration. -->
+    <key>com.apple.developer.associated-domains</key>
+    <array>
+        <string>applinks:phoenix-fox-links.cinderandcrown.workers.dev</string>
+    </array>
 </dict>
 </plist>
