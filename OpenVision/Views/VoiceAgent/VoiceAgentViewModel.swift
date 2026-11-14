@@ -1203,8 +1203,9 @@ final class VoiceAgentViewModel: ObservableObject {
             speak: { [weak self] text, from, always in
                 guard let self else { return }
                 let line = AssistantRoster.spoken(text: text, fromBot: from, bots: self.settingsManager.settings.assistantBots, alwaysName: always)
-                self.speakResponse(line.text)
-                CompanionSurface.showOnLens(text: text, bot: from)
+                CompanionSurface.present(bot: from, text: text) { _ in
+                    self.speakResponse(line.text)
+                }
             }
         )
         if !ttsService.isSpeaking && !NeuralSpeech.isAnySpeaking {

@@ -263,15 +263,21 @@ final class CompanionRuntime: ObservableObject {
 
     func notePush(text: String, from: String, priority: String) {
         let line = "\(from): \(text)"
-        if priority == "urgent" {
-            TTSService.shared.stop()
-            TTSService.shared.speak(line)
-        } else if priority == "low" {
-            GlassesMemory.remember("Later: \(line)")
-        } else if !TTSService.shared.isSpeaking {
-            TTSService.shared.speak(line)
-        }
         statusLine = line
+        switch priority {
+        case "low":
+            // Kept for later. A low alert never interrupts and is never spoken on arrival.
+            GlassesMemory.remember("Later: \(line)")
+            return
+        case "urgent":
+            TTSService.shared.stop()
+        default:
+            // A normal alert waits its turn. It is in the inbox list either way.
+            if TTSService.shared.isSpeaking { return }
+        }
+        CompanionSurface.present(bot: from, text: text, kind: priority == "urgent" ? .alert : .reply) { spoken in
+            TTSService.shared.speak("\(from): \(spoken)")
+        }
     }
 
     private func takeOver(_ request: String) async -> String {
