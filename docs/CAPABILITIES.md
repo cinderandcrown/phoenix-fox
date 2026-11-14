@@ -22,6 +22,8 @@ The table below is a **planning matrix**, not proof a particular firmware/device
 
 ## Minimum acceptance scenarios
 
+Automated mapping (unit / skip reasons): `OpenVisionTests/CapabilitiesAcceptanceTests.swift` and the matrix in `docs/SDK_NOTES.md`. Simulator results are never glasses hardware results.
+
 1. Clean install, no glasses paired → useful onboarding and preview.
 2. Connect / register compatible glasses → visible status and permission intent.
 3. Deny permission → no streaming; clear retry/settings path.
