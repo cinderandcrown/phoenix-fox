@@ -232,6 +232,11 @@
 		5C603ABCDC5219EAAEC835F2 /* SubscriptionStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00276486917BAE38EA00D9D3 /* SubscriptionStore.swift */; };
 		B15EC6C2C9AF009DF3459DA4 /* PlanView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B51BE4DEC3DD23AA1B0A4826 /* PlanView.swift */; };
 		8B3E54C828D0F4CD0C71BC3E /* ImageBudgetTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 407213C31D9D1596C6C2F1F9 /* ImageBudgetTests.swift */; };
+		0D51B209651690D002CE6F48 /* BrandPalette.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB22090F1A6E40C5F1469C29 /* BrandPalette.swift */; };
+		8E8F50762FDB2C2E0CC48A84 /* FoxMarkGeometry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 127121BB4CAE202C404C4716 /* FoxMarkGeometry.swift */; };
+		B7CA51747E03A2FE014F748D /* FoxMark.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5DDC28107664F25996BA0156 /* FoxMark.swift */; };
+		350D8F58FD1AE4A973D7FE0E /* BrandPaletteTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3539162066822E371CEF7F12 /* BrandPaletteTests.swift */; };
+		0C4DC323150403EAB6CFE85C /* FoxMarkGeometryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1C2AE37B0C64909C3BEB50D4 /* FoxMarkGeometryTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -464,6 +469,11 @@
 		00276486917BAE38EA00D9D3 /* SubscriptionStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionStore.swift; sourceTree = "<group>"; };
 		B51BE4DEC3DD23AA1B0A4826 /* PlanView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanView.swift; sourceTree = "<group>"; };
 		407213C31D9D1596C6C2F1F9 /* ImageBudgetTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageBudgetTests.swift; sourceTree = "<group>"; };
+		CB22090F1A6E40C5F1469C29 /* BrandPalette.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BrandPalette.swift; sourceTree = "<group>"; };
+		127121BB4CAE202C404C4716 /* FoxMarkGeometry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FoxMarkGeometry.swift; sourceTree = "<group>"; };
+		5DDC28107664F25996BA0156 /* FoxMark.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FoxMark.swift; sourceTree = "<group>"; };
+		3539162066822E371CEF7F12 /* BrandPaletteTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BrandPaletteTests.swift; sourceTree = "<group>"; };
+		1C2AE37B0C64909C3BEB50D4 /* FoxMarkGeometryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FoxMarkGeometryTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -574,6 +584,7 @@
 				0194EEF861E1966DBDC3B665 /* Settings */,
 				738FAA097CCCDFD54C60C673 /* VoiceAgent */,
 				266032AAD0DF8037A64CAB15 /* MainTabView.swift */,
+				2F84041B07BBFEBC2D709D79 /* Design */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -929,6 +940,8 @@
 				9F432816B913027E3313163A /* ConversationForgetTests.swift */,
 				4FD05A384D3242522D2A2E8C /* StorePlanTests.swift */,
 				407213C31D9D1596C6C2F1F9 /* ImageBudgetTests.swift */,
+				3539162066822E371CEF7F12 /* BrandPaletteTests.swift */,
+				1C2AE37B0C64909C3BEB50D4 /* FoxMarkGeometryTests.swift */,
 			);
 			path = OpenVisionTests;
 			sourceTree = "<group>";
@@ -1111,6 +1124,24 @@
 			path = Core;
 			sourceTree = "<group>";
 		};
+		2F84041B07BBFEBC2D709D79 /* Design */ = {
+			isa = PBXGroup;
+			children = (
+				FA635F893E0F6AB67FF4D101 /* Core */,
+				5DDC28107664F25996BA0156 /* FoxMark.swift */,
+			);
+			path = Design;
+			sourceTree = "<group>";
+		};
+		FA635F893E0F6AB67FF4D101 /* Core */ = {
+			isa = PBXGroup;
+			children = (
+				CB22090F1A6E40C5F1469C29 /* BrandPalette.swift */,
+				127121BB4CAE202C404C4716 /* FoxMarkGeometry.swift */,
+			);
+			path = Core;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -1289,6 +1320,8 @@
 				91401B209B2A9597FA7DE125 /* ConversationForgetTests.swift in Sources */,
 				328261896ECF74C7A59CACB6 /* StorePlanTests.swift in Sources */,
 				8B3E54C828D0F4CD0C71BC3E /* ImageBudgetTests.swift in Sources */,
+				350D8F58FD1AE4A973D7FE0E /* BrandPaletteTests.swift in Sources */,
+				0C4DC323150403EAB6CFE85C /* FoxMarkGeometryTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1470,6 +1503,9 @@
 				74E3B16F71F49686AFAA2C3F /* StoreCatalog.swift in Sources */,
 				5C603ABCDC5219EAAEC835F2 /* SubscriptionStore.swift in Sources */,
 				B15EC6C2C9AF009DF3459DA4 /* PlanView.swift in Sources */,
+				0D51B209651690D002CE6F48 /* BrandPalette.swift in Sources */,
+				8E8F50762FDB2C2E0CC48A84 /* FoxMarkGeometry.swift in Sources */,
+				B7CA51747E03A2FE014F748D /* FoxMark.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

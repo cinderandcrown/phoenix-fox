@@ -191,7 +191,7 @@ struct MessageBubble: View {
                     .padding(.horizontal, 12)
                     .padding(.vertical, 8)
                     .background(message.role == .user ? AnyShapeStyle(Theme.buttonGradient) : AnyShapeStyle(Color(.systemGray5)))
-                    .foregroundColor(message.role == .user ? Color.black.opacity(0.9) : .primary)
+                    .foregroundColor(message.role == .user ? Theme.onFire : .primary)
                     .cornerRadius(16)
 
                 Text(message.timestamp.formatted(date: .omitted, time: .shortened))
