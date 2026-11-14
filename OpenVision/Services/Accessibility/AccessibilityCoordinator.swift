@@ -40,6 +40,22 @@ final class AccessibilityCoordinator: ObservableObject {
         case emergencyCall
         case setEmergencyContact(name: String, number: String)
         case deleteRoutine(name: String)
+
+        /// Whether the yes has to be said aloud: where it reaches another person, where
+        /// the wearer's safety rests on it, or where it erases faces. A nod is enough
+        /// for a change to the wearer's own lists that they asked for a moment ago.
+        var needsSpokenYes: Bool {
+            switch self {
+            case .enroll, .forgetAllFaces, .startGuide, .emergencyCall: return true
+            case .setEmergencyContact, .deleteRoutine: return false
+            }
+        }
+    }
+
+    /// Which answers a nod or a shake of the head may give right now.
+    var headAnswerPolicy: HeadAnswerPolicy {
+        guard let pending, !pending.expired(at: Date()) else { return .none }
+        return pending.action.needsSpokenYes ? .noOnly : .yesOrNo
     }
 
     private init() {
@@ -279,16 +295,26 @@ final class AccessibilityCoordinator: ObservableObject {
 
     // MARK: - Reading
 
+    /// A picture for reading print. The glasses' photo capability uses the whole sensor,
+    /// which resolves small print that a frame of the video stream blurs. When this build
+    /// may not use it, or the camera is already streaming, a frame of the stream is used.
+    private func printPicture(_ snapshot: Snapshot) async -> Data? {
+        if let large = await GlassesManager.shared.captureStill(.reading) { return large }
+        return await snapshot()
+    }
+
     private func read(_ scope: AccessCommand.ReadScope, snapshot: Snapshot) async -> String {
-        guard let jpeg = await snapshot() else { return Self.noPicture }
         switch scope {
         case .sign:
+            // A sign is large print, and on a walk the answer has to be quick.
+            guard let jpeg = await snapshot() else { return Self.noPicture }
             let fragments = await AccessVision.text(in: jpeg, corrected: true, fast: true)
             let words = ReadingOrder.headline(fragments)
             guard !words.isEmpty else { return "I don't see a sign I can read. Face it and ask again." }
             note(.read, "asked me to read a sign")
             return "It says: " + words.joined(separator: ". ") + "."
         case .everything:
+            guard let jpeg = await printPicture(snapshot) else { return Self.noPicture }
             let fragments = await AccessVision.text(in: jpeg, corrected: true)
             return startReading(ReadingOrder.paragraphs(fragments), lead: "")
         }
@@ -316,7 +342,7 @@ final class AccessibilityCoordinator: ObservableObject {
     }
 
     private func readLabel(snapshot: Snapshot) async -> String {
-        guard let jpeg = await snapshot() else { return Self.noPicture }
+        guard let jpeg = await printPicture(snapshot) else { return Self.noPicture }
         // No language correction here: it "fixes" drug names into ordinary words.
         let fragments = await AccessVision.text(in: jpeg, corrected: false)
         let lines = ReadingOrder.lines(fragments)

@@ -55,7 +55,7 @@ final class GuideMode: ObservableObject {
     }
 
     private func run() async {
-        await GlassesManager.shared.startStreaming()
+        await GlassesManager.shared.startStreaming(for: .guide)
         var narrator = GuideNarrator()
         var lastThumb: [UInt8] = []
         var lastModel = Date.distantPast
@@ -75,7 +75,7 @@ final class GuideMode: ObservableObject {
                   let thumb = Thumbnail.bytes(image) else {
                 staleTicks += 1
                 // Something else may have turned the camera off after taking its own photo.
-                if staleTicks % 3 == 0, !manager.isStreaming { await manager.startStreaming() }
+                if staleTicks % 3 == 0, !manager.isStreaming { await manager.startStreaming(for: .guide) }
                 if staleTicks == 8, !saidLost {
                     saidLost = true
                     TTSService.shared.announce("I've lost the glasses camera, so I can't guide right now. I'll tell you when it's back.", urgent: true)
