@@ -9,7 +9,7 @@ import ActivityKit
 import AppIntents
 import AVFoundation
 import Contacts
-import CoreLocation
+@preconcurrency import CoreLocation
 import CryptoKit
 import Foundation
 import Security
@@ -370,7 +370,8 @@ final class CompanionRuntime: ObservableObject {
         let state = PhoenixActivityAttributes.ContentState(line: statusLine, cameraOn: cameraOn)
         let content = ActivityContent(state: state, staleDate: nil)
         if let activity = Activity<PhoenixActivityAttributes>.activities.first {
-            Task { await activity.update(content) }
+            nonisolated(unsafe) let current = activity
+            Task { await current.update(content) }
         } else {
             _ = try? Activity.request(attributes: PhoenixActivityAttributes(title: "Phoenix Fox"), content: content, pushType: nil)
         }
@@ -449,7 +450,7 @@ enum TranscriptLog {
     }
 
     static func recent() -> String {
-        guard let text = try? String(contentsOf: file()) else { return "" }
+        guard let text = try? String(contentsOf: file(), encoding: .utf8) else { return "" }
         return text.split(separator: "\n").suffix(40).joined(separator: "\n")
     }
 
@@ -675,16 +676,15 @@ final class PlaceReminders: NSObject, CLLocationManagerDelegate, @unchecked Send
 
     func locationManager(_ manager: CLLocationManager, didEnterRegion region: CLRegion) {
         let notes = UserDefaults.standard.dictionary(forKey: defaultsKey) as? [String: String] ?? [:]
-        let note = notes[region.identifier] ?? "You arrived."
-        DispatchQueue.main.async {
-            Task { @MainActor in
-                TTSService.shared.speak(note)
-                let content = UNMutableNotificationContent()
-                content.title = "Phoenix Fox"
-                content.body = note
-                let request = UNNotificationRequest(identifier: region.identifier, content: content, trigger: nil)
-                UNUserNotificationCenter.current().add(request)
-            }
+        let identifier = region.identifier
+        let note = notes[identifier] ?? "You arrived."
+        Task { @MainActor in
+            TTSService.shared.speak(note)
+            let content = UNMutableNotificationContent()
+            content.title = "Phoenix Fox"
+            content.body = note
+            let request = UNNotificationRequest(identifier: identifier, content: content, trigger: nil)
+            try? await UNUserNotificationCenter.current().add(request)
         }
     }
 

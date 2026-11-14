@@ -4,6 +4,7 @@
 import UIKit
 
 /// Utility for triggering haptic feedback
+@MainActor
 enum HapticFeedback {
 
     // MARK: - Impact Feedback

@@ -26,7 +26,7 @@
 // sequentially through `processStreamingChunk`. Callbacks reach the main actor only on speech
 // start/end transitions — a few times per turn, not per buffer.
 
-import AVFoundation
+@preconcurrency import AVFoundation
 import Foundation
 import FluidAudio
 
@@ -202,15 +202,15 @@ final class SpeechActivityDetector: @unchecked Sendable {
             return nil
         }
 
-        var consumed = false
+        let consumed = OneShotFlag()
         var error: NSError?
         converter.convert(to: out, error: &error) { _, status in
             // Hand the input over exactly once; reporting more would loop forever.
-            if consumed {
+            if consumed.done {
                 status.pointee = .noDataNow
                 return nil
             }
-            consumed = true
+            consumed.done = true
             status.pointee = .haveData
             return buffer
         }
@@ -219,4 +219,9 @@ final class SpeechActivityDetector: @unchecked Sendable {
               let channel = out.floatChannelData?[0] else { return nil }
         return Array(UnsafeBufferPointer(start: channel, count: Int(out.frameLength)))
     }
+}
+
+/// One-shot flag the audio converter callback can mutate. The callback is Sendable.
+private final class OneShotFlag: @unchecked Sendable {
+    var done = false
 }

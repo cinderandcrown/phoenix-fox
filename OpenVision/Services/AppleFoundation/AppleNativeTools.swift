@@ -20,7 +20,7 @@ enum AppleNativeTools {
 
     /// Run a native tool by name with a cleaned-up arg dict (drops empty strings / zeros meaning "unset").
     static func run(_ name: String, _ args: [String: Any]) async -> String {
-        await NativeToolRegistry.shared.execute(name: name, args: args)
+        await NativeToolRegistry.shared.execute(name: name, args: ToolArguments(values: args))
     }
 }
 

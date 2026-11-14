@@ -42,6 +42,11 @@ extension NativeTool {
     }
 }
 
+/// Dictionary of tool arguments. The values are JSON and are not shared across threads after the call.
+struct ToolArguments: @unchecked Sendable {
+    var values: [String: Any]
+}
+
 /// Central registry of the available native tools. Read-only after init, so it's safe to read from
 /// any thread (the backend's request loop runs off the main thread).
 final class NativeToolRegistry: @unchecked Sendable {
@@ -75,9 +80,9 @@ final class NativeToolRegistry: @unchecked Sendable {
 
     /// Run a tool by name. Never throws — returns a spoken-friendly error string so the model can
     /// tell the user gracefully.
-    func execute(name: String, args: [String: Any]) async -> String {
+    func execute(name: String, args: ToolArguments) async -> String {
         guard let tool = tools[name] else { return "I don't have a tool called \(name)." }
-        var args = args
+        var args = args.values
         // Time sanity chokepoint (all backends pass through here): if the triggering utterance was
         // clearly relative ("in 15 minutes", "15 minutes from now"), trust the transcript over the
         // model's computed clock time. See NativeToolSupport.applyRelativeTimeGuard.

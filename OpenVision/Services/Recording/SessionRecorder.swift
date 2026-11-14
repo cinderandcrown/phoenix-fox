@@ -19,9 +19,9 @@
 // actor and audio buffers on the audio render thread, so both are hopped onto that queue.
 
 import Foundation
-import AVFoundation
+@preconcurrency import AVFoundation
 import Photos
-import CoreMedia
+@preconcurrency import CoreMedia
 
 enum RecorderError: LocalizedError {
     case inputUnavailable
@@ -395,11 +395,11 @@ final class SessionRecorder: ObservableObject, @unchecked Sendable {
         guard let outBuffer = AVAudioPCMBuffer(pcmFormat: audioOutFormat, frameCapacity: capacity) else {
             playbackConvertLock.unlock(); return
         }
-        var supplied = false
+        let supplied = OneShotFlag()
         var convError: NSError?
         converter.convert(to: outBuffer, error: &convError) { _, statusPtr in
-            if supplied { statusPtr.pointee = .noDataNow; return nil }
-            supplied = true
+            if supplied.done { statusPtr.pointee = .noDataNow; return nil }
+            supplied.done = true
             statusPtr.pointee = .haveData
             return buffer
         }
@@ -590,14 +590,14 @@ final class SessionRecorder: ObservableObject, @unchecked Sendable {
         let capacity = AVAudioFrameCount(Double(buffer.frameLength) * ratio) + 1024
         guard let outBuffer = AVAudioPCMBuffer(pcmFormat: audioOutFormat, frameCapacity: capacity) else { return }
 
-        var supplied = false
+        let supplied = OneShotFlag()
         var convError: NSError?
         converter.convert(to: outBuffer, error: &convError) { _, statusPtr in
-            if supplied {
+            if supplied.done {
                 statusPtr.pointee = .noDataNow
                 return nil
             }
-            supplied = true
+            supplied.done = true
             statusPtr.pointee = .haveData
             return buffer
         }
@@ -688,4 +688,9 @@ final class SessionRecorder: ObservableObject, @unchecked Sendable {
     private func finish(url: URL?) {
         DispatchQueue.main.async { self.onFinished?(url) }
     }
+}
+
+/// One-shot flag the audio converter callback can mutate. The callback is Sendable.
+private final class OneShotFlag: @unchecked Sendable {
+    var done = false
 }

@@ -434,7 +434,7 @@ final class GemmaLocalService: ObservableObject {
         // Fully qualified: MLXVLM also exports Gemma4TextConfiguration/Gemma4TextModel, so the bare
         // names are ambiguous — the LLM (text) types are the ones that handle shared-KV layers.
         for type in ["gemma4", "gemma4_text"] {
-            await LLMTypeRegistry.shared.registerModelType(type) { data in
+            await LLMTypeRegistry.shared.registerModelType(type) { @Sendable data in
                 let config = try JSONDecoder().decode(MLXLLM.Gemma4TextConfiguration.self, from: data)
                 return MLXLLM.Gemma4TextModel(config)
             }

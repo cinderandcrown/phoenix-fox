@@ -75,7 +75,7 @@ enum LocalAgent {
         // KV prefix caching barely moved that window, which disproved the assumption that it was
         // mostly prompt prefill — so every other step in here is now a suspect.
         let docStart = Date()
-        let docContext = await DocumentFocus.shared.contextForQuery(command)
+        let docContext = DocumentFocus.shared.contextForQuery(command)
         let docElapsed = Date().timeIntervalSince(docStart)
         if docElapsed > 0.05 {
             NSLog("[OV] ttft breakdown: docContext %.3fs", docElapsed)
@@ -265,7 +265,7 @@ enum LocalAgent {
                 // The registry sanity-checks time args against the utterance (relative-time guard)
                 // — record it so "15 minutes from now" can override the model's clock math.
                 NativeToolContext.shared.set(command)
-                let toolResult = await NativeToolRegistry.shared.execute(name: toolName, args: toolArgs)
+                let toolResult = await NativeToolRegistry.shared.execute(name: toolName, args: ToolArguments(values: toolArgs))
                 return .answer(toolResult)
             }
         }

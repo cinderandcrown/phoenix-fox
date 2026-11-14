@@ -4,7 +4,7 @@
 // content, tag, or location. Falls back gracefully to a plain note if location is unavailable.
 
 import Foundation
-import CoreLocation
+@preconcurrency import CoreLocation
 
 struct ContextualNoteTool: NativeTool {
     let name = "note"
@@ -181,7 +181,7 @@ final class LocationHelper: NSObject, CLLocationManagerDelegate, @unchecked Send
 }
 
 /// Resumes a continuation exactly once (the geocode completion and the timeout race on the main queue).
-private final class GeocodeResume {
+private final class GeocodeResume: @unchecked Sendable {
     private var cont: CheckedContinuation<String?, Never>?
     init(_ c: CheckedContinuation<String?, Never>) { cont = c }
     func resume(_ s: String?) {

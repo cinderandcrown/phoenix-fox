@@ -142,7 +142,7 @@ enum CloudChat {
             return r.isEmpty ? "No results found for \"\(query)\"." : r
         }
         NSLog("[CloudChat] native tool: %@", toolName)
-        return await NativeToolRegistry.shared.execute(name: toolName, args: args)
+        return await NativeToolRegistry.shared.execute(name: toolName, args: ToolArguments(values: args))
     }
 
     // MARK: - Transport

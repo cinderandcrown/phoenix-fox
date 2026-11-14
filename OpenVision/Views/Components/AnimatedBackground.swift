@@ -1,6 +1,7 @@
 // OpenVision - AnimatedBackground.swift
 // Beautiful animated gradient background
 
+import Combine
 import SwiftUI
 
 /// Animated gradient background for the app
@@ -91,9 +92,16 @@ struct ParticleEffect: View {
                     )
                 }
             }
-            .onAppear {
-                generateParticles()
-                startAnimation(size: geometry.size)
+            .onAppear { generateParticles() }
+            .onReceive(Timer.publish(every: 0.05, on: .main, in: .common).autoconnect()) { _ in
+                guard !particles.isEmpty else { return }
+                for i in particles.indices {
+                    particles[i].y -= particles[i].speed
+                    if particles[i].y < 0 {
+                        particles[i].y = 1
+                        particles[i].x = CGFloat.random(in: 0...1)
+                    }
+                }
             }
         }
     }
@@ -110,17 +118,6 @@ struct ParticleEffect: View {
         }
     }
 
-    private func startAnimation(size: CGSize) {
-        Timer.scheduledTimer(withTimeInterval: 0.05, repeats: true) { _ in
-            for i in particles.indices {
-                particles[i].y -= particles[i].speed
-                if particles[i].y < 0 {
-                    particles[i].y = 1
-                    particles[i].x = CGFloat.random(in: 0...1)
-                }
-            }
-        }
-    }
 }
 
 #Preview {

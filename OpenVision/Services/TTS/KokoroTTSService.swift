@@ -124,8 +124,12 @@ final class KokoroTTSService: ObservableObject {
             var first = true
             for sentence in TextChunking.sentences(clean) {
                 guard isSpeaking else { break }   // stop() was called mid-reply
+                nonisolated(unsafe) let engine = tts
+                nonisolated(unsafe) let voice = voiceArray
+                let lang = language
+                let line = sentence
                 let samples: [Float] = try await Task.detached(priority: .userInitiated) {
-                    let (audio, _) = try tts.generateAudio(voice: voiceArray, language: language, text: sentence)
+                    let (audio, _) = try engine.generateAudio(voice: voice, language: lang, text: line)
                     return audio
                 }.value
                 guard isSpeaking else { break }
@@ -224,8 +228,12 @@ final class KokoroTTSService: ObservableObject {
             let voiceArray = try await ensureVoice(voice)
             let tts = try ensureEngine()
             let language: Language = voice.first == "b" ? .enGB : .enUS
+            nonisolated(unsafe) let engine = tts
+            nonisolated(unsafe) let voice = voiceArray
+            let lang = language
+            let line = text
             let samples: [Float] = try await Task.detached(priority: .userInitiated) {
-                let (audio, _) = try tts.generateAudio(voice: voiceArray, language: language, text: text)
+                let (audio, _) = try engine.generateAudio(voice: voice, language: lang, text: line)
                 return audio
             }.value
             guard !utteranceCancelled, !samples.isEmpty else { return }
@@ -275,8 +283,12 @@ final class KokoroTTSService: ObservableObject {
             let voiceArray = try await ensureVoice(voice)
             let tts = try ensureEngine()
             let language: Language = voice.first == "b" ? .enGB : .enUS
+            nonisolated(unsafe) let engine = tts
+            nonisolated(unsafe) let voice = voiceArray
+            let lang = language
+            let line = clean
             let samples: [Float] = try await Task.detached(priority: .utility) {
-                let (audio, _) = try tts.generateAudio(voice: voiceArray, language: language, text: clean)
+                let (audio, _) = try engine.generateAudio(voice: voice, language: lang, text: line)
                 return audio
             }.value
             // A reply may have begun while we synthesised: beginStreaming sets `streaming`,
@@ -373,7 +385,7 @@ final class KokoroTTSService: ObservableObject {
     func deleteModel() {
         engine = nil
         voiceCache.removeAll()
-        MLX.GPU.clearCache()
+        Memory.clearCache()
         try? FileManager.default.removeItem(at: storageDir)
         try? FileManager.default.createDirectory(at: storageDir, withIntermediateDirectories: true)
         downloadProgress = 0

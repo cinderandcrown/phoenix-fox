@@ -122,11 +122,16 @@ enum SystemMetricsReader {
     // MARK: - Battery
 
     private static func batteryLevel() -> Float? {
-        // Enabling monitoring is idempotent and cheap; without it the level reads -1.
-        if !UIDevice.current.isBatteryMonitoringEnabled {
-            UIDevice.current.isBatteryMonitoringEnabled = true
+        let read = { @MainActor () -> Float? in
+            if !UIDevice.current.isBatteryMonitoringEnabled {
+                UIDevice.current.isBatteryMonitoringEnabled = true
+            }
+            let level = UIDevice.current.batteryLevel
+            return level < 0 ? nil : level
         }
-        let level = UIDevice.current.batteryLevel
-        return level < 0 ? nil : level
+        if Thread.isMainThread {
+            return MainActor.assumeIsolated { read() }
+        }
+        return DispatchQueue.main.sync { MainActor.assumeIsolated { read() } }
     }
 }
