@@ -21,6 +21,8 @@ enum GlassesGesture: Equatable {
     case dismiss
     /// Capture button: look with the camera.
     case look
+    /// Capture button pressed twice: take a picture and keep it.
+    case keep
     /// Long capture press: start a note.
     case note
 }
@@ -66,7 +68,8 @@ enum GestureMap {
             }
         case .capture(let press):
             switch press {
-            case .short, .double: return (.look, sawBand)
+            case .short: return (.look, sawBand)
+            case .double: return (.keep, sawBand)
             case .hold: return (.note, sawBand)
             }
         case .dragEnded(let dx):

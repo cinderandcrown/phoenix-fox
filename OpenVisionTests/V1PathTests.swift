@@ -70,6 +70,8 @@ final class V1PathTests: XCTestCase {
         XCTAssertEqual(look.gesture, .look)
         let note = GestureMap.interpret(GestureSignal(source: .captureButton, kind: .capture(.hold)))
         XCTAssertEqual(note.gesture, .note)
+        let keep = GestureMap.interpret(GestureSignal(source: .captureButton, kind: .capture(.double)))
+        XCTAssertEqual(keep.gesture, .keep)
     }
 
     func testDragDirection() {
