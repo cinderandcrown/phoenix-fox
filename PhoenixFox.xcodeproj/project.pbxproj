@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		D7544BAABB8967F102D36CCE /* model_catalog.json in Resources */ = {isa = PBXBuildFile; fileRef = 85A03349ED254604A286D5C9 /* model_catalog.json */; };
 		08440F1603742AB28B2B4815 /* Tokenizers in Frameworks */ = {isa = PBXBuildFile; productRef = 8F8A2A9D74F79603F186C7B4 /* Tokenizers */; };
 		0CD9B9D7D0854411C0A04148 /* AIBackendProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = A900F00D2451513A29BC4C6F /* AIBackendProtocol.swift */; };
 		0D8C225C70FFE36DD531EBB3 /* InfluxMetricsSink.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1C42DAF5F3F6F1D6E183B1D /* InfluxMetricsSink.swift */; };
@@ -278,6 +279,13 @@
 		6C32F465A56964E438060355 /* GlassesCheckView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B89165C6810545BD34CDC61B /* GlassesCheckView.swift */; };
 		8BCE34AD6CBF565DB24FFBC6 /* AudioRoutePolicyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E5E803A1AAD693F3F59E29F /* AudioRoutePolicyTests.swift */; };
 		F09B402FB088F7C971E19F3A /* OnDeviceLookTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57995089192F8CA478B88A6B /* OnDeviceLookTests.swift */; };
+		B9449C70B8BA7B2A6CA274B3 /* AIProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C5987F9805268C40F12A1D9 /* AIProvider.swift */; };
+		A524ABE0F079E6A9ACABF54E /* AnthropicProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0859D37A12033F23D06AA4A /* AnthropicProvider.swift */; };
+		76E5C501A2B35405E43EF32A /* OpenAICompatibleProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05C0001E83D426429486E017 /* OpenAICompatibleProvider.swift */; };
+		B7FC51AE533D44F140B17270 /* ProviderFallback.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3406D301077DA6156674FAC4 /* ProviderFallback.swift */; };
+		49E0E1341E78D3E6166E23A0 /* ProviderModelCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00C3228B3DE6A55B61FEE520 /* ProviderModelCatalog.swift */; };
+		FA1DC6774294E547C8DF9A2F /* ProviderRouter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F4B402D4097A6E92A8DAA0B /* ProviderRouter.swift */; };
+		876B670BF350C504B0B276B5 /* AIProviderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C1B2E8F44C4F8E9DF4497E0 /* AIProviderTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -291,6 +299,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		85A03349ED254604A286D5C9 /* model_catalog.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = model_catalog.json; sourceTree = "<group>"; };
 		06B8E5499FB1BA51EF6F1741 /* SessionRecorder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionRecorder.swift; sourceTree = "<group>"; };
 		09CF2D46A856380011EEC513 /* OVExceptionCatcher.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = OVExceptionCatcher.m; sourceTree = "<group>"; };
 		179C0876BB1891478A806702 /* GrokSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrokSettingsView.swift; sourceTree = "<group>"; };
@@ -556,6 +565,13 @@
 		B89165C6810545BD34CDC61B /* GlassesCheckView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlassesCheckView.swift; sourceTree = "<group>"; };
 		1E5E803A1AAD693F3F59E29F /* AudioRoutePolicyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioRoutePolicyTests.swift; sourceTree = "<group>"; };
 		57995089192F8CA478B88A6B /* OnDeviceLookTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnDeviceLookTests.swift; sourceTree = "<group>"; };
+		5C5987F9805268C40F12A1D9 /* AIProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIProvider.swift; sourceTree = "<group>"; };
+		B0859D37A12033F23D06AA4A /* AnthropicProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnthropicProvider.swift; sourceTree = "<group>"; };
+		05C0001E83D426429486E017 /* OpenAICompatibleProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenAICompatibleProvider.swift; sourceTree = "<group>"; };
+		3406D301077DA6156674FAC4 /* ProviderFallback.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProviderFallback.swift; sourceTree = "<group>"; };
+		00C3228B3DE6A55B61FEE520 /* ProviderModelCatalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProviderModelCatalog.swift; sourceTree = "<group>"; };
+		1F4B402D4097A6E92A8DAA0B /* ProviderRouter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProviderRouter.swift; sourceTree = "<group>"; };
+		0C1B2E8F44C4F8E9DF4497E0 /* AIProviderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIProviderTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -961,6 +977,7 @@
 			isa = PBXGroup;
 			children = (
 				CDC538C538178747352D72C8 /* Sounds */,
+				85A03349ED254604A286D5C9 /* model_catalog.json */,
 				2410F1B11CD5A7070F3E7590 /* Assets.xcassets */,
 				E553EFA930E3B93EEA8F0AB6 /* Info.plist */,
 				B003816401C4A4C8035543AE /* PrivacyInfo.xcprivacy */,
@@ -1046,6 +1063,7 @@
 				3FB70B342CF34F89507FBB94 /* GlassesRegistrationTests.swift */,
 				1E5E803A1AAD693F3F59E29F /* AudioRoutePolicyTests.swift */,
 				57995089192F8CA478B88A6B /* OnDeviceLookTests.swift */,
+				0C1B2E8F44C4F8E9DF4497E0 /* AIProviderTests.swift */,
 			);
 			path = OpenVisionTests;
 			sourceTree = "<group>";
@@ -1110,6 +1128,7 @@
 				A0E31A60F5EDC2769DB74311 /* TeamBoard.swift */,
 				FC3D14B5455B74F3A589C14B /* TeamBoardStore.swift */,
 				F32085ADE9FFF7983A4134ED /* Core */,
+				DEF73777A79E722D94F0FFEA /* Providers */,
 			);
 			path = Brain;
 			sourceTree = "<group>";
@@ -1321,6 +1340,19 @@
 			path = Core;
 			sourceTree = "<group>";
 		};
+		DEF73777A79E722D94F0FFEA /* Providers */ = {
+			isa = PBXGroup;
+			children = (
+				5C5987F9805268C40F12A1D9 /* AIProvider.swift */,
+				B0859D37A12033F23D06AA4A /* AnthropicProvider.swift */,
+				05C0001E83D426429486E017 /* OpenAICompatibleProvider.swift */,
+				3406D301077DA6156674FAC4 /* ProviderFallback.swift */,
+				00C3228B3DE6A55B61FEE520 /* ProviderModelCatalog.swift */,
+				1F4B402D4097A6E92A8DAA0B /* ProviderRouter.swift */,
+			);
+			path = Providers;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -1431,6 +1463,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				6F8F4FD14445FC3FE1A771D2 /* Assets.xcassets in Resources */,
+				D7544BAABB8967F102D36CCE /* model_catalog.json in Resources */,
 				5BEAA3380B2AAAE924270E28 /* PrivacyInfo.xcprivacy in Resources */,
 				D78274C690CE91F7747815F8 /* thinking_loop.mp3 in Resources */,
 				E7CDE1FBC061C2DF4BDDD84E /* wake_activation.mp3 in Resources */,
@@ -1516,6 +1549,7 @@
 				A08DF4823C6CBC5B2E179B8F /* GlassesRegistrationTests.swift in Sources */,
 				8BCE34AD6CBF565DB24FFBC6 /* AudioRoutePolicyTests.swift in Sources */,
 				F09B402FB088F7C971E19F3A /* OnDeviceLookTests.swift in Sources */,
+				876B670BF350C504B0B276B5 /* AIProviderTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1726,6 +1760,12 @@
 				CBD74BE27D9357A0FC395915 /* ProviderEfficiency.swift in Sources */,
 				150CE7D6A95FE215A6053C7B /* NetworkPath.swift in Sources */,
 				6C32F465A56964E438060355 /* GlassesCheckView.swift in Sources */,
+				B9449C70B8BA7B2A6CA274B3 /* AIProvider.swift in Sources */,
+				A524ABE0F079E6A9ACABF54E /* AnthropicProvider.swift in Sources */,
+				76E5C501A2B35405E43EF32A /* OpenAICompatibleProvider.swift in Sources */,
+				B7FC51AE533D44F140B17270 /* ProviderFallback.swift in Sources */,
+				49E0E1341E78D3E6166E23A0 /* ProviderModelCatalog.swift in Sources */,
+				FA1DC6774294E547C8DF9A2F /* ProviderRouter.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

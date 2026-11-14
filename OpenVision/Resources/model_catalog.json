@@ -1,0 +1,88 @@
+{
+  "version": 1,
+  "defaultProvider": "grok",
+  "fallbackOrder": ["grok", "anthropic", "openai", "on_device"],
+  "providers": [
+    {
+      "id": "grok",
+      "displayName": "Grok (xAI)",
+      "apiStyle": "openai_compatible",
+      "baseURL": "https://api.x.ai/v1",
+      "supportsVision": true,
+      "supportsTools": true,
+      "supportsRealtimeVoice": false,
+      "supportsStreaming": true,
+      "models": {
+        "instant": "grok-4.20-non-reasoning",
+        "top": "grok-4",
+        "vision": "grok-4"
+      },
+      "modelChoices": [
+        "grok-4.20-non-reasoning",
+        "grok-4",
+        "grok-4-fast-non-reasoning",
+        "grok-3-mini"
+      ]
+    },
+    {
+      "id": "openai",
+      "displayName": "ChatGPT (OpenAI)",
+      "apiStyle": "openai_compatible",
+      "baseURL": "https://api.openai.com/v1",
+      "supportsVision": true,
+      "supportsTools": true,
+      "supportsRealtimeVoice": true,
+      "supportsStreaming": true,
+      "models": {
+        "instant": "gpt-4o-mini",
+        "top": "gpt-4o",
+        "vision": "gpt-4o"
+      },
+      "modelChoices": [
+        "gpt-4o-mini",
+        "gpt-4o",
+        "gpt-4.1-mini",
+        "gpt-4.1"
+      ]
+    },
+    {
+      "id": "anthropic",
+      "displayName": "Claude (Anthropic)",
+      "apiStyle": "anthropic_messages",
+      "baseURL": "https://api.anthropic.com/v1",
+      "supportsVision": true,
+      "supportsTools": true,
+      "supportsRealtimeVoice": false,
+      "supportsStreaming": true,
+      "models": {
+        "instant": "claude-haiku-4-5",
+        "top": "claude-sonnet-4-5",
+        "vision": "claude-sonnet-4-5"
+      },
+      "modelChoices": [
+        "claude-haiku-4-5",
+        "claude-sonnet-4-5",
+        "claude-opus-4-5"
+      ]
+    },
+    {
+      "id": "gemini",
+      "displayName": "Gemini (Google)",
+      "apiStyle": "gemini",
+      "baseURL": "https://generativelanguage.googleapis.com/v1beta",
+      "supportsVision": true,
+      "supportsTools": true,
+      "supportsRealtimeVoice": true,
+      "supportsStreaming": true,
+      "models": {
+        "instant": "gemini-2.0-flash",
+        "top": "gemini-2.5-pro",
+        "vision": "gemini-2.0-flash"
+      },
+      "modelChoices": [
+        "gemini-2.0-flash",
+        "gemini-2.5-pro"
+      ]
+    }
+  ]
+}

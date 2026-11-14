@@ -172,8 +172,13 @@ enum TTSEngineType: String, Codable, CaseIterable, Identifiable {
 struct AppSettings: Codable, Equatable {
     // MARK: - AI Backend Selection
 
-    /// Which AI backend to use. Phoenix Fox starts on the owner's relay assistants.
-    var aiBackend: AIBackendType = .ownAssistant
+    /// Which AI backend to use. Cloud chat defaults to Grok when a key is present;
+    /// the relay (own assistants) stays available as a separate route.
+    var aiBackend: AIBackendType = .grok
+
+    /// Fallback chain as catalog tokens (`grok`, `anthropic`, `openai`, `on_device`).
+    /// Empty means use `model_catalog.json`.
+    var providerFallbackOrder: [String] = []
 
     // MARK: - OpenClaw Configuration
 
