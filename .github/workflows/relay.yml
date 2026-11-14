@@ -1,0 +1,42 @@
+name: Relay
+
+# Type-checks and tests the Cloudflare Worker in relay/. Deploying is done by the owner.
+
+on:
+  pull_request:
+    paths:
+      - "relay/**"
+      - ".github/workflows/relay.yml"
+  push:
+    branches: [main]
+    paths:
+      - "relay/**"
+      - ".github/workflows/relay.yml"
+
+concurrency:
+  group: relay-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Type-check and test
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: relay
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: relay/package-lock.json
+      - run: npm ci --no-audit --no-fund
+      - run: npm run check
+      - run: npm test
+      # Bundles the worker the way a deploy would, without deploying it.
+      - run: npx wrangler deploy --dry-run --outdir "$RUNNER_TEMP/relay-bundle"

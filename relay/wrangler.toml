@@ -11,11 +11,13 @@ enabled = true
 
 [vars]
 APNS_BUNDLE_ID = "com.cinderandcrown.phoenixfox"
-# TestFlight and developer builds use the sandbox push host. Set this to "false" for a store build.
-APNS_USE_SANDBOX = "true"
+# Which Apple push service to try first for a phone that has not said which one it uses.
+# TestFlight and App Store builds use production. Only a build run from Xcode uses sandbox.
+# The relay tries the other service when Apple rejects the token, and remembers the answer.
+APNS_USE_SANDBOX = "false"
 
-# RELAY_TOKEN, APNS_KEY_P8, APNS_KEY_ID, and APPLE_TEAM_ID are wrangler secrets.
-# They are not written here.
+# RELAY_TOKEN, APNS_KEY_P8, APNS_KEY_ID, APPLE_TEAM_ID, BOT_WEBHOOKS, and WEBHOOK_SECRET
+# are wrangler secrets. They are not written here.
 
 [[durable_objects.bindings]]
 name = "RELAY"
