@@ -661,7 +661,7 @@ final class WorkshopCoordinator: ObservableObject {
         for order in fired {
             switch order.action {
             case .say(let line):
-                if !quietly { TTSService.shared.announce(line, urgent: false) }
+                if !quietly { await sayWhenQuiet(line) }
             case .ask(let spoken, let text):
                 guard let bot = resolve(spoken) else { continue }
                 let replies = try? await OwnAssistantService.shared.ask(
@@ -670,11 +670,23 @@ final class WorkshopCoordinator: ObservableObject {
                 let answer = Self.joined(replies ?? [])
                 TaskLog.append(bot: bot.name, request: order.summary, result: answer.isEmpty ? "No answer." : answer)
                 if !quietly, !answer.isEmpty {
-                    TTSService.shared.announce("\(bot.name) says: \(answer)", urgent: false)
+                    await sayWhenQuiet("\(bot.name) says: \(answer)")
                 }
             }
             note(.standingOrder, order.summary)
         }
+    }
+
+    /// Says a line nobody asked for, once nothing else is being said. A line that is not
+    /// urgent is dropped if it lands on top of speech, and two of these can come due at
+    /// the same moment: a standing order and a place note when the glasses go on.
+    private func sayWhenQuiet(_ line: String) async {
+        var waited = 0
+        while waited < 40, TTSService.shared.isSpeaking || NeuralSpeech.isAnySpeaking {
+            try? await Task.sleep(for: .milliseconds(500))
+            waited += 1
+        }
+        TTSService.shared.announce(line, urgent: false)
     }
 
     // MARK: - Place notes
@@ -723,7 +735,7 @@ final class WorkshopCoordinator: ObservableObject {
         guard let line = PlaceNotes.spokenOffer(due) else { return }
         saveNotes()
         lastReadNote = due.first?.id
-        TTSService.shared.announce(line, urgent: false)
+        await sayWhenQuiet(line)
     }
 
     func removeNote(_ id: UUID) {
