@@ -24,7 +24,10 @@ final class WearablesSDKTests: XCTestCase {
         await glasses.register()
         XCTAssertEqual(glasses.registration.stall, .notRunning("The glasses connection is not running."))
         XCTAssertFalse(glasses.registration.isWorking)
-        XCTAssertEqual(glasses.registrationDetails, "Glasses toolkit: not running. Meta AI opened: no. Answer from Meta AI: no.")
+        XCTAssertEqual(
+            glasses.registrationDetails,
+            "Glasses toolkit: not running. Attempt: stalled:This build cannot connect to glasses. Meta AI opened: no. Answer from Meta AI: no."
+        )
         glasses.dismissRegistrationTrouble()
         XCTAssertNil(glasses.registration.stall)
 

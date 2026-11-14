@@ -271,31 +271,41 @@ final class GlassesManager: ObservableObject {
             return
         }
         registration.answerBegan()
-        var failure: String?
+        noteRegistration("Meta AI callback received.")
+        // DAT may invoke onRegistrationRequest off the main actor. Catch it synchronously
+        // so we never start a forAnswer timer over the in-app Connect alert (TF 29.1 P0).
+        let catcher = RegistrationRequestCatcher()
         do {
-            let handled = try await wearables.handleUrl(url) { [weak self] request in
-                Task { @MainActor in self?.pendingRegistration = request }
+            let handled = try await wearables.handleUrl(url) { request in
+                catcher.store(request)
             }
+            if let request = catcher.take() {
+                pendingRegistration = request
+                registration.consentPresented()
+                registrationWait?.cancel()
+                noteRegistration("Connect consent presented.")
+            }
+            let awaitingConnect = pendingRegistration != nil
             if handled {
                 errorMessage = nil
                 GlassesLink.shared.record("Meta AI callback handled.")
+                noteRegistration("Callback handled\(awaitingConnect ? " (awaiting Connect)" : "").")
             } else {
                 GlassesLink.shared.record("Opened by a link the glasses SDK did not recognise.")
+                noteRegistration("Callback not recognised by SDK.")
             }
+            startWait(registration.answerEnded(failure: nil, expectingConsent: awaitingConnect))
         } catch {
-            failure = error.localizedDescription
-            GlassesLink.shared.record("Meta AI callback failed: \(error.localizedDescription)")
-        }
-        let wasConnecting = registration.isWorking
-        startWait(registration.answerEnded(failure: failure))
-        if let failure {
-            // During a try, the trouble is shown where the wearer tapped. Otherwise it
-            // is a message on the Glasses screen.
+            let reason = error.localizedDescription
+            GlassesLink.shared.record("Meta AI callback failed: \(reason)")
+            noteRegistration("Callback error.")
+            let wasConnecting = registration.isWorking
+            startWait(registration.answerEnded(failure: reason, expectingConsent: false))
             if wasConnecting {
                 registrationWait?.cancel()
                 noteRegistration("Meta AI answered with an error.")
             } else {
-                errorMessage = "Meta AI could not finish connecting. \(failure)"
+                errorMessage = "Meta AI could not finish connecting. \(reason)"
             }
         }
     }
@@ -304,17 +314,27 @@ final class GlassesManager: ObservableObject {
     func answerPendingRegistration(approve: Bool) async {
         guard let request = pendingRegistration else { return }
         pendingRegistration = nil
+        noteRegistration(approve ? "Wearer tapped Connect." : "Wearer tapped Not now.")
         do {
             if approve {
                 try await request.continueRegistration()
+                startWait(registration.consentAnswered(approved: true))
+                noteRegistration("continueRegistration called; waiting for registered state.")
             } else {
                 try await request.cancelRegistration()
+                registrationWait?.cancel()
+                _ = registration.consentAnswered(approved: false)
+                noteRegistration("cancelRegistration called.")
             }
         } catch {
             errorMessage = approve
                 ? "Connecting to Meta AI failed. \(error.localizedDescription)"
                 : "Meta AI did not confirm the cancel. \(error.localizedDescription)"
             GlassesLink.shared.record("Registration request \(approve ? "approve" : "decline") failed: \(error.localizedDescription)")
+            noteRegistration("Consent answer failed: \(approve ? "approve" : "decline").")
+            if approve {
+                endRegistration(with: .refused(error.localizedDescription))
+            }
         }
     }
 
@@ -1049,5 +1069,26 @@ final class GlassesManager: ObservableObject {
         photoDataListenerToken = nil
         errorListenerToken = nil
         audioListenerToken = nil
+    }
+}
+
+/// Holds a `RegistrationRequest` from DAT's `@Sendable` URL callback until the MainActor
+/// handler can present Connect. Must not hop via `Task` or the post-callback wait races the alert.
+private final class RegistrationRequestCatcher: @unchecked Sendable {
+    private let lock = NSLock()
+    private var request: RegistrationRequest?
+
+    func store(_ request: RegistrationRequest) {
+        lock.lock()
+        self.request = request
+        lock.unlock()
+    }
+
+    func take() -> RegistrationRequest? {
+        lock.lock()
+        defer { lock.unlock() }
+        let value = request
+        request = nil
+        return value
     }
 }

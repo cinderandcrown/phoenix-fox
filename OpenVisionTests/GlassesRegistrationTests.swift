@@ -105,6 +105,56 @@ final class GlassesRegistrationTests: XCTestCase {
         XCTAssertTrue(attempt.answerReceived)
     }
 
+    /// TF 29.1: a 4s forAnswer wait started while "Connect your glasses?" was up.
+    func testConnectConsentPausesAutoFailUntilAnswered() {
+        var attempt = RegistrationAttempt()
+        attempt.begin()
+        _ = attempt.handedOff()
+        attempt.enteredBackground()
+        let returnWait = attempt.becameActive()
+        XCTAssertEqual(returnWait?.kind, .forAnswer)
+        XCTAssertEqual(returnWait?.seconds, 45)
+        attempt.answerBegan()
+        let afterCallback = attempt.answerEnded(failure: nil, expectingConsent: true)
+        XCTAssertNil(afterCallback)
+        if case .awaitingConsent = attempt.phase {} else {
+            XCTFail("expected awaitingConsent, got \(attempt.phase)")
+        }
+        // An old return wait must not fail over the Connect alert.
+        if let returnWait { attempt.waited(returnWait) }
+        XCTAssertNil(attempt.stall)
+        XCTAssertTrue(attempt.isWorking)
+
+        attempt.consentPresented()
+        XCTAssertNil(attempt.becameActive())
+
+        let afterApprove = attempt.consentAnswered(approved: true)
+        XCTAssertEqual(afterApprove?.kind, .forAnswer)
+        XCTAssertEqual(afterApprove?.seconds, 45)
+    }
+
+    func testDecliningConnectMarksReturnedUnconnected() {
+        var attempt = RegistrationAttempt()
+        attempt.begin()
+        _ = attempt.handedOff()
+        attempt.enteredBackground()
+        attempt.answerBegan()
+        _ = attempt.answerEnded(failure: nil, expectingConsent: true)
+        let wait = attempt.consentAnswered(approved: false)
+        XCTAssertNil(wait)
+        XCTAssertEqual(attempt.stall, .returnedUnconnected)
+    }
+
+    func testOpenAndAnswerWaitsAreLongEnoughForMetaAI() {
+        var attempt = RegistrationAttempt()
+        attempt.begin()
+        let open = attempt.handedOff()
+        XCTAssertEqual(open?.seconds, 20)
+        attempt.enteredBackground()
+        let answer = attempt.becameActive()
+        XCTAssertEqual(answer?.seconds, 45)
+    }
+
     func testRegisteringClearsTheTrouble() {
         var attempt = RegistrationAttempt()
         attempt.begin()
@@ -132,6 +182,7 @@ final class GlassesRegistrationTests: XCTestCase {
         XCTAssertTrue(line.contains("Meta AI opened: yes"))
         XCTAssertTrue(line.contains("Answer from Meta AI: no"))
         XCTAssertTrue(line.contains("available"))
+        XCTAssertTrue(line.contains("Attempt: opening"))
         XCTAssertFalse(line.contains("token"))
         XCTAssertFalse(line.contains("@"))
         XCTAssertFalse(line.contains("http"))
