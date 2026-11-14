@@ -207,6 +207,22 @@
 		4D61F179241CA43944CA0483 /* OwnerBuildTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8CA38BEC37F3694BBBDD75D6 /* OwnerBuildTests.swift */; };
 		8FD4B9B5759399478F557C19 /* GlassesLimitsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA4587C6165845F82CF03064 /* GlassesLimitsView.swift */; };
 		E225E96B1489C1A8B0E48BEB /* OwnerProfileSettingsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 52634453C039777CDB34A608 /* OwnerProfileSettingsTests.swift */; };
+		8E612B86CE6FC91D3250C690 /* Council.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0470A95155546AEF3B1245B /* Council.swift */; };
+		F6355FE1DF77C0EFA3AF2689 /* DoseGuard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E07EC960416A272DA88E73C /* DoseGuard.swift */; };
+		C379BF8ADC756158D50CB6B7 /* IngredientWatch.swift in Sources */ = {isa = PBXBuildFile; fileRef = 78B836A39DFC37D3572E99FA /* IngredientWatch.swift */; };
+		E5362A9D6A14E22BFDD493BC /* PlaceNotes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E1EEA0F9CC61ADC18CD4213 /* PlaceNotes.swift */; };
+		FABEA3AAF562E88E8B3ADEB1 /* RelayRace.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99A3C846AE711FD23D7F80D3 /* RelayRace.swift */; };
+		1472A379A3BFF295851C1CA4 /* Skill.swift in Sources */ = {isa = PBXBuildFile; fileRef = 78608ABC3141140E1833157D /* Skill.swift */; };
+		C6F8E2063F861FCC6AEABCEA /* StandingOrders.swift in Sources */ = {isa = PBXBuildFile; fileRef = C89A1495D59C0C9903F48123 /* StandingOrders.swift */; };
+		4496B40A1E0E08D299CA36D3 /* Tally.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB2849183C373B26462CC9EF /* Tally.swift */; };
+		0A2138F9F20B13E1D724E51C /* WalkThrough.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4AA8C7B99CDD9BDA4B683846 /* WalkThrough.swift */; };
+		3198ACF442481A72FD14EDCE /* WorkshopCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = 89714D88B97FD2507994BFBC /* WorkshopCommand.swift */; };
+		9FE64029FB642F544EDE1A96 /* WorkshopSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEADAB7F3B04783F6B03F07F /* WorkshopSettings.swift */; };
+		82CB1BBEA0C8EF587817CD10 /* WorkshopText.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9E2776F14CFCA66F6A2A327 /* WorkshopText.swift */; };
+		21FD5622852B10CBF4EB9486 /* WorkshopCommandTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2951C2CBFF97EC57A77D7EF8 /* WorkshopCommandTests.swift */; };
+		D8D6C300D79EAEE44BEF0684 /* WorkshopCountingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 979720D3C7037FE66D992D65 /* WorkshopCountingTests.swift */; };
+		2989E3905FA5C844D245E8F7 /* WorkshopHealthTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9DC6AE39A6FCD98E7096A909 /* WorkshopHealthTests.swift */; };
+		1BDB9EA12B5D3AD870BD5466 /* WorkshopTeamTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E96F07EE853200393B1BB92 /* WorkshopTeamTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -414,6 +430,22 @@
 		8CA38BEC37F3694BBBDD75D6 /* OwnerBuildTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OwnerBuildTests.swift; sourceTree = "<group>"; };
 		BA4587C6165845F82CF03064 /* GlassesLimitsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlassesLimitsView.swift; sourceTree = "<group>"; };
 		52634453C039777CDB34A608 /* OwnerProfileSettingsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OwnerProfileSettingsTests.swift; sourceTree = "<group>"; };
+		C0470A95155546AEF3B1245B /* Council.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Council.swift; sourceTree = "<group>"; };
+		4E07EC960416A272DA88E73C /* DoseGuard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DoseGuard.swift; sourceTree = "<group>"; };
+		78B836A39DFC37D3572E99FA /* IngredientWatch.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IngredientWatch.swift; sourceTree = "<group>"; };
+		5E1EEA0F9CC61ADC18CD4213 /* PlaceNotes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaceNotes.swift; sourceTree = "<group>"; };
+		99A3C846AE711FD23D7F80D3 /* RelayRace.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RelayRace.swift; sourceTree = "<group>"; };
+		78608ABC3141140E1833157D /* Skill.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Skill.swift; sourceTree = "<group>"; };
+		C89A1495D59C0C9903F48123 /* StandingOrders.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StandingOrders.swift; sourceTree = "<group>"; };
+		DB2849183C373B26462CC9EF /* Tally.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tally.swift; sourceTree = "<group>"; };
+		4AA8C7B99CDD9BDA4B683846 /* WalkThrough.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WalkThrough.swift; sourceTree = "<group>"; };
+		89714D88B97FD2507994BFBC /* WorkshopCommand.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkshopCommand.swift; sourceTree = "<group>"; };
+		DEADAB7F3B04783F6B03F07F /* WorkshopSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkshopSettings.swift; sourceTree = "<group>"; };
+		F9E2776F14CFCA66F6A2A327 /* WorkshopText.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkshopText.swift; sourceTree = "<group>"; };
+		2951C2CBFF97EC57A77D7EF8 /* WorkshopCommandTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkshopCommandTests.swift; sourceTree = "<group>"; };
+		979720D3C7037FE66D992D65 /* WorkshopCountingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkshopCountingTests.swift; sourceTree = "<group>"; };
+		9DC6AE39A6FCD98E7096A909 /* WorkshopHealthTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkshopHealthTests.swift; sourceTree = "<group>"; };
+		7E96F07EE853200393B1BB92 /* WorkshopTeamTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkshopTeamTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -667,6 +699,7 @@
 				6B0B152C6E932E62A9D51175 /* Web */,
 				F409D2B8DB74D4D4E62E1226 /* Relay */,
 				505A4BF51D97702569AA4A9D /* Accessibility */,
+				55F747B2BBB8A220AAFC4394 /* Workshop */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -868,6 +901,10 @@
 				1D1075235D45C264295E120C /* GlassesLimitsTests.swift */,
 				8CA38BEC37F3694BBBDD75D6 /* OwnerBuildTests.swift */,
 				52634453C039777CDB34A608 /* OwnerProfileSettingsTests.swift */,
+				2951C2CBFF97EC57A77D7EF8 /* WorkshopCommandTests.swift */,
+				979720D3C7037FE66D992D65 /* WorkshopCountingTests.swift */,
+				9DC6AE39A6FCD98E7096A909 /* WorkshopHealthTests.swift */,
+				7E96F07EE853200393B1BB92 /* WorkshopTeamTests.swift */,
 			);
 			path = OpenVisionTests;
 			sourceTree = "<group>";
@@ -1000,6 +1037,33 @@
 				F210EA3722C08930DE62A004 /* GlassesCapabilitySettings.swift */,
 				6CAE7AB8766198A6FF246F6C /* GlassesInputCore.swift */,
 				156F8E364B12C1A9A14DBBCF /* StreamPlan.swift */,
+			);
+			path = Core;
+			sourceTree = "<group>";
+		};
+		55F747B2BBB8A220AAFC4394 /* Workshop */ = {
+			isa = PBXGroup;
+			children = (
+				04295D47ADC2F595787C3C74 /* Core */,
+			);
+			path = Workshop;
+			sourceTree = "<group>";
+		};
+		04295D47ADC2F595787C3C74 /* Core */ = {
+			isa = PBXGroup;
+			children = (
+				C0470A95155546AEF3B1245B /* Council.swift */,
+				4E07EC960416A272DA88E73C /* DoseGuard.swift */,
+				78B836A39DFC37D3572E99FA /* IngredientWatch.swift */,
+				5E1EEA0F9CC61ADC18CD4213 /* PlaceNotes.swift */,
+				99A3C846AE711FD23D7F80D3 /* RelayRace.swift */,
+				78608ABC3141140E1833157D /* Skill.swift */,
+				C89A1495D59C0C9903F48123 /* StandingOrders.swift */,
+				DB2849183C373B26462CC9EF /* Tally.swift */,
+				4AA8C7B99CDD9BDA4B683846 /* WalkThrough.swift */,
+				89714D88B97FD2507994BFBC /* WorkshopCommand.swift */,
+				DEADAB7F3B04783F6B03F07F /* WorkshopSettings.swift */,
+				F9E2776F14CFCA66F6A2A327 /* WorkshopText.swift */,
 			);
 			path = Core;
 			sourceTree = "<group>";
@@ -1175,6 +1239,10 @@
 				B87B9778C3EF9404F6B040A4 /* GlassesLimitsTests.swift in Sources */,
 				4D61F179241CA43944CA0483 /* OwnerBuildTests.swift in Sources */,
 				E225E96B1489C1A8B0E48BEB /* OwnerProfileSettingsTests.swift in Sources */,
+				21FD5622852B10CBF4EB9486 /* WorkshopCommandTests.swift in Sources */,
+				D8D6C300D79EAEE44BEF0684 /* WorkshopCountingTests.swift in Sources */,
+				2989E3905FA5C844D245E8F7 /* WorkshopHealthTests.swift in Sources */,
+				1BDB9EA12B5D3AD870BD5466 /* WorkshopTeamTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1338,6 +1406,18 @@
 				C86C79258531BE3A164C33E3 /* GlassesInputCore.swift in Sources */,
 				5F2B50A63C048CF123B910C0 /* StreamPlan.swift in Sources */,
 				8FD4B9B5759399478F557C19 /* GlassesLimitsView.swift in Sources */,
+				8E612B86CE6FC91D3250C690 /* Council.swift in Sources */,
+				F6355FE1DF77C0EFA3AF2689 /* DoseGuard.swift in Sources */,
+				C379BF8ADC756158D50CB6B7 /* IngredientWatch.swift in Sources */,
+				E5362A9D6A14E22BFDD493BC /* PlaceNotes.swift in Sources */,
+				FABEA3AAF562E88E8B3ADEB1 /* RelayRace.swift in Sources */,
+				1472A379A3BFF295851C1CA4 /* Skill.swift in Sources */,
+				C6F8E2063F861FCC6AEABCEA /* StandingOrders.swift in Sources */,
+				4496B40A1E0E08D299CA36D3 /* Tally.swift in Sources */,
+				0A2138F9F20B13E1D724E51C /* WalkThrough.swift in Sources */,
+				3198ACF442481A72FD14EDCE /* WorkshopCommand.swift in Sources */,
+				9FE64029FB642F544EDE1A96 /* WorkshopSettings.swift in Sources */,
+				82CB1BBEA0C8EF587817CD10 /* WorkshopText.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
