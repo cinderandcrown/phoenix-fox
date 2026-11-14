@@ -155,9 +155,14 @@ jobs:
           defaults write com.apple.dt.Xcode IDEPackageEnablePrebuilts -bool NO
           rm -rf .spm/prebuilts
 
-      # Signed ad hoc, the way Xcode Cloud archives. Signing for a device here would need
-      # a development profile, and Apple will not make one for a team with no registered
-      # devices. The real signature is applied by the export step.
+      # Signed ad hoc. Signing for a device here would need a development profile, and
+      # Apple will not make one for a team with no registered devices. The real signature
+      # is applied by the export step.
+      #
+      # The two APP_ settings reach only the app target (see project.yml). The plain
+      # CODE_SIGN_IDENTITY on the command line also reaches every package and forces
+      # their resource bundles to be signed, which codesign refuses for a bundle that
+      # holds a folder named Resources.
       - name: Archive
         if: steps.gate.outputs.ready == 'true'
         env:
@@ -177,9 +182,8 @@ jobs:
             -skipPackagePluginValidation \
             -skipMacroValidation \
             -hideShellScriptEnvironment \
-            CODE_SIGN_IDENTITY=- \
-            AD_HOC_CODE_SIGNING_ALLOWED=YES \
-            CODE_SIGN_STYLE=Automatic \
+            APP_CODE_SIGN_IDENTITY=- \
+            APP_AD_HOC_SIGNING=YES \
             DEVELOPMENT_TEAM="$APPLE_TEAM_ID" \
             MARKETING_VERSION="$VERSION" \
             CURRENT_PROJECT_VERSION="$BUILD" \

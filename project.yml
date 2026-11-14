@@ -17,6 +17,12 @@ settings:
     SWIFT_STRICT_CONCURRENCY: complete
     DEVELOPMENT_TEAM: ${DEVELOPMENT_TEAM}
     CODE_SIGN_STYLE: Automatic
+    # How the app itself is signed. The TestFlight workflow sets these two to "-" and YES
+    # on the command line to archive ad hoc. They are separate names because a signing
+    # setting given on the command line also reaches every package, and a package
+    # resource bundle that is forced to be signed fails the archive.
+    APP_CODE_SIGN_IDENTITY: Apple Development
+    APP_AD_HOC_SIGNING: "NO"
     INFOPLIST_FILE: OpenVision/Resources/Info.plist
     PRODUCT_BUNDLE_IDENTIFIER: com.cinderandcrown.phoenixfox
     META_APP_ID: "1651172483404286"
@@ -66,6 +72,8 @@ targets:
         SUPPORTS_MACCATALYST: false
         ENABLE_PREVIEWS: true
         CODE_SIGN_ENTITLEMENTS: OpenVision/OpenVision.entitlements
+        CODE_SIGN_IDENTITY: $(APP_CODE_SIGN_IDENTITY)
+        "AD_HOC_CODE_SIGNING_ALLOWED[sdk=iphoneos*]": $(APP_AD_HOC_SIGNING)
         SWIFT_OBJC_BRIDGING_HEADER: OpenVision/OpenVision-Bridging-Header.h
     dependencies:
       - package: meta-wearables-dat-ios
