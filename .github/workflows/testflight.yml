@@ -1,21 +1,53 @@
 name: TestFlight
 
-# Signs Phoenix Fox with the App Store Connect API key and uploads a build.
-# Skips cleanly until every secret below exists. No Mac is required.
-# Secrets are documented in SETUP.md.
+# Signs Phoenix Fox with the App Store Connect API key and uploads a build. No Mac is needed.
+#
+# When it runs:
+#   - "Run workflow" on the Actions page: signs, checks, and uploads (or signs only, if
+#     the upload box is unticked).
+#   - A tag such as v1.0.0: signs, checks, and uploads. The tag must match the app version.
+#   - A pull request that changes signing (this file, the scripts it runs, the
+#     entitlements, Info.plist): signs and checks only. Nothing is uploaded.
+#
+# It skips cleanly when the secrets are missing, as they are for a fork.
+# The secrets are listed in SETUP.md.
 
 on:
   workflow_dispatch:
+    inputs:
+      upload:
+        description: Upload to TestFlight (untick to only sign and check)
+        type: boolean
+        default: true
   push:
-    branches: [main]
+    tags: ["v*"]
+  pull_request:
+    paths:
+      - .github/workflows/testflight.yml
+      - scripts/appstore_connect.py
+      - scripts/check_signed_app.py
+      - OpenVision/OpenVision.entitlements
+      - OpenVision/Resources/Info.plist
+      - OpenVision/Resources/PrivacyInfo.xcprivacy
+
+# One signing run at a time: two uploads at once could take the same build number.
+concurrency:
+  group: testflight
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  DEVELOPER_DIR: /Applications/Xcode_26.6.app/Contents/Developer
+  BUNDLE_ID: com.cinderandcrown.phoenixfox
+  BETA_GROUP: Phoenix Fox team
 
 jobs:
   testflight:
-    name: Sign and upload
+    name: Sign, check, and upload
     runs-on: macos-26
     timeout-minutes: 120
-    env:
-      DEVELOPER_DIR: /Applications/Xcode_26.6.app/Contents/Developer
     steps:
       - uses: actions/checkout@v7
 
@@ -37,34 +69,133 @@ jobs:
           done
           if [ "$missing" = 1 ]; then
             echo "ready=false" >> "$GITHUB_OUTPUT"
-            echo "TestFlight upload skipped. Add the secrets listed in SETUP.md."
+            echo "TestFlight skipped. Add the secrets listed in SETUP.md."
           else
             echo "ready=true" >> "$GITHUB_OUTPUT"
           fi
+
+      # The build number is the run number, so each upload is higher than the last. A
+      # re-run of the same run gets .2, .3, because Apple refuses a number it has seen.
+      - name: Version and build number
+        id: version
+        if: steps.gate.outputs.ready == 'true'
+        env:
+          BUILD: ${{ github.run_number }}.${{ github.run_attempt }}
+          UPLOAD_INPUT: ${{ inputs.upload }}
+        run: |
+          version="$(sed -n 's/^ *MARKETING_VERSION: "\([0-9][0-9.]*\)"$/\1/p' project.yml | head -1)"
+          build="$BUILD"
+          if [ -z "$version" ]; then
+            echo "::error::No MARKETING_VERSION in project.yml."
+            exit 1
+          fi
+          if [ "$GITHUB_REF_TYPE" = tag ] && [ "$GITHUB_REF_NAME" != "v$version" ]; then
+            echo "::error::Tag $GITHUB_REF_NAME does not match app version $version. Change MARKETING_VERSION in project.yml and the project file, or tag v$version."
+            exit 1
+          fi
+          upload=false
+          if [ "$GITHUB_EVENT_NAME" = push ]; then upload=true; fi
+          if [ "$GITHUB_EVENT_NAME" = workflow_dispatch ] && [ "$UPLOAD_INPUT" = true ]; then upload=true; fi
+          {
+            echo "version=$version"
+            echo "build=$build"
+            echo "upload=$upload"
+          } >> "$GITHUB_OUTPUT"
+          echo "Phoenix Fox $version ($build). Upload: $upload"
 
       - name: Write signing config
         if: steps.gate.outputs.ready == 'true'
         env:
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
-          META_CLIENT_TOKEN: ${{ secrets.META_CLIENT_TOKEN }}
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
           ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
+          META_CLIENT_TOKEN: ${{ secrets.META_CLIENT_TOKEN }}
         run: |
+          umask 077
           cp OpenVision/Config/Config.swift.example OpenVision/Config/Config.swift
           cat > Config.xcconfig <<EOF
           DEVELOPMENT_TEAM = ${APPLE_TEAM_ID}
-          PRODUCT_BUNDLE_IDENTIFIER = com.cinderandcrown.phoenixfox
+          PRODUCT_BUNDLE_IDENTIFIER = ${BUNDLE_ID}
           META_APP_ID = 1651172483404286
           META_CLIENT_TOKEN = ${META_CLIENT_TOKEN}
-          APP_LINK_URL_SCHEME = phoenixfox
           EOF
-          printf '%s\n' "$ASC_KEY_P8" > "$RUNNER_TEMP/AuthKey.p8"
+          # altool looks for the key by this name in this folder.
+          mkdir -p "$HOME/.appstoreconnect/private_keys"
+          key="$HOME/.appstoreconnect/private_keys/AuthKey_${ASC_KEY_ID}.p8"
+          printf '%s\n' "$ASC_KEY_P8" > "$key"
+          echo "ASC_KEY_PATH=$key" >> "$GITHUB_ENV"
 
-      - name: Disable SwiftPM prebuilts (swift-syntax prebuilts lack iOS slices)
+      # The archive is signed ad hoc and never asks Apple for a development profile, so
+      # the capabilities the entitlements name are turned on here, before the export
+      # step asks Apple for the App Store profile.
+      - name: App ID capabilities
+        if: steps.gate.outputs.ready == 'true'
+        env:
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
         run: |
+          python3 scripts/appstore_connect.py capabilities --bundle-id "$BUNDLE_ID" \
+            --enable PUSH_NOTIFICATIONS ASSOCIATED_DOMAINS INCREASED_MEMORY_LIMIT
+
+      # Only the package sources are cached. Build products hold the Meta client token,
+      # and a cache can be read by any pull request, so they are rebuilt every time.
+      - name: Restore package sources
+        id: cache
+        if: steps.gate.outputs.ready == 'true'
+        uses: actions/cache/restore@v6
+        with:
+          path: .spm
+          key: packages-${{ runner.os }}-${{ hashFiles('PhoenixFox.xcodeproj/project.pbxproj') }}
+          restore-keys: packages-${{ runner.os }}-
+
+      - name: Build settings for CI
+        if: steps.gate.outputs.ready == 'true'
+        run: |
+          # swift-syntax prebuilts ship macOS slices only.
           defaults write com.apple.dt.Xcode IDEPackageEnablePrebuilts -bool NO
           rm -rf .spm/prebuilts
 
+      # Signed ad hoc, the way Xcode Cloud archives. Signing for a device here would need
+      # a development profile, and Apple will not make one for a team with no registered
+      # devices. The real signature is applied by the export step.
       - name: Archive
+        if: steps.gate.outputs.ready == 'true'
+        env:
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          VERSION: ${{ steps.version.outputs.version }}
+          BUILD: ${{ steps.version.outputs.build }}
+        run: |
+          set -o pipefail
+          xcodebuild archive \
+            -project PhoenixFox.xcodeproj \
+            -scheme PhoenixFox \
+            -configuration Release \
+            -destination 'generic/platform=iOS' \
+            -archivePath "$RUNNER_TEMP/PhoenixFox.xcarchive" \
+            -clonedSourcePackagesDirPath .spm \
+            -derivedDataPath "$RUNNER_TEMP/DerivedData" \
+            -skipPackagePluginValidation \
+            -skipMacroValidation \
+            -hideShellScriptEnvironment \
+            CODE_SIGN_IDENTITY=- \
+            AD_HOC_CODE_SIGNING_ALLOWED=YES \
+            CODE_SIGN_STYLE=Automatic \
+            DEVELOPMENT_TEAM="$APPLE_TEAM_ID" \
+            MARKETING_VERSION="$VERSION" \
+            CURRENT_PROJECT_VERSION="$BUILD" \
+          | tee "$RUNNER_TEMP/xcodebuild-archive.log" \
+          | xcbeautify --renderer github-actions
+
+      - name: Save package sources
+        if: always() && steps.gate.outputs.ready == 'true' && steps.cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v6
+        with:
+          path: .spm
+          key: packages-${{ runner.os }}-${{ hashFiles('PhoenixFox.xcodeproj/project.pbxproj') }}
+
+      # Apple makes the distribution certificate and App Store profile for the API key
+      # and signs the app. The .ipa stays on the runner.
+      - name: Sign for the App Store
         if: steps.gate.outputs.ready == 'true'
         env:
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
@@ -72,38 +203,16 @@ jobs:
           ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
         run: |
           set -o pipefail
-          xcodebuild archive \
-            -project PhoenixFox.xcodeproj \
-            -scheme PhoenixFox \
-            -destination 'generic/platform=iOS' \
-            -archivePath "$RUNNER_TEMP/PhoenixFox.xcarchive" \
-            -clonedSourcePackagesDirPath .spm \
-            -allowProvisioningUpdates \
-            -authenticationKeyPath "$RUNNER_TEMP/AuthKey.p8" \
-            -authenticationKeyID "$ASC_KEY_ID" \
-            -authenticationKeyIssuerID "$ASC_ISSUER_ID" \
-            -skipPackagePluginValidation \
-            -skipMacroValidation \
-            DEVELOPMENT_TEAM="$APPLE_TEAM_ID" \
-            CODE_SIGN_STYLE=Automatic \
-            PRODUCT_BUNDLE_IDENTIFIER=com.cinderandcrown.phoenixfox
-
-      - name: Upload to TestFlight
-        if: steps.gate.outputs.ready == 'true'
-        env:
-          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
-          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
-          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
-        run: |
           cat > "$RUNNER_TEMP/ExportOptions.plist" <<EOF
           <?xml version="1.0" encoding="UTF-8"?>
           <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
           <plist version="1.0"><dict>
             <key>method</key><string>app-store-connect</string>
-            <key>destination</key><string>upload</string>
+            <key>destination</key><string>export</string>
             <key>signingStyle</key><string>automatic</string>
             <key>teamID</key><string>${APPLE_TEAM_ID}</string>
-            <key>manageAppVersionAndBuildNumber</key><true/>
+            <key>manageAppVersionAndBuildNumber</key><false/>
+            <key>uploadSymbols</key><true/>
           </dict></plist>
           EOF
           xcodebuild -exportArchive \
@@ -111,6 +220,109 @@ jobs:
             -exportPath "$RUNNER_TEMP/export" \
             -exportOptionsPlist "$RUNNER_TEMP/ExportOptions.plist" \
             -allowProvisioningUpdates \
-            -authenticationKeyPath "$RUNNER_TEMP/AuthKey.p8" \
+            -authenticationKeyPath "$ASC_KEY_PATH" \
             -authenticationKeyID "$ASC_KEY_ID" \
-            -authenticationKeyIssuerID "$ASC_ISSUER_ID"
+            -authenticationKeyIssuerID "$ASC_ISSUER_ID" \
+          | tee "$RUNNER_TEMP/xcodebuild-export.log"
+
+      # A build can sign and still be useless on a phone. This reads the signed app and
+      # fails before anything is uploaded.
+      - name: Check the signed app
+        if: steps.gate.outputs.ready == 'true'
+        env:
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          VERSION: ${{ steps.version.outputs.version }}
+          BUILD: ${{ steps.version.outputs.build }}
+        run: |
+          ipa="$(ls "$RUNNER_TEMP"/export/*.ipa | head -1)"
+          echo "IPA_PATH=$ipa" >> "$GITHUB_ENV"
+          unzip -q "$ipa" -d "$RUNNER_TEMP/ipa"
+          app="$(ls -d "$RUNNER_TEMP"/ipa/Payload/*.app | head -1)"
+          codesign --verify --strict "$app"
+          codesign -d --entitlements "$RUNNER_TEMP/entitlements.plist" --xml "$app" 2>/dev/null
+          python3 scripts/check_signed_app.py \
+            --info "$app/Info.plist" \
+            --entitlements "$RUNNER_TEMP/entitlements.plist" \
+            --team "$APPLE_TEAM_ID" \
+            --bundle-id "$BUNDLE_ID" \
+            --version "$VERSION" \
+            --build "$BUILD"
+          echo "Size: $(du -h "$ipa" | cut -f1)"
+
+      # Apple's own checks on the signed app, the same ones an upload runs, without
+      # uploading. This is what catches a missing icon or a plist key Apple refuses.
+      - name: Validate with Apple
+        if: steps.gate.outputs.ready == 'true'
+        env:
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+        run: |
+          xcrun altool --validate-app --type ios --file "$IPA_PATH" \
+            --apiKey "$ASC_KEY_ID" --apiIssuer "$ASC_ISSUER_ID"
+
+      - name: Internal testing group
+        if: steps.gate.outputs.ready == 'true' && steps.version.outputs.upload == 'true'
+        env:
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+        run: python3 scripts/appstore_connect.py beta-group --bundle-id "$BUNDLE_ID" --name "$BETA_GROUP"
+
+      - name: Upload to TestFlight
+        if: steps.gate.outputs.ready == 'true' && steps.version.outputs.upload == 'true'
+        env:
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+        run: |
+          xcrun altool --upload-app --type ios --file "$IPA_PATH" \
+            --apiKey "$ASC_KEY_ID" --apiIssuer "$ASC_ISSUER_ID"
+
+      - name: Wait for Apple to process the build
+        if: steps.gate.outputs.ready == 'true' && steps.version.outputs.upload == 'true'
+        env:
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          VERSION: ${{ steps.version.outputs.version }}
+          BUILD: ${{ steps.version.outputs.build }}
+        run: |
+          python3 scripts/appstore_connect.py wait-build --bundle-id "$BUNDLE_ID" \
+            --version "$VERSION" --build "$BUILD"
+
+      - name: Summary
+        if: steps.gate.outputs.ready == 'true'
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+          BUILD: ${{ steps.version.outputs.build }}
+          UPLOAD: ${{ steps.version.outputs.upload }}
+        run: |
+          {
+            echo "### Phoenix Fox $VERSION ($BUILD)"
+            if [ "$UPLOAD" = true ]; then
+              echo "Uploaded. Open TestFlight on the iPhone; the build is in the “$BETA_GROUP” group."
+            else
+              echo "Signed, checked, and validated with Apple. Nothing was uploaded."
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      # The job log hides secrets; a log file saved as an artifact would not. So the
+      # useful part of each log is printed here instead of being uploaded.
+      - name: Show what failed
+        if: failure()
+        run: |
+          for log in "$RUNNER_TEMP/xcodebuild-archive.log" "$RUNNER_TEMP/xcodebuild-export.log"; do
+            [ -f "$log" ] || continue
+            echo "::group::$(basename "$log")"
+            grep -E "error:|Error Domain|\*\* .* FAILED \*\*" "$log" | awk '!seen[$0]++' | head -80 || true
+            tail -40 "$log"
+            echo "::endgroup::"
+          done
+          for log in $(sed -n 's/.*Created bundle at path "\(.*xcdistributionlogs\)".*/\1/p' "$RUNNER_TEMP/xcodebuild-export.log" 2>/dev/null); do
+            echo "::group::Signing log"
+            tail -80 "$log/IDEDistribution.standard.log" || true
+            echo "::endgroup::"
+          done
+
+      - name: Remove the key and the signed app
+        if: always()
+        run: |
+          rm -rf "$HOME/.appstoreconnect" "$RUNNER_TEMP/export" "$RUNNER_TEMP/ipa" \
+            "$RUNNER_TEMP/PhoenixFox.xcarchive" "$RUNNER_TEMP/DerivedData" Config.xcconfig

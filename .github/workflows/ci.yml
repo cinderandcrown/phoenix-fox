@@ -16,6 +16,15 @@ env:
   DEVELOPER_DIR: /Applications/Xcode_26.6.app/Contents/Developer
 
 jobs:
+  scripts:
+    name: Scripts
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+      - name: Tests for the signing and project scripts
+        run: python3 -m unittest discover -s scripts -v
+
   build:
     name: Build and test (simulator, unsigned)
     runs-on: macos-26
@@ -118,7 +127,10 @@ jobs:
             -project PhoenixFox.xcodeproj \
             -scheme PhoenixFox \
             -destination "platform=iOS Simulator,id=$device" \
+            -clonedSourcePackagesDirPath .spm \
             -derivedDataPath DerivedData \
+            -skipPackagePluginValidation \
+            -skipMacroValidation \
             -resultBundlePath TestResults.xcresult \
             -parallel-testing-enabled NO \
           | tee xcodebuild-test.log \
@@ -132,6 +144,15 @@ jobs:
             .spm
             DerivedData
           key: build-${{ runner.os }}-xcode26.6-${{ hashFiles('PhoenixFox.xcodeproj/project.pbxproj') }}
+
+      # The versions the packages resolved to, so they can be pinned in the repository.
+      - name: Upload resolved package versions
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: package-resolved
+          path: PhoenixFox.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved
+          if-no-files-found: ignore
 
       - name: Upload build log on failure
         if: failure()
