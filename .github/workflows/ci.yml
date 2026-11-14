@@ -33,6 +33,39 @@ jobs:
       - name: Tests for the signing and project scripts
         run: python3 -m unittest discover -s scripts -v
 
+  # Nicholas's Windows machine has no Xcode. macos-26 with Xcode_26.6 IS the Mac
+  # environment for doctor_mac + setup_mac (official Meta skill sync into .agents/).
+  mac-environment:
+    name: macOS doctor and Meta skill sync
+    runs-on: macos-26
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - name: Doctor (environment inventory)
+        run: |
+          set -o pipefail
+          bash scripts/doctor_mac.sh 2>&1 | tee doctor_mac.log
+      - name: Sync official Meta skills
+        run: |
+          set -o pipefail
+          bash scripts/setup_mac.sh 2>&1 | tee setup_mac.log
+      - name: Confirm skills landed
+        run: |
+          test -f .agents/skills/meta-official-getting-started/SKILL.md
+          ls -1 .agents/skills/meta-official-*/SKILL.md | tee meta_official_skills.txt
+      - name: Upload doctor and setup outputs
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: mac-environment
+          path: |
+            doctor_mac.log
+            setup_mac.log
+            meta_official_skills.txt
+          if-no-files-found: warn
+
   build:
     name: Build and test (simulator)
     runs-on: macos-26
@@ -136,13 +169,29 @@ jobs:
       - name: Unit tests
         run: |
           set -o pipefail
-          device="$(xcrun simctl list devices available -j \
-            | python3 -c 'import json,sys; d=json.load(sys.stdin)["devices"]; print(next(x["udid"] for k in sorted(d, reverse=True) if "iOS" in k for x in d[k] if x["name"].startswith("iPhone")))')"
-          echo "Simulator: $device"
+          # Named simulator (engineering standard §8): resolve a real device name+id, prefer iPhone 17.
+          # Avoid bash mapfile (macOS ships Bash 3.2).
+          sim_name="$(xcrun simctl list devices available -j | python3 -c '
+          import json,sys
+          devices=json.load(sys.stdin)["devices"]
+          phones=[]
+          for runtime in sorted(devices, reverse=True):
+            if "iOS" not in runtime: continue
+            for d in devices[runtime]:
+              if d["name"].startswith("iPhone"):
+                phones.append((d["name"], d["udid"]))
+          prefer=next((p for p in phones if p[0].startswith("iPhone 17")), None)
+          pick=prefer or (phones[0] if phones else None)
+          if not pick: raise SystemExit("No iPhone simulator available")
+          print(pick[0])
+          open("/tmp/phoenix-fox-sim-udid","w").write(pick[1])
+          ')"
+          sim_udid="$(cat /tmp/phoenix-fox-sim-udid)"
+          echo "Named simulator: $sim_name ($sim_udid)"
           xcodebuild test-without-building \
             -project PhoenixFox.xcodeproj \
             -scheme PhoenixFox \
-            -destination "platform=iOS Simulator,id=$device" \
+            -destination "platform=iOS Simulator,id=$sim_udid" \
             -clonedSourcePackagesDirPath .spm \
             -derivedDataPath DerivedData \
             -skipPackagePluginValidation \

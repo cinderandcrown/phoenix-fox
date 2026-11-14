@@ -132,7 +132,8 @@ targets:
 
 packages:
   meta-wearables-dat-ios:
-    url: https://github.com/facebook/meta-wearables-dat-ios
+    # Canonical org is meta/ (facebook/ 301-redirects to the same repo; same 1.0.1 SHA).
+    url: https://github.com/meta/meta-wearables-dat-ios
     # Pinned EXACTLY — this SDK rewrites its API most releases, so never float (`from:`).
     #
     # 1.0.1 (2026-10-09): stable DAT line. Display HUD (MWDATDisplay), Inputs including
@@ -143,12 +144,12 @@ packages:
   # PrismML fork of mlx-swift, adding 1-bit quantized Metal kernels (upstream PR pending).
   # Needed to load Bonsai-8B (Qwen3-8B at 1-bit g128, 1.28 GB vs E2B's 3.6 GB). Declared at the
   # ROOT so every consumer (mlx-swift-lm + the three vendored packages) resolves the same identity.
-  # Pinned to v0.31.6_prism, NOT the fork's default `prism` branch: `prism` is 10 commits behind and
-  # misses "gate NAX to gen-18+ (M5/gen-17 miscompute)" — a correctness fix for current Apple GPUs.
+  # Pinned to the tip of v0.31.6_prism as an exact revision (not a floating branch):
+  # 9c3a80a4 — includes "gate NAX to gen-18+ (M5/gen-17 miscompute)".
   # Upstream base is 0.31.6 (we were on 0.31.4); Kokoro asks for >= 0.29.1, so it satisfies both.
   mlx-swift:
     url: https://github.com/PrismML-Eng/mlx-swift.git
-    branch: v0.31.6_prism
+    revision: "9c3a80a4ce8be105540e378c2a703bfc9de57f25"
   mlx-swift-lm:
     url: https://github.com/ml-explore/mlx-swift-lm.git
     # Pinned to a main commit PAST the 3.31.4 tag that fixes Gemma 4 E2B loading. 3.31.4's VLM backbone
