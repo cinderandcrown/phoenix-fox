@@ -361,7 +361,7 @@ In order. The first block is all that stage one needs.
 
 **In the code**
 
-6. Give a new free user a working start. The default brain today is "Your assistants", which needs a relay, and a session will not start with an unconfigured brain. A public build should begin on the on-device brain.
+6. Give a new free user a working start. Partly done: first run now ends on the AI built into the phone when no relay and no other AI is set up and the phone has Apple Intelligence. What is left: the setting's default is still "Your assistants", so someone who never sees first run, or whose phone has no Apple Intelligence, still starts with a brain that needs a relay, and a session will not start with an unconfigured brain. A public build should default to the on-device brain and offer the downloadable local model where Apple Intelligence is missing.
 7. Change the default fast models, after trying the new names on a phone.
 8. Build a build for sale: `PHOENIX_FOX_OWNER_BUILD=NO`, `PHOENIX_FOX_STORE=YES`. The workshop features are owner-build only and stay out of it; the council and the relay race among them belong to Bot Team when they leave the workshop.
 

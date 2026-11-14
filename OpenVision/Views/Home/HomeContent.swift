@@ -11,6 +11,8 @@ struct HomeContent: View {
     let model: HomeModel
     var actions = HomeActions()
 
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
     var body: some View {
         ScrollView {
             VStack(spacing: Theme.Space.roomy) {
@@ -27,7 +29,7 @@ struct HomeContent: View {
                 VStack(spacing: Theme.Space.snug) {
                     if model.signals.cameraOn {
                         CameraBanner()
-                            .transition(.opacity.combined(with: .scale(scale: 0.96)))
+                            .transition(reduceMotion ? .opacity : .opacity.combined(with: .scale(scale: 0.96)))
                     }
                     if let note = model.recordingNote {
                         NoteRow(symbol: "record.circle", text: note)
@@ -67,7 +69,7 @@ struct HomeContent: View {
             if let trouble = model.trouble {
                 TroubleBanner(message: trouble, onDismiss: actions.dismissTrouble)
                     .padding(Theme.Space.normal)
-                    .transition(.move(edge: .bottom).combined(with: .opacity))
+                    .transition(reduceMotion ? .opacity : .move(edge: .bottom).combined(with: .opacity))
             }
         }
         .animation(Theme.Motion.state, value: model.signals.cameraOn)

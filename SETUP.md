@@ -57,32 +57,37 @@ Pushing a tag named `v` plus the app version, such as `v1.0.0`, does the same as
 
 1. Install **Meta AI** from the App Store, sign in with the account that owns the glasses, and pair the Adventurer glasses there. Phoenix Fox does not replace that pairing.
 2. In Meta AI, open **Settings → App Info** (named **About** in some versions) and tap the version number five times. Turn **Developer Mode** on, and leave it on.
-3. Open Phoenix Fox. Go to **Settings → Glasses** and tap **Register App**. Meta AI opens, asks you to allow Phoenix Fox, and sends you back to Phoenix Fox.
+3. Open Phoenix Fox. The first time, it walks you through five short steps, and each one can be skipped. On **Connect your glasses**, tap **Open Meta AI**. Meta AI opens, asks you to allow Phoenix Fox, and sends you back to Phoenix Fox. If you skipped that step, tap the glasses chip at the top of the home screen, or go to **Settings → Glasses**, and tap **Register App**.
 
-If you are not sent back, or the Glasses screen still says it is not registered, look at the message under the button. A message from the glasses SDK is shown there as written. The usual causes are Developer Mode being off, or the Meta project not matching the team ID, bundle ID, or universal link above.
+If you are not sent back, or the Glasses screen still says it is not registered, look at the message on the first-run step or under the button. A message from the glasses SDK is shown there as written. The usual causes are Developer Mode being off, or the Meta project not matching the team ID, bundle ID, or universal link above.
 
 The capture light on the glasses is Meta's hardware. Phoenix Fox cannot turn it off and does not try to. The camera runs only when you ask for it.
 
 ## Connect your assistants
 
-1. In Phoenix Fox, open **Settings → AI Backend → Assistants**.
+The first-run step **Connect your assistants** takes the relay address and token and tests them. To enter or change them later:
+
+1. In Phoenix Fox, open **Settings → AI Backend → Assistants**, or tap **Connect your assistants** on the home screen.
 2. Leave **Relay address** empty to use the Phoenix Fox relay. Paste the relay token into **Relay token**. The token is kept in the iPhone's Keychain. It is not in this repository and is not a GitHub secret.
 3. Tap **Test connection**. A good result saves the address and the token. Any other result says what was wrong: the token, the address, or the network.
-4. Tap **Turn on alerts** and allow notifications. This is the only place the app asks. Without it, messages from your assistants are still spoken while the app is open.
+4. If you did not allow notifications during first run, tap **Turn on alerts** and allow them. Without it, messages from your assistants are still spoken while the app is open.
 
 ## Try it
 
-Put the glasses on with Phoenix Fox open. iOS asks for the microphone and speech recognition the first time. The orange dot at the top of the iPhone screen is on while Jarvis is listening. That is iOS showing that the microphone is in use.
+Put the glasses on with Phoenix Fox open. If you skipped the permissions step in first run, iOS asks for the microphone and speech recognition now. The orange dot at the top of the iPhone screen is on while Jarvis is listening. That is iOS showing that the microphone is in use.
+
+The home screen shows what Jarvis is doing in a word or two under the orb: Ready, Listening, Looking, Asking Indy, Replying. Below it is a card for each assistant with what it is doing. A red banner and a red ring around the orb mean the glasses camera is on. [docs/DESIGN.md](docs/DESIGN.md) describes the screen.
 
 | You say | What should happen |
 | --- | --- |
 | **Jarvis** | A chime. The app is listening for one request, and stays open for a follow-up until you stop talking. |
 | Jarvis, what time is it | The time is spoken. No network and no model are used. |
-| Jarvis, ask Indy about the gate | The request goes to Indy through the relay, and Indy's reply is spoken with Indy's name. |
+| Jarvis, ask Indy about the gate | Jarvis says "Asking Indy." at once. The request goes to Indy through the relay, Indy's card on the home screen shows the task, and Indy's reply is spoken with Indy's name. |
+| go on | After a long answer that ended with "There's more. Say go on.", the next part is spoken. Turn this off with **Short spoken replies** under Assistants. |
 | Jarvis, what do you see | The capture light comes on, one picture is taken, the light goes off, and the answer is spoken. |
 | Jarvis, take a picture | The picture is saved to Photos. iOS asks for Photos access the first time. |
 | Jarvis, remember this | An encrypted note is kept on the phone. |
-| Jarvis, stop | Speech stops. |
+| Jarvis, stop | Speech stops. A tap on the orb while Jarvis is talking does the same. |
 
 If a reply comes from the phone and not the glasses, the glasses are not the audio route. Check that they show as connected in iOS Bluetooth settings.
 
@@ -171,7 +176,7 @@ Guide mode, reading, money and label reading, colors, face recognition with cons
 
 Read the safety section of [docs/ACCESSIBILITY.md](docs/ACCESSIBILITY.md) first. Guide mode is an aid and does not replace a cane or a guide dog. The same file has the status of each feature and the eleven checks to run on the glasses.
 
-iOS asks for three more permissions the first time each is needed: location for walking directions and "where am I", notifications for sound alerts, and Contacts for "set my emergency contact to" a name. To start walking directions with the phone locked, set location for Phoenix Fox to Always in the Settings app.
+iOS asks for three more permissions the first time each is needed: location for walking directions and "where am I", notifications for sound alerts if you did not allow them in first run, and Contacts for "set my emergency contact to" a name. To start walking directions with the phone locked, set location for Phoenix Fox to Always in the Settings app.
 
 ## Alerts when the app is closed
 
