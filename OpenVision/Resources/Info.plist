@@ -61,13 +61,33 @@
         <string>LaunchBackground</string>
     </dict>
 
-    <!-- Queried URL Schemes (Meta AI app) -->
+    <!-- Queried URL Schemes (Meta AI app + Spotify install check) -->
     <key>LSApplicationQueriesSchemes</key>
     <array>
         <string>fb-viewapp</string>
         <string>whatsapp</string>
         <string>fb-messenger</string>
+        <string>spotify</string>
     </array>
+
+    <!-- Spotify PKCE redirect (phoenixfox://spotify-callback) -->
+    <key>CFBundleURLTypes</key>
+    <array>
+        <dict>
+            <key>CFBundleTypeRole</key>
+            <string>Editor</string>
+            <key>CFBundleURLName</key>
+            <string>com.cinderandcrown.phoenixfox.spotify</string>
+            <key>CFBundleURLSchemes</key>
+            <array>
+                <string>phoenixfox</string>
+            </array>
+        </dict>
+    </array>
+
+    <!-- Spotify Dashboard client id (public). Empty until set in Config.xcconfig. -->
+    <key>SpotifyClientID</key>
+    <string>$(SPOTIFY_CLIENT_ID)</string>
 
     <!-- Required Device Capabilities -->
     <key>UIRequiredDeviceCapabilities</key>

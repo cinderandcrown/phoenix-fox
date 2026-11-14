@@ -7,6 +7,10 @@ PRODUCT_BUNDLE_IDENTIFIER = com.cinderandcrown.phoenixfox
 META_APP_ID = 1651172483404286
 META_CLIENT_TOKEN =
 
+// Spotify Developer Dashboard client id (public). Required for hands-free Spotify.
+// Redirect URI must be phoenixfox://spotify-callback. See docs/SDK_NOTES.md.
+SPOTIFY_CLIENT_ID =
+
 // YES makes the owner's build: every feature on, and the glasses toolkit's beta
 // capabilities allowed. Leave it out for a standard build.
 // PHOENIX_FOX_OWNER_BUILD = YES

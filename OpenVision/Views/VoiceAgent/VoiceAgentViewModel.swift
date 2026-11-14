@@ -381,6 +381,7 @@ final class VoiceAgentViewModel: ObservableObject {
             // Playback finished — closes the turn and publishes it to the metrics sinks.
             MetricsCollector.shared.markSpokeDone()
             commandTurnActive = false   // reply fully played; ambient narration may resume
+            MusicCoordinator.shared.endAssistantSpeech()
 
             // Resume barge-in detection
             voiceCommandService.isBargeInPaused = false
@@ -416,6 +417,7 @@ final class VoiceAgentViewModel: ObservableObject {
             // flowing while turn metrics silently vanished whenever Kokoro was selected.
             MetricsCollector.shared.markSpokeDone()
             commandTurnActive = false   // reply fully played; ambient narration may resume
+            MusicCoordinator.shared.endAssistantSpeech()
 
             voiceCommandService.isBargeInPaused = false
             if isSessionActive {
@@ -806,6 +808,8 @@ final class VoiceAgentViewModel: ObservableObject {
         voiceCommandService.onWakeWordDetected = { [weak self] in
             guard let self else { return }
             print("[VoiceAgent] Wake word detected!")
+            // Music on A2DP must briefly yield to HFP for the mic, then restore stereo.
+            MusicCoordinator.shared.beginVoiceCapture()
             // The haptic for this moment is played by the home screen with the other beats
             // of a turn. See `HapticCue`.
             self.soundService.playWakeWordSound()
@@ -1164,14 +1168,35 @@ final class VoiceAgentViewModel: ObservableObject {
         // The accessibility suite hears the sentence first. Its commands are fixed phrases
         // worked out on the phone, so "stop guide mode" or "read this" never reach the
         // general stop handling or a bot.
-        if await handleAccessibilityCommand(command) { return }
+        if await handleAccessibilityCommand(command) {
+            MusicCoordinator.shared.endVoiceCapture()
+            return
+        }
 
         // The owner build's workshop is next, for the same reason: "note, the stop valve is
         // leaking" is a walk-through note, not a stop command.
-        if await handleWorkshopCommand(command) { return }
+        if await handleWorkshopCommand(command) {
+            MusicCoordinator.shared.endVoiceCapture()
+            return
+        }
 
         // Look to Talk is last of the three, and matches nothing while its switch is off.
-        if await handleLookCommand(command) { return }
+        if await handleLookCommand(command) {
+            MusicCoordinator.shared.endVoiceCapture()
+            return
+        }
+
+        // Hands-free music (Spotify / Apple Music) before the general brain.
+        if let music = MusicCommandParser.parse(command) {
+            let line = await MusicCoordinator.shared.handle(music)
+            MusicCoordinator.shared.endVoiceCapture()
+            CompanionSurface.present(bot: nil, text: line) { self.speakResponse($0) }
+            if !ttsService.isSpeaking && !NeuralSpeech.isAnySpeaking {
+                agentState = isSessionActive ? .listening : .idle
+            }
+            return
+        }
+        MusicCoordinator.shared.endVoiceCapture()
 
         let lowerCommand = command.lowercased()
 
@@ -2663,6 +2688,8 @@ final class VoiceAgentViewModel: ObservableObject {
         // mark comes from the engine itself when sound actually starts; marking it here excluded
         // synthesis time, making TTS TTFB structurally zero and perceived latency optimistic.
         MetricsCollector.shared.markTTSRequested()
+        // Duck music under the reply; restore A2DP stereo when speech ends.
+        MusicCoordinator.shared.beginAssistantSpeech()
         // A neural voice (Kokoro on-device; Grok, OpenAI cloud) when selected + ready; otherwise Apple's.
         // The neural voices have one speed, so a wearer who asked for slower or faster speech
         // gets the built-in voice, which can do it.

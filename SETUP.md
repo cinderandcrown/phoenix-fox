@@ -88,6 +88,10 @@ The home screen shows what Jarvis is doing in a word or two under the orb: Ready
 | Jarvis, take a picture | The picture is saved to Photos. iOS asks for Photos access the first time. |
 | Jarvis, remember this | An encrypted note is kept on the phone. |
 | Jarvis, stop | Speech stops. A tap on the orb while Jarvis is talking does the same. |
+| Jarvis, play my Discover Weekly | Spotify or Apple Music starts that playlist on the glasses (A2DP stereo). Connect the service under Settings → Music first. |
+| Jarvis, skip / turn it down / save this song | Skips, lowers volume, or saves the current track. |
+| Jarvis, what song is this | ShazamKit on-device, or now-playing from the music service. |
+| **Music quality check** | With a song playing, say a short command (e.g. “Jarvis, what time is it”). After the reply, **sound must stay stereo A2DP** on the glasses — not stuck in mono call-quality HFP. |
 
 If a reply comes from the phone and not the glasses, the glasses are not the audio route. Check that they show as connected in iOS Bluetooth settings.
 
