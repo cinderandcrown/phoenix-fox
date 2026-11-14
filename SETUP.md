@@ -19,15 +19,30 @@ Nothing in this guide has been run on a real pair of glasses yet. Each step says
 | Relay `https://phoenix-fox-relay.cinderandcrown.workers.dev` | Deployed by the owner. It is the app's default address. |
 | Push Notifications and Associated Domains on the App ID | On. The TestFlight workflow checks both on every run and turns on what is missing. |
 
-## One change only you can make at Apple
+## Two changes only you can make at Apple
 
-The app asks iOS for a higher memory limit so the on-device models are not stopped. Apple's API cannot turn that capability on, so it needs one visit to the developer site:
+The TestFlight workflow has run as far as the signing step, and that step needs both of these.
+
+### 1. An App Store Connect key with the Admin role
+
+The build is signed for the App Store by Apple, with a certificate Apple keeps for the team. Apple lets only a key with the **Admin** role use that certificate. The key in the repository secrets has the App Manager role, so the step "Sign for the App Store" stops with "Cloud signing permission error".
+
+1. Open [App Store Connect](https://appstoreconnect.apple.com) → **Users and Access** → **Integrations** → **App Store Connect API** → **Team Keys**.
+2. Add a key, choose the access **Admin**, and download the `.p8` file. Apple shows it once.
+3. In the GitHub repository, open **Settings → Secrets and variables → Actions** and replace `ASC_KEY_ID` with the new Key ID and `ASC_KEY_P8` with the whole file, including the BEGIN and END lines. `ASC_ISSUER_ID` does not change.
+4. Revoke the old App Manager key on the same App Store Connect page.
+
+A key's role cannot be edited, which is why this is a new key. An Admin key can also manage users and certificates, so keep it only in the repository secrets.
+
+### 2. The Increased Memory Limit capability
+
+The app asks iOS for a higher memory limit so the on-device models are not stopped. Apple's API cannot turn that capability on.
 
 1. Open [developer.apple.com/account](https://developer.apple.com/account) → **Certificates, Identifiers & Profiles** → **Identifiers**.
 2. Open `com.cinderandcrown.phoenixfox`.
 3. Tick **Increased Memory Limit** and save.
 
-If this is not on, the "Sign for the App Store" step of the TestFlight workflow fails and names the entitlement.
+If it is off, the signing step can stop because the profile Apple makes does not allow that entitlement. The error names it.
 
 ## Get a build onto the iPhone
 

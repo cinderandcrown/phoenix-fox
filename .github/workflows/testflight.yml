@@ -227,7 +227,11 @@ jobs:
             -authenticationKeyPath "$ASC_KEY_PATH" \
             -authenticationKeyID "$ASC_KEY_ID" \
             -authenticationKeyIssuerID "$ASC_ISSUER_ID" \
-          | tee "$RUNNER_TEMP/xcodebuild-export.log"
+          | tee "$RUNNER_TEMP/xcodebuild-export.log" || status=$?
+          if grep -q "Cloud signing permission error" "$RUNNER_TEMP/xcodebuild-export.log"; then
+            echo "::error title=The App Store Connect key cannot sign::Apple signs the upload with a certificate it keeps for the team, and only a key with the Admin role may use it. Make a team key with the Admin role in App Store Connect > Users and Access > Integrations, then replace the ASC_KEY_ID and ASC_KEY_P8 secrets. See SETUP.md."
+          fi
+          exit "${status:-0}"
 
       # A build can sign and still be useless on a phone. This reads the signed app and
       # fails before anything is uploaded.
