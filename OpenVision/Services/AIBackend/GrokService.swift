@@ -58,7 +58,12 @@ final class GrokService: ObservableObject {
     }
 
     /// Send a prompt (optionally with an image) and deliver the reply via `onAgentMessage`.
-    func sendMessage(_ text: String, imageData: Data? = nil, system: String? = nil) async throws {
+    func sendMessage(_ text: String, imageData: Data? = nil) async throws {
+        try await sendMessage(text, imageData: imageData, system: nil)
+    }
+
+    /// Same turn with a caller-supplied system prompt (the Jarvis persona, a bot's voice).
+    func sendMessage(_ text: String, imageData: Data?, system: String?) async throws {
         guard settings.isGrokConfigured else { throw GrokError.notConfigured }
         NativeToolContext.shared.set(text)
         onProcessingChanged?(true)

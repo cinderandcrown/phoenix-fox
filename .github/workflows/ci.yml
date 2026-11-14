@@ -30,25 +30,36 @@ jobs:
           # Empty client token is enough to compile. The real token is a secret.
           sed -i '' 's/^DEVELOPMENT_TEAM = .*/DEVELOPMENT_TEAM = /' Config.xcconfig
 
-      - name: Cache Swift packages
-        uses: actions/cache@v6
+      # Package checkouts and their build products are restored together so a run only
+      # recompiles Phoenix Fox itself. The key follows the project file, so a dependency
+      # change starts from the closest older cache and saves a new one.
+      - name: Restore packages and package build products
+        id: cache
+        uses: actions/cache/restore@v6
         with:
-          path: .spm
-          key: spm-${{ runner.os }}-${{ hashFiles('PhoenixFox.xcodeproj/project.pbxproj', 'project.yml') }}
-          restore-keys: spm-${{ runner.os }}-
+          path: |
+            .spm
+            DerivedData
+          key: build-${{ runner.os }}-xcode26.6-${{ hashFiles('PhoenixFox.xcodeproj/project.pbxproj') }}
+          restore-keys: build-${{ runner.os }}-xcode26.6-
 
       - name: Show toolchain
         run: |
           xcodebuild -version
           xcrun --sdk iphonesimulator --show-sdk-version
 
-      - name: Disable SwiftPM prebuilts (swift-syntax prebuilts lack iOS slices)
+      - name: Build settings for CI
         run: |
-          # The app does not link MLXHuggingFace, so the SwiftCompilerPlugin macro
-          # is not in the build. This stays as a backstop if another package still
-          # compiles a macro against the macOS-only prebuilt.
+          # swift-syntax prebuilts ship macOS slices only. The app links no macro
+          # target; this is a backstop if a package ever compiles one.
           defaults write com.apple.dt.Xcode IDEPackageEnablePrebuilts -bool NO
           rm -rf .spm/prebuilts
+          # Report every compile error in one run instead of stopping at the first.
+          defaults write com.apple.dt.Xcode IDEBuildingContinueBuildingAfterErrors -bool YES
+          # A fresh checkout has new inodes and timestamps. Without these two lines the
+          # restored build products are treated as stale and everything recompiles.
+          defaults write com.apple.dt.XCBuild IgnoreFileSystemDeviceInodeChanges -bool YES
+          find Vendor -exec touch -t 202601010000 {} +
 
       - name: Build for simulator
         run: |
@@ -62,16 +73,51 @@ jobs:
             -derivedDataPath DerivedData \
             -skipPackagePluginValidation \
             -skipMacroValidation \
+            ARCHS=arm64 \
+            ONLY_ACTIVE_ARCH=NO \
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGN_IDENTITY= \
             DEVELOPMENT_TEAM= \
+          | tee xcodebuild.log \
           | xcbeautify --renderer github-actions
+
+      # xcbeautify drops file paths from the job log. This prints each diagnostic in
+      # Phoenix Fox sources once, with its location, and fails the job on any warning.
+      - name: Diagnostics in Phoenix Fox sources
+        if: always()
+        run: |
+          [ -f xcodebuild.log ] || exit 0
+          root="$PWD/"
+          ours() {
+            grep -E "^${root}(OpenVision|OpenVisionTests)/[^:]+:[0-9]+:[0-9]+: $1:" xcodebuild.log \
+              | sed "s|^${root}||" | awk '!seen[$0]++' || true
+          }
+          errors="$(ours error)"
+          warnings="$(ours warning)"
+          echo "Errors: $(printf '%s' "$errors" | grep -c . || true)"
+          printf '%s\n' "$errors"
+          echo "Warnings: $(printf '%s' "$warnings" | grep -c . || true)"
+          printf '%s\n' "$warnings"
+          echo "Notes:"
+          ours note
+          if [ -n "$errors" ] || [ -n "$warnings" ]; then exit 1; fi
+
+      - name: Save packages and package build products
+        if: always() && steps.cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v6
+        with:
+          path: |
+            .spm
+            DerivedData
+          key: build-${{ runner.os }}-xcode26.6-${{ hashFiles('PhoenixFox.xcodeproj/project.pbxproj') }}
 
       - name: Upload build log on failure
         if: failure()
         uses: actions/upload-artifact@v7
         with:
           name: xcodebuild-logs
-          path: DerivedData/Logs/Build/*.xcactivitylog
+          path: |
+            xcodebuild.log
+            DerivedData/Logs/Build/*.xcactivitylog
           if-no-files-found: ignore
