@@ -21,40 +21,55 @@ Sources, all Meta:
 
 ## Status
 
-Done means the path is in the app and covered by the simulator compile. It is not a claim that a pair of glasses has run it. The owner proves the device path from SETUP.md. Partial means a real slice is in the app and something named here is still missing. Blocked means Meta or iOS does not allow it, and the app says so out loud.
+No row says Done, because nothing here has been run on a pair of glasses yet. The words mean:
+
+- **Built**: the whole path is in the app, it compiles in CI with no warnings, and the parts that do not need hardware are covered by unit tests. The owner confirms it on Adventurer with the steps in [SETUP.md](../SETUP.md).
+- **Partial**: a real part is in the app, and the last column names what is missing.
+- **Blocked**: Meta or iOS does not allow it. The app says so out loud.
+- **Not started**: asked for and not built yet.
+
+A row moves to Done when the owner has seen it work on the glasses.
+
+Display glasses and the Neural Band do not get a second code path. `CompanionSurface.present` speaks every reply and adds a lens card only when the glasses report a display. `GestureMap` turns a tap, a swipe, or the capture button into talk, look, or note, and those enter the same turn as a spoken command. Adventurer does not open the input session, because it would compete with the camera.
 
 | Feature | Status | What remains |
 | --- | --- | --- |
-| DAT pairing and device session | Done | Owner: Meta Developer Mode, `META_CLIENT_TOKEN` in the signed build, Connect once. Adventurer is `DeviceType.metaGlasses`. |
-| Jarvis wake word | Done | The phone hears it over Bluetooth. "Hey Meta" stays Meta's. Owner assigns "Wake Jarvis in Phoenix Fox" to the Action Button if he wants it. |
-| On-device Whisper | Done | The `base` model downloads on first speech. If that download fails, the Apple transcript is used. |
-| One camera still, light on | Done | "Take a picture" and look-and-ask. The stream stops after the shot. |
-| Ask a bot ("ask Indy about X") | Done | Needs the relay URL and token in Settings, and a running worker. The phone calls `POST /ask` and `GET /reply/{id}`. |
-| Spoken replies on the glasses | Done | Bluetooth speaker when the glasses are the audio route. `CompanionSurface` also draws a lens card when `supportsDisplay` is true. Adventurer never takes that branch. |
-| Push alerts | Partial | The app registers the APNs token at `POST /device` and long-polls `/inbox`. The worker sends a push only after its APNs secrets exist. Urgent lines interrupt speech. |
-| Look and ask, text in view, read aloud | Done | One compressed photo, then the camera turns off. Fast mode uses Grok when a key is saved. Otherwise the same photo goes to the relay. |
-| Live conversation after Jarvis | Partial | Follow-ups stay open until silence. Barging in on your own reply is not used, because the glasses mic hears the speaker. Say Jarvis, then the next request. |
+| DAT pairing and device session | Built | Owner: Developer Mode in Meta AI, then Register App. If the glasses SDK cannot start, the app still opens and shows the reason on the Glasses screen. Adventurer is `DeviceType.metaGlasses`. |
+| Jarvis wake word | Built | The phone hears it over Bluetooth. A comma after the wake word no longer hides "ask Indy". Owner confirms it is heard with the glasses on. |
+| "Hey Meta" opens Phoenix Fox | Partial | The wake word stays Meta's. A launch from the glasses starts the Jarvis session. Whether Meta AI hands the launch to this app is unconfirmed. |
+| On-device Whisper | Built | The `base` model downloads on first speech. The first request and each follow-up are re-heard by Whisper. If the model is not there, the Apple transcript is used. |
+| One camera still, light on | Built | "Take a picture" and look-and-ask. The stream stops after the shot. Owner confirms the light matches the stream. |
+| Ask a bot ("ask Indy about X") | Built | Routing is covered by `V1PathTests`, and the relay calls by `RelayClientTests`. Needs the relay token in Settings. |
+| Spoken replies on the glasses | Built | Bluetooth speaker when the glasses are the audio route. A reply from a bot other than the default is spoken with its name. Per-bot voices are stored and not yet used. |
+| Push alerts | Partial | The inbox long-poll speaks alerts while the app is open. The push token is sent to the relay once a relay is saved. Closed-app delivery needs the relay pull request deployed and has not been seen on a phone. |
+| Look and ask, text in view, read aloud | Built | One compressed photo, then the camera turns off. Fast mode uses Grok when a key is saved. Otherwise the same photo goes to the relay. |
+| Live conversation after Jarvis | Partial | Follow-ups stay open until silence. Barging in on a reply is not used, because the glasses microphones hear the speakers. Say Jarvis, then the next request. |
 | Translation and meeting notes | Partial | The next utterances can be translated on the phone. "Meeting notes" sends that transcript to Fire Fox when the relay is set. No lens captions on Adventurer. No always-on interpreter. |
 | Messages, SMS, email | Partial | Contacts lookup, then the public URL. You still tap send. No silent send. |
 | Record a clip | Partial | The preview stream is saved to Photos while the light is on. It is not Meta's 3K file. |
-| QR | Done | Vision on one photo. An `https` link opens. Meta's own notification pipeline is not claimed. |
-| Reminders, timers, time, date, battery | Done | On the phone, or `Device.batteryLevel` when the link is up. |
-| Remember / recall | Done | AES-GCM notes, key in the Keychain. Search is on-device word vectors, not a photo embedding. |
+| QR | Built | Vision on one photo. An `https` link opens. |
+| Reminders, timers, time, date, battery | Built | On the phone, or `Device.batteryLevel` when the link is up. Time and date use no model. |
+| Remember / recall | Built | AES-GCM notes, key in the Keychain. Search is on-device word vectors, not a photo embedding. |
 | Calls | Partial | `tel:` opens Phone after a Contacts lookup. |
 | Music play, pause, next, previous | Partial | System player only. The app says so when that is all it can reach. |
-| Walking directions | Partial | First spoken step, then Apple Maps. No continuous guidance in the lens. |
-| Smart Capture | Partial | Session, change detection, keep/skip, Photos album, encrypted index. Auto-route stays off until you turn it on. Not proven on a device. |
+| Share a photo into Meta's apps | Partial | The still goes to Photos. There is no hand-off into Messenger or Instagram. |
+| Walking directions | Partial | First spoken step, then Apple Maps. No continuous guidance. |
+| Concierge booking | Partial | The request goes to the named bot through the relay. The app does not book anything itself. |
+| Take over, all bots at once | Partial | Fire Fox, Indy, Driver, and Rally are asked together, and each reply is spoken as it arrives. Not yet run against the live relay. |
+| Smart Capture | Partial | Session, change detection, keep/skip, Photos album, encrypted index. Auto-route stays off until you turn it on. |
 | Watch this | Partial | Stream at 8 fps with the light on. Only a changed frame is sent. "Stop watching" ends it. |
 | Morning brief and place reminders | Partial | One brief when the relay is set. A 150 meter region speaks on entry and needs Always location. |
-| In-lens cards | Blocked on Adventurer | `GlassesHUD` and `CompanionSurface` run only when the device reports a display. Display glasses are the remaining hardware test. |
-| Neural Band | Blocked on Adventurer | `GestureMap` turns DAT select, nav, and drag into talk, next, and dismiss. Nothing waits on a band. |
-| WhatsApp, Messenger, Instagram calls | Blocked | Spoken. No public API, and DAT does not hand the camera to another VoIP app. |
+| In-lens cards | Blocked on Adventurer | Replies and urgent alerts already go through `CompanionSurface.present`, which draws a card when the glasses report a display. Display glasses are the remaining hardware test. |
+| Temple tap and Neural Band | Blocked on Adventurer | On display glasses a tap starts a turn, the capture button asks for a look, and a hold saves a note. Nothing waits on a band. |
+| WhatsApp, Messenger, Instagram calls | Blocked | Spoken. No public API, and DAT does not hand the camera to another calling app. |
 | Read other apps' notifications | Blocked | Spoken. iOS keeps those private. |
-| Set the system volume | Blocked | The level is spoken. The glasses rocker stays in charge. |
+| Set the system volume | Blocked | The level is spoken. The rocker on the glasses stays in charge. |
 | Be My Eyes volunteer video | Blocked | A one-photo description is offered instead. |
 | Workout stats | Partial | Not wired. HealthKit is the later path. It is not claimed. |
-| Mind meld | Done | Off until "mind meld on". Stores words on the phone. "What should I do" proposes one bot ask. "Do that" or "have Indy handle that" sends it. No camera bytes. |
-| Choose Grok, ChatGPT, Gemini, Claude, or your own assistant | Partial | The backends are in the app. The default path is the relay. A single settings choice that swaps the premium bot team for another provider, with the same wake word, is the remaining product work. |
+| Mind meld | Built | Off until "mind meld on". Stores words on the phone. "What should I do" proposes one bot ask. "Do that" or "have Indy handle that" sends it. No camera bytes. |
+| Choose Grok, ChatGPT, Gemini, Claude, or your own assistant | Partial | The backends are in the app and Settings switches between them. The default is the relay. One setting that swaps the bot team for another provider with the same wake word, and a paid tier for the bot team, are not built. |
+| Guide mode for blind and low-vision users | Not started | Scene narration, hazard callouts, sign reading, object finding, walking directions, and an emergency call. The comparison is Be My Eyes. Planned after v1 is confirmed on the glasses. |
+| Accessibility suite and `docs/ACCESSIBILITY.md` | Not started | The relay settings screen announces its result to VoiceOver. A full VoiceOver pass over every screen has not been done. |
 
 ## Mind meld
 
