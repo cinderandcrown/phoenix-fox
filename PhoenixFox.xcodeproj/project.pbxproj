@@ -246,6 +246,13 @@
 		F16B5C937A9E68F7A8B74CE3 /* TeamBoard.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0E31A60F5EDC2769DB74311 /* TeamBoard.swift */; };
 		0E516897D907F674824CCC20 /* TeamBoardStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC3D14B5455B74F3A589C14B /* TeamBoardStore.swift */; };
 		E989664896CE54A8D8237823 /* TeamBoardTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2659FF679BF8FA8D34761CA7 /* TeamBoardTests.swift */; };
+		3B985A4DA77CCD67EA23B360 /* EmberOrb.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D01A5DEAC92C5B754A5840B /* EmberOrb.swift */; };
+		AC3950DD5691E923C068CF04 /* HapticCue+Play.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8FF8D74DF9131A7287B2CE10 /* HapticCue+Play.swift */; };
+		1C19A0DAA0125F0924CFFB7F /* HomeContent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3303A54C6167FFEB2A449388 /* HomeContent.swift */; };
+		0B3BFCE85EC4878A40CF8685 /* HomeModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8F77F66976A4AB43D9C2CA6 /* HomeModel.swift */; };
+		357087BAE7B2F21A3831D555 /* LiveStage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 029CDD72E5DE1AE5B9E1FD7D /* LiveStage.swift */; };
+		9BB5C95E33A77AC515AFC5C6 /* TeamViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = E8F11133E67DB2840E31CE01 /* TeamViews.swift */; };
+		B0094AA2EC5F2A3B7906F8DD /* HomeModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4D04FE390CA7109505D7A6F /* HomeModelTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -492,6 +499,13 @@
 		A0E31A60F5EDC2769DB74311 /* TeamBoard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TeamBoard.swift; sourceTree = "<group>"; };
 		FC3D14B5455B74F3A589C14B /* TeamBoardStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TeamBoardStore.swift; sourceTree = "<group>"; };
 		2659FF679BF8FA8D34761CA7 /* TeamBoardTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TeamBoardTests.swift; sourceTree = "<group>"; };
+		1D01A5DEAC92C5B754A5840B /* EmberOrb.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmberOrb.swift; sourceTree = "<group>"; };
+		8FF8D74DF9131A7287B2CE10 /* HapticCue+Play.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HapticCue+Play.swift; sourceTree = "<group>"; };
+		3303A54C6167FFEB2A449388 /* HomeContent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeContent.swift; sourceTree = "<group>"; };
+		D8F77F66976A4AB43D9C2CA6 /* HomeModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeModel.swift; sourceTree = "<group>"; };
+		029CDD72E5DE1AE5B9E1FD7D /* LiveStage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveStage.swift; sourceTree = "<group>"; };
+		E8F11133E67DB2840E31CE01 /* TeamViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TeamViews.swift; sourceTree = "<group>"; };
+		D4D04FE390CA7109505D7A6F /* HomeModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeModelTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -603,6 +617,7 @@
 				738FAA097CCCDFD54C60C673 /* VoiceAgent */,
 				266032AAD0DF8037A64CAB15 /* MainTabView.swift */,
 				2F84041B07BBFEBC2D709D79 /* Design */,
+				462A7E2B322EF980C64F09E5 /* Home */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -964,6 +979,7 @@
 				1FDF4B6630312A96D96B0966 /* LivePhaseTests.swift */,
 				538850BD44341657AC81B31F /* SpokenReplyTests.swift */,
 				2659FF679BF8FA8D34761CA7 /* TeamBoardTests.swift */,
+				D4D04FE390CA7109505D7A6F /* HomeModelTests.swift */,
 			);
 			path = OpenVisionTests;
 			sourceTree = "<group>";
@@ -1154,6 +1170,8 @@
 			children = (
 				FA635F893E0F6AB67FF4D101 /* Core */,
 				5DDC28107664F25996BA0156 /* FoxMark.swift */,
+				1D01A5DEAC92C5B754A5840B /* EmberOrb.swift */,
+				8FF8D74DF9131A7287B2CE10 /* HapticCue+Play.swift */,
 			);
 			path = Design;
 			sourceTree = "<group>";
@@ -1167,6 +1185,17 @@
 				BD07FF68C0EF0EA9156CC195 /* LivePhase.swift */,
 			);
 			path = Core;
+			sourceTree = "<group>";
+		};
+		462A7E2B322EF980C64F09E5 /* Home */ = {
+			isa = PBXGroup;
+			children = (
+				3303A54C6167FFEB2A449388 /* HomeContent.swift */,
+				D8F77F66976A4AB43D9C2CA6 /* HomeModel.swift */,
+				029CDD72E5DE1AE5B9E1FD7D /* LiveStage.swift */,
+				E8F11133E67DB2840E31CE01 /* TeamViews.swift */,
+			);
+			path = Home;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -1353,6 +1382,7 @@
 				BC5440EA2BF9196CADCE25E1 /* LivePhaseTests.swift in Sources */,
 				3972911E035994223CE884CE /* SpokenReplyTests.swift in Sources */,
 				E989664896CE54A8D8237823 /* TeamBoardTests.swift in Sources */,
+				B0094AA2EC5F2A3B7906F8DD /* HomeModelTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1542,6 +1572,12 @@
 				6E59CF8D930E8FD7774E196C /* SpokenReply.swift in Sources */,
 				F16B5C937A9E68F7A8B74CE3 /* TeamBoard.swift in Sources */,
 				0E516897D907F674824CCC20 /* TeamBoardStore.swift in Sources */,
+				3B985A4DA77CCD67EA23B360 /* EmberOrb.swift in Sources */,
+				AC3950DD5691E923C068CF04 /* HapticCue+Play.swift in Sources */,
+				1C19A0DAA0125F0924CFFB7F /* HomeContent.swift in Sources */,
+				0B3BFCE85EC4878A40CF8685 /* HomeModel.swift in Sources */,
+				357087BAE7B2F21A3831D555 /* LiveStage.swift in Sources */,
+				9BB5C95E33A77AC515AFC5C6 /* TeamViews.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

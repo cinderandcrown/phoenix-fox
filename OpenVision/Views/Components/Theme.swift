@@ -70,6 +70,7 @@ enum Theme {
 
     /// The camera is on. Nothing else in the app is this red.
     static let seeing = Color(BrandPalette.seeing)
+    static let onSeeing = Color(BrandPalette.onSeeing)
     static let good = Color(BrandPalette.good)
 
     // MARK: - Names older screens use

@@ -194,6 +194,26 @@ final class TeamBoardTests: XCTestCase {
         XCTAssertEqual(TeamBoard.spoken(for: board.members[0], now: at(20)), "Fire Fox. Ready")
     }
 
+    func testWhatToSayToReachAnAssistant() {
+        let board = board()
+        XCTAssertEqual(TeamBoard.example(for: board.members[0], wakeWord: "Jarvis"), "“Jarvis, what should I do next?”")
+        XCTAssertEqual(TeamBoard.example(for: board.members[1], wakeWord: "Friday"), "“Friday, ask Indy to check on it.”")
+        XCTAssertEqual(TeamBoard.exampleForEveryone(wakeWord: "Jarvis"), "“Jarvis, all hands.”")
+    }
+
+    func testTheExamplesAreSentencesTheRouterSendsWhereTheySay() {
+        // The words after the wake word, as the router would get them.
+        let named = AssistantRoster.address(in: "ask Indy to check on it.", bots: AssistantRoster.seed)
+        XCTAssertEqual(named.bot.name, "Indy")
+        XCTAssertTrue(named.explicit)
+    }
+
+    func testEveryKindOfEventHasAHeading() {
+        for kind in [TeamBoard.Event.Kind.asked, .answered, .alerted, .failed] {
+            XCTAssertFalse(kind.label.isEmpty)
+        }
+    }
+
     func testDurations() {
         XCTAssertEqual(TeamBoard.duration(0), "0 seconds")
         XCTAssertEqual(TeamBoard.duration(1), "1 second")

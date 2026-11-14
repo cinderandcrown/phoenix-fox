@@ -136,6 +136,21 @@ final class LivePhaseTests: XCTestCase {
         }
     }
 
+    // MARK: - The glasses
+
+    func testTheGlassesChip() {
+        XCTAssertEqual(GlassesStatus(registered: false, devicesInReach: 0, cameraOn: false), .notConnected)
+        XCTAssertEqual(GlassesStatus(registered: true, devicesInReach: 0, cameraOn: false), .away)
+        XCTAssertEqual(GlassesStatus(registered: true, devicesInReach: 1, cameraOn: false), .ready)
+        XCTAssertEqual(GlassesStatus(registered: true, devicesInReach: 1, cameraOn: true), .cameraOn)
+        // Without a connection there is no camera to be on.
+        XCTAssertEqual(GlassesStatus(registered: false, devicesInReach: 0, cameraOn: true), .notConnected)
+        for status in [GlassesStatus.notConnected, .away, .ready, .cameraOn] {
+            XCTAssertLessThanOrEqual(status.title.split(separator: " ").count, 2)
+            XCTAssertTrue(status.spoken.hasSuffix("."))
+        }
+    }
+
     // MARK: - Haptics
 
     func testATurnHasThreeBeats() {

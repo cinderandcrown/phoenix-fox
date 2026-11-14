@@ -61,13 +61,15 @@ struct OpenVisionApp: App {
                     .environmentObject(conversationManager)
             } else {
                 OnboardingView(hasCompletedOnboarding: $hasCompletedOnboarding)
+                    .environmentObject(settingsManager)
+                    .environmentObject(glassesManager)
             }
         }
         .overlay(alignment: .top) {
             // Sound alerts for Deaf and hard-of-hearing wearers show over every screen.
             AccessBannerView()
         }
-        .preferredColorScheme(.dark)
+        .tint(Theme.accent)
         .task {
             // Telemetry settings persist, but the sink lives in memory — without this a
             // relaunch (or a jetsam kill during a model switch) silently stopped pushing.

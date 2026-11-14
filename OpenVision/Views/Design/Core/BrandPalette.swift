@@ -121,6 +121,8 @@ enum BrandPalette {
 
     /// The camera is on. Matches the capture light on the glasses, and nothing else is this red.
     static let seeing = BrandColor("Seeing", light: 0xC4221A, dark: 0xFF5A52)
+    /// Words and symbols on a `seeing` fill.
+    static let onSeeing = BrandColor("On seeing", light: 0xFFFFFF, dark: 0x1F0D05)
     /// Connected, allowed, done.
     static let good = BrandColor("Good", light: 0x1E7A45, dark: 0x5BD68A)
 
@@ -128,7 +130,7 @@ enum BrandPalette {
         ember, flame, gold, garnet, onFire,
         canvas, surface, raised,
         ink, inkSoft, inkFaint, emberInk, goldInk,
-        seeing, good,
+        seeing, onSeeing, good,
     ]
 
     // MARK: What is drawn on what
@@ -153,6 +155,7 @@ enum BrandPalette {
             inks.map { Pairing(front: $0, back: ground, minimum: textMinimum) }
         }
         list += [ember, flame, gold].map { Pairing(front: onFire, back: $0, minimum: textMinimum) }
+        list.append(Pairing(front: onSeeing, back: seeing, minimum: textMinimum))
         return list
     }()
 }

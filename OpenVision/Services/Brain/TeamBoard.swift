@@ -29,6 +29,16 @@ struct TeamBoard: Equatable, Sendable {
             case answered
             case alerted
             case failed
+
+            /// The heading for this kind of event in an assistant's recent work.
+            var label: String {
+                switch self {
+                case .asked: return "You asked"
+                case .answered: return "Answered"
+                case .alerted: return "Sent you"
+                case .failed: return "No answer"
+                }
+            }
         }
 
         let id: Int
@@ -211,7 +221,19 @@ struct TeamBoard: Equatable, Sendable {
         return parts.joined(separator: ". ")
     }
 
-    /// "just now", "2 minutes ago", "3 hours ago", "yesterday", "5 days ago".
+    /// Something to say to reach this assistant. The default one needs no name.
+    static func example(for member: Member, wakeWord: String) -> String {
+        member.isDefault
+            ? "“\(wakeWord), what should I do next?”"
+            : "“\(wakeWord), ask \(member.name) to check on it.”"
+    }
+
+    /// Something to say to reach everyone at once.
+    static func exampleForEveryone(wakeWord: String) -> String {
+        "“\(wakeWord), all hands.”"
+    }
+
+    /// "just now", "2 minutes ago", "3 hours ago", "5 days ago".
     static func ago(_ date: Date, now: Date) -> String {
         let seconds = now.timeIntervalSince(date)
         return seconds < 60 ? "just now" : "\(duration(seconds)) ago"

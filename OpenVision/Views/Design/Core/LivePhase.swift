@@ -208,6 +208,48 @@ struct StageDescription: Equatable, Sendable {
     }
 }
 
+// MARK: - The glasses
+
+/// What the chip at the top of the home screen says about the glasses.
+enum GlassesStatus: Equatable, Sendable {
+    /// Phoenix Fox has not been connected to the glasses in the Meta AI app.
+    case notConnected
+    /// Connected, and no pair is in reach right now: in the case, off, or out of range.
+    case away
+    case ready
+    /// The camera is on.
+    case cameraOn
+
+    init(registered: Bool, devicesInReach: Int, cameraOn: Bool) {
+        if !registered {
+            self = .notConnected
+        } else if cameraOn {
+            self = .cameraOn
+        } else {
+            self = devicesInReach > 0 ? .ready : .away
+        }
+    }
+
+    var title: String {
+        switch self {
+        case .notConnected: return "Connect glasses"
+        case .away: return "Glasses away"
+        case .ready: return "Glasses ready"
+        case .cameraOn: return "Camera on"
+        }
+    }
+
+    /// What VoiceOver says. The chip is a button that opens the glasses settings.
+    var spoken: String {
+        switch self {
+        case .notConnected: return "Glasses are not connected."
+        case .away: return "Glasses are connected but not in reach. They may be in the case or switched off."
+        case .ready: return "Glasses are connected and ready."
+        case .cameraOn: return "The camera on your glasses is on."
+        }
+    }
+}
+
 // MARK: - Haptics
 
 /// A moment worth feeling. The view plays each with the system's own feedback.

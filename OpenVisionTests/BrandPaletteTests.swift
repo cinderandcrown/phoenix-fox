@@ -42,7 +42,7 @@ final class BrandPaletteTests: XCTestCase {
     }
 
     func testThePairingsCoverEveryInkOnEveryGround() {
-        XCTAssertEqual(BrandPalette.pairings.count, 3 * 7 + 3)
+        XCTAssertEqual(BrandPalette.pairings.count, 3 * 7 + 3 + 1)
     }
 
     func testWhiteOnEmberWouldNotPassWhichIsWhyTheLabelIsDark() {
@@ -68,8 +68,8 @@ final class BrandPaletteTests: XCTestCase {
         // Nothing else in the palette may be mistaken for the capture light.
         let seeing = BrandPalette.seeing
         for color in BrandPalette.all where color != seeing {
-            XCTAssertNotEqual(color.dark, seeing.dark)
-            XCTAssertNotEqual(color.light, seeing.light)
+            XCTAssertNotEqual(color.dark, seeing.dark, color.name)
+            XCTAssertNotEqual(color.light, seeing.light, color.name)
         }
     }
 }
