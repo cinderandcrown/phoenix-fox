@@ -272,7 +272,6 @@ final class GlassesManager: ObservableObject {
         }
         registration.answerBegan()
         noteRegistration("Meta AI callback received.")
-        var failure: String?
         // DAT may invoke onRegistrationRequest off the main actor. Catch it synchronously
         // so we never start a forAnswer timer over the in-app Connect alert (TF 29.1 P0).
         let catcher = RegistrationRequestCatcher()
@@ -297,16 +296,16 @@ final class GlassesManager: ObservableObject {
             }
             startWait(registration.answerEnded(failure: nil, expectingConsent: awaitingConnect))
         } catch {
-            failure = error.localizedDescription
-            GlassesLink.shared.record("Meta AI callback failed: \(error.localizedDescription)")
+            let reason = error.localizedDescription
+            GlassesLink.shared.record("Meta AI callback failed: \(reason)")
             noteRegistration("Callback error.")
             let wasConnecting = registration.isWorking
-            startWait(registration.answerEnded(failure: failure, expectingConsent: false))
+            startWait(registration.answerEnded(failure: reason, expectingConsent: false))
             if wasConnecting {
                 registrationWait?.cancel()
                 noteRegistration("Meta AI answered with an error.")
             } else {
-                errorMessage = "Meta AI could not finish connecting. \(failure)"
+                errorMessage = "Meta AI could not finish connecting. \(reason)"
             }
         }
     }
