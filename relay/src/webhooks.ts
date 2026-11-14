@@ -162,8 +162,79 @@ export async function sign(secret: string, timestamp: number, body: string): Pro
 }
 
 /**
+ * Builds the outbound header set for one delivery attempt.
+ *
+ * Custom bot headers (Authorization, …) are applied first. Relay authenticity
+ * headers are then force-set with `Headers.set`, so they cannot be dropped or
+ * overwritten by a custom entry — including platforms that require Authorization
+ * and strip or ignore unknown `X-*` headers at their edge (e.g. Grok Bot routines).
+ */
+export function deliveryHeaders(
+  target: WebhookTarget,
+  event: string,
+  delivery: string,
+  timestamp: number,
+  signature: string,
+): Headers {
+  const headers = new Headers();
+  for (const [name, value] of Object.entries(target.headers)) {
+    headers.set(name, value);
+  }
+  headers.set("content-type", "application/json");
+  headers.set("user-agent", USER_AGENT);
+  headers.set(EVENT_HEADER, event);
+  headers.set(DELIVERY_HEADER, delivery);
+  headers.set(TIMESTAMP_HEADER, String(timestamp));
+  headers.set(SIGNATURE_HEADER, signature.startsWith("v1=") ? signature : `v1=${signature}`);
+  return headers;
+}
+
+/**
+ * The JSON object that is HMAC'd. The optional top-level `relay` auth envelope is
+ * appended after signing so body-only receivers (Grok routines) can verify without
+ * seeing HTTP headers. See `signedPayload` / `sealBody`.
+ */
+export function signedPayload(
+  target: WebhookTarget,
+  event: string,
+  delivery: string,
+  payload: Record<string, unknown>,
+): Record<string, unknown> {
+  return { event, delivery, bot: target.bot, ...payload };
+}
+
+/**
+ * Returns the exact UTF-8 JSON string that must be HMAC'd for `rawBody`.
+ * When the body ends with a `relay` envelope appended by `sealBody`, that envelope
+ * is stripped; otherwise the whole body is the signed payload (legacy / header-only).
+ */
+export function contentToVerify(rawBody: string): string {
+  const marker = ',"relay":{';
+  const at = rawBody.lastIndexOf(marker);
+  if (at <= 0 || !rawBody.endsWith("}")) return rawBody;
+  const sealed = rawBody.slice(at);
+  // Only strip our own trailing envelope: {"timestamp":N,"signature":"v1=…"}.
+  if (!/^,"relay":\{"timestamp":\d+,"signature":"v1=[0-9a-f]+"\}\}$/.test(sealed)) return rawBody;
+  return `${rawBody.slice(0, at)}}`;
+}
+
+/** Appends `relay: { timestamp, signature }` after the signed JSON object. */
+export function sealBody(contentJson: string, timestamp: number, signature: string): string {
+  const sig = signature.startsWith("v1=") ? signature : `v1=${signature}`;
+  if (!contentJson.endsWith("}")) {
+    throw new Error("sealed webhook body must be a JSON object");
+  }
+  return `${contentJson.slice(0, -1)},"relay":{"timestamp":${timestamp},"signature":"${sig}"}}`;
+}
+
+/**
  * Posts one event to one bot, retrying a failure that could be temporary.
  * Every attempt carries the same delivery id, so a bot that sees it twice can ignore the repeat.
+ *
+ * Every attempt is signed: `v1=` + hex HMAC-SHA256 of `"<timestamp>.<contentJson>"`, keyed
+ * with the bot secret (else WEBHOOK_SECRET, else RELAY_TOKEN). The signature is set on
+ * `X-Relay-Signature` / `X-Relay-Timestamp` and duplicated under body `relay` so receivers
+ * that only expose the JSON body can still verify.
  *
  * Any HTTP 2xx (including 202 with a non-JSON body) counts as delivered. An inline JSON
  * `{ "text": "…" }` reply is recorded when present; otherwise the bot posts to `/reply` later.
@@ -175,27 +246,21 @@ export async function deliver(
   deps: DeliveryDeps,
 ): Promise<DeliveryResult> {
   const delivery = crypto.randomUUID();
-  const body = JSON.stringify({ event, delivery, bot: target.bot, ...payload });
+  const contentJson = JSON.stringify(signedPayload(target, event, delivery, payload));
   let status = 0;
   let attempts = 0;
   for (const delay of BACKOFF_MS) {
     if (delay > 0) await deps.sleep(delay);
     attempts += 1;
     const timestamp = Math.floor(deps.now() / 1000);
-    const signature = await sign(target.secret, timestamp, body);
+    const digest = await sign(target.secret, timestamp, contentJson);
+    const signature = `v1=${digest}`;
+    const body = sealBody(contentJson, timestamp, signature);
     let response: Response;
     try {
       response = await deps.send(new Request(target.url, {
         method: "POST",
-        headers: {
-          ...target.headers,
-          "content-type": "application/json",
-          "user-agent": USER_AGENT,
-          [EVENT_HEADER]: event,
-          [DELIVERY_HEADER]: delivery,
-          [TIMESTAMP_HEADER]: String(timestamp),
-          [SIGNATURE_HEADER]: `v1=${signature}`,
-        },
+        headers: deliveryHeaders(target, event, delivery, timestamp, signature),
         body,
         // A redirect could carry the ask to a host the owner never named.
         redirect: "manual",

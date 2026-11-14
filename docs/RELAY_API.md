@@ -134,33 +134,62 @@ X-Relay-Signature: v1=8ca5221428c4b93d4ae4544da031735322fa553401ca9fbe7cbeb0cae1
     "target_bot": "Indy",
     "context": []
   },
-  "reply_url": "https://phoenix-fox-relay.cinderandcrown.workers.dev/reply/…"
+  "reply_url": "https://phoenix-fox-relay.cinderandcrown.workers.dev/reply/…",
+  "relay": {
+    "timestamp": 1794628562,
+    "signature": "v1=8ca5221428c4b93d4ae4544da031735322fa553401ca9fbe7cbeb0cae1b8b55b"
+  }
 }
 ```
 
-`ask` has the same fields the phone sent, including `image`, `images`, `location`, and `reply_to` when present. An ask for `all` goes to every listed bot, each with its own `bot` value.
+`ask` has the same fields the phone sent, including `image`, `images`, `location`, and `reply_to` when present. An ask for `all` goes to every listed bot, each with its own `bot` value. The trailing `relay` object is auth only — it is not part of the signed payload.
 
-**Check the signature before trusting the body.** The signature is the hex HMAC-SHA256 of the timestamp, a full stop, and the raw request body, keyed with the signing secret. The signing secret is the bot's own `secret` from `BOT_WEBHOOKS` if it has one, otherwise the Wrangler secret `WEBHOOK_SECRET`, otherwise `RELAY_TOKEN`. Compute it over the bytes as received, before parsing. Reject a request whose timestamp is more than five minutes from the bot's clock, so a captured request cannot be replayed later.
+**Every delivery is signed**, including bots that need custom `Authorization` headers (Grok Bot routines). The signing secret is the bot's own `secret` from `BOT_WEBHOOKS` if it has one, otherwise the Wrangler secret `WEBHOOK_SECRET`, otherwise `RELAY_TOKEN`. The signature is `v1=` plus the hex HMAC-SHA256 of `"<timestamp>.<content>"`, where `content` is the raw JSON body **with the trailing `"relay":{…}` object removed** (when present). The same `timestamp` / `signature` values are set on `X-Relay-Timestamp` / `X-Relay-Signature` and duplicated under `relay` so a receiver that only sees the JSON body (Grok routines strip or hide custom `X-*` headers after checking `Authorization`) can still verify. Reject a request whose timestamp is more than five minutes from the bot's clock.
 
 ```python
-import hashlib, hmac, time
+import hashlib, hmac, re, time
+
+_RELAY_TAIL = re.compile(rb',"relay":\{"timestamp":\d+,"signature":"v1=[0-9a-f]+"\}\}$')
+
+def content_to_verify(raw_body: bytes) -> bytes:
+    return _RELAY_TAIL.sub(b"}", raw_body)
 
 def verified(headers, raw_body: bytes, secret: str) -> bool:
-    timestamp = headers.get("X-Relay-Timestamp", "")
-    if not timestamp.isdigit() or abs(time.time() - int(timestamp)) > 300:
+    body = content_to_verify(raw_body)
+    timestamp = headers.get("X-Relay-Timestamp") or ""
+    signature = headers.get("X-Relay-Signature") or ""
+    if not timestamp and raw_body:
+        # Body-only receivers (no HTTP headers): use relay envelope.
+        import json
+        relay = json.loads(raw_body).get("relay") or {}
+        timestamp, signature = str(relay.get("timestamp", "")), relay.get("signature") or ""
+    if not str(timestamp).isdigit() or abs(time.time() - int(timestamp)) > 300:
         return False
-    expected = "v1=" + hmac.new(secret.encode(), timestamp.encode() + b"." + raw_body, hashlib.sha256).hexdigest()
-    return hmac.compare_digest(expected, headers.get("X-Relay-Signature", ""))
+    expected = "v1=" + hmac.new(secret.encode(), f"{timestamp}.".encode() + body, hashlib.sha256).hexdigest()
+    return hmac.compare_digest(expected, signature)
 ```
 
 ```javascript
 import { createHmac, timingSafeEqual } from "node:crypto";
 
+function contentToVerify(rawBody) {
+  return rawBody.replace(/,"relay":\{"timestamp":\d+,"signature":"v1=[0-9a-f]+"\}\}$/, "}");
+}
+
 function verified(headers, rawBody, secret) {
-  const timestamp = headers["x-relay-timestamp"] ?? "";
+  const body = contentToVerify(rawBody);
+  let timestamp = headers["x-relay-timestamp"] ?? "";
+  let signature = headers["x-relay-signature"] ?? "";
+  if (!timestamp) {
+    try {
+      const relay = JSON.parse(rawBody).relay ?? {};
+      timestamp = String(relay.timestamp ?? "");
+      signature = relay.signature ?? "";
+    } catch { /* ignore */ }
+  }
   if (!/^\d+$/.test(timestamp) || Math.abs(Date.now() / 1000 - Number(timestamp)) > 300) return false;
-  const expected = Buffer.from("v1=" + createHmac("sha256", secret).update(`${timestamp}.${rawBody}`).digest("hex"));
-  const given = Buffer.from(headers["x-relay-signature"] ?? "");
+  const expected = Buffer.from("v1=" + createHmac("sha256", secret).update(`${timestamp}.${body}`).digest("hex"));
+  const given = Buffer.from(signature);
   return given.length === expected.length && timingSafeEqual(given, expected);
 }
 ```
