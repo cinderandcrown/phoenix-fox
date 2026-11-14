@@ -100,6 +100,14 @@ curl -X POST https://phoenix-fox-relay.cinderandcrown.workers.dev/push \
 
 An urgent message interrupts and is spoken at once. A normal one is spoken when the app is quiet. A low one is kept for later and is not spoken when it arrives. With the app open, this works through the inbox without Apple's push service.
 
+## Accessibility
+
+Guide mode, reading, money and label reading, colors, face recognition with consent, live captions, sound alerts, step-by-step tasks, and "what was I doing?" are set under Settings, then Accessibility, and each has a spoken command. Say "Jarvis, what can I say?" to hear them.
+
+Read the safety section of [docs/ACCESSIBILITY.md](docs/ACCESSIBILITY.md) first. Guide mode is an aid and does not replace a cane or a guide dog. The same file has the status of each feature and the eleven checks to run on the glasses.
+
+iOS asks for three more permissions the first time each is needed: location for walking directions and "where am I", notifications for sound alerts, and Contacts for "set my emergency contact to" a name. To start walking directions with the phone locked, set location for Phoenix Fox to Always in the Settings app.
+
 ## Alerts when the app is closed
 
 Alerts that arrive while the app is closed go through Apple's push service, and three things must line up:
