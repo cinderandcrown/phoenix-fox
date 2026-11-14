@@ -8,6 +8,7 @@ struct SettingsView: View {
 
     @EnvironmentObject var settingsManager: SettingsManager
     @EnvironmentObject var glassesManager: GlassesManager
+    @ObservedObject private var store = SubscriptionStore.shared
 
     // MARK: - Body
 
@@ -29,6 +30,16 @@ struct SettingsView: View {
                         AccessibilitySettingsView()
                     } label: {
                         Label("Accessibility", systemImage: "accessibility")
+                    }
+                    NavigationLink {
+                        PlanView()
+                    } label: {
+                        HStack {
+                            Label("Plan", systemImage: "creditcard")
+                            Spacer()
+                            Text(store.selling ? store.access.plan.name : "Everything unlocked")
+                                .foregroundColor(.secondary)
+                        }
                     }
                 } header: {
                     Text("Phoenix Fox")

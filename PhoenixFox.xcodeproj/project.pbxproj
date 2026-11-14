@@ -229,6 +229,8 @@
 		4BE0F2363F72E52BBBD44B0A /* Plan.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11A3E94A25F0D295B96D6993 /* Plan.swift */; };
 		74E3B16F71F49686AFAA2C3F /* StoreCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95F62B0EADF698A5E83F26AA /* StoreCatalog.swift */; };
 		328261896ECF74C7A59CACB6 /* StorePlanTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4FD05A384D3242522D2A2E8C /* StorePlanTests.swift */; };
+		5C603ABCDC5219EAAEC835F2 /* SubscriptionStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00276486917BAE38EA00D9D3 /* SubscriptionStore.swift */; };
+		B15EC6C2C9AF009DF3459DA4 /* PlanView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B51BE4DEC3DD23AA1B0A4826 /* PlanView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -458,6 +460,8 @@
 		11A3E94A25F0D295B96D6993 /* Plan.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Plan.swift; sourceTree = "<group>"; };
 		95F62B0EADF698A5E83F26AA /* StoreCatalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoreCatalog.swift; sourceTree = "<group>"; };
 		4FD05A384D3242522D2A2E8C /* StorePlanTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StorePlanTests.swift; sourceTree = "<group>"; };
+		00276486917BAE38EA00D9D3 /* SubscriptionStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionStore.swift; sourceTree = "<group>"; };
+		B51BE4DEC3DD23AA1B0A4826 /* PlanView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -512,6 +516,7 @@
 				5704DC60510D8F1C43EC78E8 /* LiveCaptionsView.swift */,
 				BA4587C6165845F82CF03064 /* GlassesLimitsView.swift */,
 				5C27C613A99D052AC6C3D979 /* WorkshopSettingsView.swift */,
+				B51BE4DEC3DD23AA1B0A4826 /* PlanView.swift */,
 			);
 			path = Settings;
 			sourceTree = "<group>";
@@ -1089,6 +1094,7 @@
 			isa = PBXGroup;
 			children = (
 				8D63C433489B643221601742 /* Core */,
+				00276486917BAE38EA00D9D3 /* SubscriptionStore.swift */,
 			);
 			path = Store;
 			sourceTree = "<group>";
@@ -1458,6 +1464,8 @@
 				26A85D4F19C09E31FD1B5929 /* WorkshopSettingsView.swift in Sources */,
 				4BE0F2363F72E52BBBD44B0A /* Plan.swift in Sources */,
 				74E3B16F71F49686AFAA2C3F /* StoreCatalog.swift in Sources */,
+				5C603ABCDC5219EAAEC835F2 /* SubscriptionStore.swift in Sources */,
+				B15EC6C2C9AF009DF3459DA4 /* PlanView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

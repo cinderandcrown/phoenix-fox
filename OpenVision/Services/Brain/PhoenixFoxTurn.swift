@@ -36,7 +36,7 @@ enum PhoenixFoxTurn {
         }
         let route = FastModeRouter.rules(cleaned, context: FastModeRouter.Context(
             fastMode: settings.jarvisFastMode && settings.isGrokConfigured,
-            isPro: true,
+            isPro: SubscriptionStore.shared.allows(.botTeam),
             bots: settings.assistantBots,
             instantReady: settings.isGrokConfigured,
             clipEnabled: settings.jarvisLookClip

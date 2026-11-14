@@ -27,6 +27,10 @@ settings:
     # capabilities allowed. The TestFlight workflow sets it on the command line. It reaches
     # the app through Info.plist. See OpenVision/App/BuildFlavor.swift.
     PHOENIX_FOX_OWNER_BUILD: "NO"
+    # YES makes a build that sells plans through the App Store. NO, the default, unlocks
+    # everything and never talks to the App Store. The owner's build never sells, whatever
+    # this says. See OpenVision/Services/Store/Core/StoreCatalog.swift.
+    PHOENIX_FOX_STORE: "NO"
     INFOPLIST_FILE: OpenVision/Resources/Info.plist
     PRODUCT_BUNDLE_IDENTIFIER: com.cinderandcrown.phoenixfox
     META_APP_ID: "1651172483404286"

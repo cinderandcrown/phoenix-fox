@@ -190,6 +190,7 @@ jobs:
             APP_CODE_SIGN_IDENTITY=- \
             APP_AD_HOC_SIGNING=YES \
             PHOENIX_FOX_OWNER_BUILD=YES \
+            PHOENIX_FOX_STORE=NO \
             DEVELOPMENT_TEAM="$APPLE_TEAM_ID" \
             MARKETING_VERSION="$VERSION" \
             CURRENT_PROJECT_VERSION="$BUILD" \
