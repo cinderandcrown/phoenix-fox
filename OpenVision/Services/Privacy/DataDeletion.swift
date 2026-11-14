@@ -13,7 +13,7 @@ enum DataDeletion {
         CloudAIConsent.withdraw()
         FaceRecognitionConsent.withdrawWearerNotice()
         ConversationManager.shared.deleteAllConversations()
-        AccessFaces.shared.forgetAll()
+        _ = AccessFaces.shared.forgetAll()
         AccessStore.remove("faces")
         AccessStore.remove("routines")
         AccessStore.remove("reminders")

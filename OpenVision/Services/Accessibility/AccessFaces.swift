@@ -19,7 +19,11 @@ final class AccessFaces: ObservableObject {
 
     private init() {
         let loaded = AccessStore.load([FaceRecord].self, from: Self.file) ?? []
-        let days = retentionDays
+        // Do not touch `self.retentionDays` before `records` is assigned — that property
+        // reads SettingsManager and trips "self used before all stored properties".
+        let days = FaceRecognitionConsent.clampedRetentionDays(
+            SettingsManager.shared.settings.accessibility.faceRetentionDays
+        )
         records = FaceLedger.pruningExpired(loaded, retentionDays: days)
         if records.count != loaded.count {
             persist()

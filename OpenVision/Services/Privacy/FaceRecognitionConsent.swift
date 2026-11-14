@@ -26,7 +26,7 @@ enum FaceRecognitionConsent {
     Face recognition stores biometric face prints on this phone only. Under Texas and Illinois law, each person must agree out loud before I save them. Strangers are never stored. Prints delete after thirty days with no match, or when you say forget. Say yes to turn face recognition on, or no to leave it off.
     """
 
-    static let enrollmentConsentPrompt: (String) -> String = { name in
+    static func enrollmentConsentPrompt(_ name: String) -> String {
         "\(name), say yes if you agree I may save your face print on this iPhone for recognition. This is biometric data under Texas and Illinois law. Say no if you do not agree."
     }
 

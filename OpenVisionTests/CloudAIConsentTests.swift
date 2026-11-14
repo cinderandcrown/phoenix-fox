@@ -6,15 +6,18 @@ import XCTest
 
 final class CloudAIConsentTests: XCTestCase {
     private var defaults: UserDefaults!
+    private var suiteName = ""
 
     override func setUp() {
         super.setUp()
-        defaults = UserDefaults(suiteName: "CloudAIConsentTests.\(UUID().uuidString)")
+        suiteName = "CloudAIConsentTests.\(UUID().uuidString)"
+        defaults = UserDefaults(suiteName: suiteName)
     }
 
     override func tearDown() {
-        defaults.removePersistentDomain(forName: defaults.suiteName!)
+        defaults.removePersistentDomain(forName: suiteName)
         defaults = nil
+        suiteName = ""
         super.tearDown()
     }
 
