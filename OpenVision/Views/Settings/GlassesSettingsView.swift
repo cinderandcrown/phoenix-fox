@@ -111,8 +111,33 @@ struct GlassesSettingsView: View {
                                 .foregroundColor(.secondary)
                         }
                     }
+                    .accessibilityElement(children: .combine)
+
+                    if let profile = glassesManager.streamProfile {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Stream")
+                            Text(glassesManager.isPaused
+                                 ? "Paused from the glasses. Tap the touchpad once to resume."
+                                 : profile.summary)
+                                .font(.footnote)
+                                .foregroundColor(.secondary)
+                        }
+                        .accessibilityElement(children: .combine)
+                    }
                 } header: {
                     Text("Device Status")
+                }
+
+                if BuildFlavor.current.allowsExperimental {
+                    Section {
+                        NavigationLink {
+                            GlassesLimitsView()
+                        } label: {
+                            Label("Glasses limits", systemImage: "slider.horizontal.3")
+                        }
+                    } footer: {
+                        Text("Full-rate video, whole-sensor photos, sound from the glasses, the touchpad and buttons, nods and shakes, and speech on the glasses.")
+                    }
                 }
 
                 // Camera Controls
@@ -133,7 +158,13 @@ struct GlassesSettingsView: View {
                     Button {
                         Task { await glassesManager.updateGlassesApp() }
                     } label: {
-                        Label("Install/Update Glasses App", systemImage: "arrow.down.circle")
+                        Label("Update the glasses app", systemImage: "arrow.down.circle")
+                    }
+
+                    Button {
+                        Task { await glassesManager.updateGlassesFirmware() }
+                    } label: {
+                        Label("Update the glasses", systemImage: "arrow.triangle.2.circlepath")
                     }
 
                     Button {
