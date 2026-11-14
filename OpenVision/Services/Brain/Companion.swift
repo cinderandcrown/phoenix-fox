@@ -339,7 +339,7 @@ final class CompanionRuntime: ObservableObject {
         refreshIsland()
         NotificationCenter.default.post(name: .phoenixKeepListening, object: nil)
         watchTask = Task {
-            await GlassesManager.shared.startStreaming()
+            await GlassesManager.shared.startStreaming(for: .watch)
             var interval: UInt64 = 1_200_000_000
             var stable = 0
             var lastSent = Date.distantPast

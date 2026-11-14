@@ -8,6 +8,7 @@
 // the ViewModel forever.
 
 import SwiftUI
+import Combine
 import Speech
 
 @MainActor
@@ -193,13 +194,16 @@ final class VoiceAgentViewModel: ObservableObject {
     /// would have said. Each one then runs through the same turn as a spoken command.
     private enum GlassesRequest {
         static let look = "What do you see?"
+        static let keep = "Take a picture"
         static let note = "Remember this"
     }
 
+    private var glassesWatch = Set<AnyCancellable>()
+
     /// The only listener for input that arrives from the glasses instead of the microphone:
-    /// "Hey Meta" launching the app, a temple or band tap, the capture button, and speech the
-    /// glasses transcribed. Adventurer opens no input session, so only the launch reaches here.
-    /// Display glasses and a Neural Band post the same names.
+    /// "Hey Meta" launching the app, the touchpad, the buttons, a Neural Band, a nod or a
+    /// shake of the head, and speech the glasses turned into text. It also tells the
+    /// glasses when Jarvis is busy with the wearer, which is when their controls are live.
     private func installGlassesInput() {
         let center = NotificationCenter.default
         for name in [Notification.Name.jarvisVoiceLaunch, .jarvisTalk] {
@@ -210,12 +214,98 @@ final class VoiceAgentViewModel: ObservableObject {
         center.addObserver(forName: .jarvisLook, object: nil, queue: .main) { [weak self] _ in
             Task { @MainActor in self?.acceptGlassesCommand(GlassesRequest.look) }
         }
+        center.addObserver(forName: .jarvisKeep, object: nil, queue: .main) { [weak self] _ in
+            Task { @MainActor in self?.acceptGlassesCommand(GlassesRequest.keep) }
+        }
         center.addObserver(forName: .jarvisNote, object: nil, queue: .main) { [weak self] _ in
             Task { @MainActor in self?.acceptGlassesCommand(GlassesRequest.note) }
         }
+        center.addObserver(forName: .jarvisQuiet, object: nil, queue: .main) { [weak self] _ in
+            Task { @MainActor in self?.quietFromGlasses() }
+        }
+        center.addObserver(forName: .jarvisHeadAnswer, object: nil, queue: .main) { [weak self] note in
+            guard let raw = note.object as? String, let answer = HeadAnswer(rawValue: raw) else { return }
+            Task { @MainActor in self?.acceptHeadAnswer(answer) }
+        }
         center.addObserver(forName: .jarvisGlassesTranscript, object: nil, queue: .main) { [weak self] note in
             guard let text = note.object as? String else { return }
-            Task { @MainActor in self?.acceptGlassesCommand(text) }
+            Task { @MainActor in self?.hearFromGlasses(text) }
+        }
+
+        voiceCommandService.$isListening
+            .removeDuplicates()
+            .sink { listening in
+                GlassesControlSession.shared.phoneIsListening(listening)
+            }
+            .store(in: &glassesWatch)
+        // Busy with the wearer: from the wake word, through the answer, until the
+        // microphone goes back to waiting for the wake word.
+        voiceCommandService.$state
+            .combineLatest($agentState)
+            .map { listening, agent in
+                listening != .idle || [.thinking, .speaking, .toolRunning, .liveVideo].contains(agent)
+            }
+            .removeDuplicates()
+            .sink { busy in
+                GlassesControlSession.shared.attention(busy)
+            }
+            .store(in: &glassesWatch)
+    }
+
+    /// A sentence the glasses turned into text. It counts only when it starts with the
+    /// wake word and the phone did not hear it too. See `GlassesSpeechGate`.
+    private func hearFromGlasses(_ text: String) {
+        let heard = GlassesSpeechGate.hear(
+            text,
+            wakeWord: settingsManager.settings.wakeWord,
+            phoneListening: voiceCommandService.isListening
+        )
+        switch heard {
+        case .nothing:
+            break
+        case .wake:
+            wakeFromGlasses()
+        case .command(let command):
+            acceptGlassesCommand(command)
+        }
+    }
+
+    /// A swipe back on the touchpad, or a shake of the head, while Jarvis is talking:
+    /// that's enough. It stops the answer and nothing else, exactly as talking over it
+    /// does. Guide mode, a recording, and live video carry on.
+    private func quietFromGlasses() {
+        guard ttsService.isSpeaking || NeuralSpeech.isAnySpeaking else { return }
+        voiceCommandService.onInterruption?()
+    }
+
+    /// Two nods or a shake of the head.
+    ///
+    /// A shake declines the question that is waiting. A nod agrees only to a question
+    /// whose yes does not have to be spoken. See `HeadAnswerPolicy`. With no question waiting, a
+    /// shake stops Jarvis talking, except on a walk, where the head turns to look around
+    /// and the next thing said may be a warning.
+    private func acceptHeadAnswer(_ answer: HeadAnswer) {
+        if let pending = pendingAnswer {
+            // An assistant asked before acting. Its yes has to be spoken.
+            guard HeadAnswerPolicy.noOnly.accepts(answer) else { return }
+            pendingAnswer = nil
+            questionPrompt?.cancel()
+            questionPrompt = nil
+            ttsService.stop()
+            NeuralSpeech.stopAll()
+            userTranscript = "No"
+            agentState = .thinking
+            pending.continuation.resume(returning: "no")
+            return
+        }
+        if AccessibilityCoordinator.shared.headAnswerPolicy.accepts(answer) {
+            let word = answer == .yes ? "Yes" : "No"
+            userTranscript = word
+            Task { await self.sendCommand(word) }
+            return
+        }
+        if answer == .no, !GuideMode.shared.isOn, !WalkingGuide.shared.isActive {
+            quietFromGlasses()
         }
     }
 
@@ -451,9 +541,9 @@ final class VoiceAgentViewModel: ObservableObject {
                 case .geminiLive:
                     try await GeminiLiveService.shared.connect()
                     // Start glasses streaming for Gemini Live mode
-                    if glassesManager.isRegistered && !glassesManager.isStreaming {
+                    if glassesManager.isRegistered {
                         print("[VoiceAgent] Starting glasses stream for Gemini Live...")
-                        await glassesManager.startStreaming()
+                        await glassesManager.startStreaming(for: .liveVideo)
                     }
 
                 case .localGemma:
@@ -1321,10 +1411,8 @@ final class VoiceAgentViewModel: ObservableObject {
         audioCapture.targetSampleRate = Double(service.inputSampleRate)
         audioPlayback.inputSampleRate = Double(service.outputSampleRate)
 
-        // Start glasses streaming
-        if !glassesManager.isStreaming {
-            await glassesManager.startStreaming()
-        }
+        // Turns the camera on, or restarts one that is on but too slow for live video.
+        await glassesManager.startStreaming(for: .liveVideo)
 
         // Connect to the live backend
         do {
@@ -1412,9 +1500,7 @@ final class VoiceAgentViewModel: ObservableObject {
     private func startLocalLiveVideoMode() async {
         print("[VoiceAgent] Starting local live video mode (SmolVLM2)...")
 
-        if !glassesManager.isStreaming {
-            await glassesManager.startStreaming()
-        }
+        await glassesManager.startStreaming(for: .liveVideo)
         guard glassesManager.isStreaming else {
             ttsService.speak("I couldn't start the glasses camera")
             return
@@ -1964,10 +2050,9 @@ final class VoiceAgentViewModel: ObservableObject {
             errorMessage = "Connect your glasses first to record."
             return
         }
-        // Recording needs a live frame stream; start it if the user isn't already in live video.
-        if !glassesManager.isStreaming {
-            await glassesManager.startStreaming()
-        }
+        // A recording wants every frame and the sound. The camera starts for it, and a
+        // lighter stream that is already on is replaced. See `GlassesManager.startStreaming`.
+        await glassesManager.startStreaming(for: .recording)
         guard glassesManager.isStreaming else {
             errorMessage = "Couldn't start the glasses camera to record."
             return

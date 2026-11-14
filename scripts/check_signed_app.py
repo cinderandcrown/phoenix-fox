@@ -9,7 +9,8 @@ associated domain, and push alerts need the production push service. This reads 
 Info.plist and the entitlements in its signature and fails on any of those.
 
     check_signed_app.py --info Info.plist --entitlements entitlements.plist \\
-        --team TEAMID --bundle-id com.example.app --version 1.0.0 --build 42.1
+        --team TEAMID --bundle-id com.example.app --version 1.0.0 --build 42.1 \\
+        --owner-build yes
 
 It prints which checks passed. It never prints the Meta client token.
 """
@@ -24,7 +25,23 @@ from typing import Any
 LINK_HOST = "phoenix-fox-links.cinderandcrown.workers.dev"
 
 
-def problems(info: dict[str, Any], entitlements: dict[str, Any], team: str, bundle_id: str, version: str, build: str) -> list[str]:
+def is_owner_build(info: dict[str, Any]) -> bool:
+    """Whether the app will run as the owner's build. Mirrors BuildFlavor.swift."""
+    value = info.get("PhoenixFoxOwnerBuild")
+    if isinstance(value, bool):
+        return value
+    return isinstance(value, str) and value.strip().lower() in ("yes", "true", "1")
+
+
+def problems(
+    info: dict[str, Any],
+    entitlements: dict[str, Any],
+    team: str,
+    bundle_id: str,
+    version: str,
+    build: str,
+    owner_build: bool | None = None,
+) -> list[str]:
     found: list[str] = []
 
     def expect(condition: bool, problem: str) -> None:
@@ -43,6 +60,11 @@ def problems(info: dict[str, Any], entitlements: dict[str, Any], team: str, bund
     token = meta.get("ClientToken") or ""
     expect(bool(token) and "$(" not in token, "MWDAT ClientToken is empty. The META_CLIENT_TOKEN secret did not reach the build.")
 
+    if owner_build is True:
+        expect(is_owner_build(info), "This is not the owner's build. PHOENIX_FOX_OWNER_BUILD=YES did not reach Info.plist, so every feature would start off.")
+    elif owner_build is False:
+        expect(not is_owner_build(info), "This is the owner's build, with every feature on and the beta glasses capabilities allowed. It must not go out as a standard build.")
+
     modes = info.get("UIBackgroundModes") or []
     if "processing" in modes:
         expect(bool(info.get("BGTaskSchedulerPermittedIdentifiers")), "Background mode 'processing' needs BGTaskSchedulerPermittedIdentifiers. Apple refuses the upload without it.")
@@ -59,13 +81,15 @@ def main(arguments: list[str]) -> int:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     for name in ("info", "entitlements", "team", "bundle-id", "version", "build"):
         parser.add_argument(f"--{name}", required=True)
+    parser.add_argument("--owner-build", choices=("yes", "no"), help="Fail unless the app is (yes) or is not (no) the owner's build.")
     options = parser.parse_args(arguments)
     with open(options.info, "rb") as file:
         info = plistlib.load(file)
     with open(options.entitlements, "rb") as file:
         entitlements = plistlib.load(file)
 
-    found = problems(info, entitlements, options.team, options.bundle_id, options.version, options.build)
+    owner_build = None if options.owner_build is None else options.owner_build == "yes"
+    found = problems(info, entitlements, options.team, options.bundle_id, options.version, options.build, owner_build)
     if found:
         print("The signed app is not ready to upload:")
         for problem in found:
@@ -74,6 +98,7 @@ def main(arguments: list[str]) -> int:
     extra = sorted(key for key in entitlements if key.startswith("com.apple.developer.") and key != "com.apple.developer.team-identifier")
     print(f"Signed app is ready: {info['CFBundleShortVersionString']} ({info['CFBundleVersion']}), production push, Meta values present.")
     print("Entitlements: " + ", ".join(extra))
+    print("Owner build: every feature on." if is_owner_build(info) else "Standard build.")
     return 0
 
 

@@ -82,6 +82,46 @@ class SignedAppTests(unittest.TestCase):
         info["BGTaskSchedulerPermittedIdentifiers"] = ["com.example.app.refresh"]
         self.assertEqual(run(info, good_entitlements()), [])
 
+    def test_the_owner_build_flag_is_checked_only_when_asked(self):
+        standard, owner = good_info(), good_info()
+        owner["PhoenixFoxOwnerBuild"] = "YES"
+        unset = good_info()
+        unset["PhoenixFoxOwnerBuild"] = "$(PHOENIX_FOX_OWNER_BUILD)"
+
+        def check_owner(info, expected):
+            return check.problems(info, good_entitlements(), TEAM, BUNDLE, "1.0.0", "42.1", expected)
+
+        for info in (standard, owner, unset):
+            self.assertEqual(check_owner(info, None), [])
+        self.assertEqual(check_owner(owner, True), [])
+        self.assertTrue(any("not the owner's build" in problem for problem in check_owner(standard, True)))
+        self.assertTrue(any("not the owner's build" in problem for problem in check_owner(unset, True)))
+        self.assertEqual(check_owner(standard, False), [])
+        self.assertEqual(check_owner(unset, False), [])
+        self.assertTrue(any("must not go out as a standard build" in problem for problem in check_owner(owner, False)))
+
+    def test_the_owner_build_flag_reads_the_way_the_app_reads_it(self):
+        for value, expected in (("YES", True), (" yes\n", True), ("true", True), ("1", True), (True, True),
+                                ("NO", False), ("", False), (False, False), (None, False), ("$(PHOENIX_FOX_OWNER_BUILD)", False)):
+            self.assertEqual(check.is_owner_build({"PhoenixFoxOwnerBuild": value}), expected, repr(value))
+        self.assertFalse(check.is_owner_build({}))
+
+    def test_the_repository_plist_takes_the_owner_flag_from_the_build_setting(self):
+        root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        with open(os.path.join(root, "OpenVision/Resources/Info.plist"), "rb") as file:
+            info = plistlib.load(file)
+        self.assertEqual(info.get("PhoenixFoxOwnerBuild"), "$(PHOENIX_FOX_OWNER_BUILD)")
+        with open(os.path.join(root, "project.yml"), encoding="utf-8") as file:
+            self.assertIn('PHOENIX_FOX_OWNER_BUILD: "NO"', file.read())
+        with open(os.path.join(root, "PhoenixFox.xcodeproj/project.pbxproj"), encoding="utf-8") as file:
+            project = file.read()
+        self.assertEqual(project.count("PHOENIX_FOX_OWNER_BUILD = NO;"), 2)
+        self.assertNotIn("PHOENIX_FOX_OWNER_BUILD = YES", project)
+        with open(os.path.join(root, ".github/workflows/testflight.yml"), encoding="utf-8") as file:
+            workflow = file.read()
+        self.assertIn("PHOENIX_FOX_OWNER_BUILD=YES", workflow)
+        self.assertIn("--owner-build yes", workflow)
+
     def test_the_command_never_prints_the_client_token(self):
         with tempfile.TemporaryDirectory() as folder:
             paths = {}

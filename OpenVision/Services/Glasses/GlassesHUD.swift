@@ -37,6 +37,8 @@ final class GlassesHUD {
     private(set) var bandDetected = false
     private var display: Display?
     private var cards: [HudCard] = []
+    /// Whether there is a card on the lens for a swipe to act on.
+    var hasCards: Bool { !cards.isEmpty }
     private var index = 0
     private var onTalk: (() -> Void)?
 
@@ -119,7 +121,7 @@ final class GlassesHUD {
             Task { await renderCurrent() }
         case .talkOrConfirm:
             onTalk?()
-        case .look, .note, nil:
+        case .look, .keep, .note, nil:
             break
         }
     }

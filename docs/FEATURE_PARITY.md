@@ -24,13 +24,14 @@ Sources, all Meta:
 No row says Done, because nothing here has been run on a pair of glasses yet. The words mean:
 
 - **Built**: the whole path is in the app, it compiles in CI with no warnings, and the parts that do not need hardware are covered by unit tests. The owner confirms it on Adventurer with the steps in [SETUP.md](../SETUP.md).
+- **Written**: the whole path is in the app and its decisions are covered by unit tests, but CI has not built it yet. The code that calls the glasses toolkit was type-checked on Linux against stand-ins generated from the toolkit's interface. A row moves to Built when CI builds it. "Owner build" after the word means the feature is in the TestFlight build only.
 - **Partial**: a real part is in the app, and the last column names what is missing.
 - **Blocked**: Meta or iOS does not allow it. The app says so out loud.
 - **Not started**: asked for and not built yet.
 
 A row moves to Done when the owner has seen it work on the glasses.
 
-Display glasses and the Neural Band do not get a second code path. `CompanionSurface.present` speaks every reply and adds a lens card only when the glasses report a display. `GestureMap` turns a tap, a swipe, or the capture button into talk, look, or note, and those enter the same turn as a spoken command. Adventurer does not open the input session, because it would compete with the camera.
+Display glasses and the Neural Band do not get a second code path. `CompanionSurface.present` speaks every reply and adds a lens card only when the glasses report a display. `GestureMap` turns a tap, a swipe, or the capture button into talk, look, keep, or note, and those enter the same turn as a spoken command. On Adventurer the controls are an owner-build feature, live only while Jarvis is busy with the wearer or the camera is on, and they share one session with the camera. See [GLASSES_SDK.md](GLASSES_SDK.md).
 
 | Feature | Status | What remains |
 | --- | --- | --- |
@@ -46,7 +47,7 @@ Display glasses and the Neural Band do not get a second code path. `CompanionSur
 | Live conversation after Jarvis | Partial | Follow-ups stay open until silence. Barging in on a reply is not used, because the glasses microphones hear the speakers. Say Jarvis, then the next request. |
 | Translation and meeting notes | Partial | The next utterances can be translated on the phone. "Meeting notes" sends that transcript to Fire Fox when the relay is set. No lens captions on Adventurer. No always-on interpreter. |
 | Messages, SMS, email | Partial | Contacts lookup, then the public URL. You still tap send. No silent send. |
-| Record a clip | Partial | The preview stream is saved to Photos while the light is on. It is not Meta's 3K file. |
+| Record a clip | Partial | The stream is saved to Photos while the light is on. In the owner build it is 720 by 1280 at 30 frames a second with the glasses' own sound at 48 kHz, the most the toolkit gives. It is not Meta's 3K file. |
 | QR | Built | Vision on one photo. An `https` link opens. |
 | Reminders, timers, time, date, battery | Built | On the phone, or `Device.batteryLevel` when the link is up. Time and date use no model. |
 | Remember / recall | Built | AES-GCM notes, key in the Keychain. Search is on-device word vectors, not a photo embedding. |
@@ -57,10 +58,14 @@ Display glasses and the Neural Band do not get a second code path. `CompanionSur
 | Concierge booking | Partial | The request goes to the named bot through the relay. The app does not book anything itself. |
 | Take over, all bots at once | Partial | Fire Fox, Indy, Driver, and Rally are asked together, and each reply is spoken as it arrives. Not yet run against the live relay. |
 | Smart Capture | Partial | Session, change detection, keep/skip, Photos album, encrypted index. Auto-route stays off until you turn it on. |
-| Watch this | Partial | Stream at 7 fps with the light on. Only a changed frame is sent. "Stop watching" ends it. |
+| Watch this | Partial | Stream at 7 fps with the light on, at 720 by 1280 in the owner build. Only a changed frame is sent. "Stop watching" ends it. |
 | Morning brief and place reminders | Partial | One brief when the relay is set. A 150 meter region speaks on entry and needs Always location. |
 | In-lens cards | Blocked on Adventurer | Replies and urgent alerts already go through `CompanionSurface.present`, which draws a card when the glasses report a display. Display glasses are the remaining hardware test. |
-| Temple tap and Neural Band | Blocked on Adventurer | On display glasses a tap starts a turn, the capture button asks for a look, and a hold saves a note. Nothing waits on a band. |
+| Touchpad, capture button, nod and shake | Written, owner build | While Jarvis is busy with the wearer: a double tap talks, a swipe back stops Jarvis talking, the capture button looks (one press), keeps a picture (two), or takes a note (hold), a shake says no, and two nods say yes where a spoken yes is not required. Not yet run on glasses. The touchpad cannot start a conversation from nothing, because an always-open session would take the glasses' single tap and long press away all day. |
+| Whole-sensor photos | Written, owner build | "Take a picture" saves 4032 by 3024. Reading uses a large photo. Falls back to a stream frame. Not yet run on glasses. |
+| Speech on the glasses | Written, owner build | The glasses' recognizer listens for the wake word when the phone's microphone is not listening. Needs the glasses' microphone allowed in Meta AI. Not yet run on glasses. |
+| Owner build | Written | One build setting, on for TestFlight, switches every feature on once and allows the toolkit's beta parts. Covered by `OwnerBuildTests` and `OwnerProfileSettingsTests`, and checked in the signed app before upload. |
+| Neural Band | Blocked on Adventurer | Listened for on display glasses and handled like the touchpad. Nothing waits on a band. |
 | WhatsApp, Messenger, Instagram calls | Blocked | Spoken. No public API, and DAT does not hand the camera to another calling app. |
 | Read other apps' notifications | Blocked | Spoken. iOS keeps those private. |
 | Set the system volume | Blocked | The level is spoken. The rocker on the glasses stays in charge. |
@@ -81,7 +86,7 @@ Say "mind meld on". After that, finished turns are written to `phoenix-mindmeld.
 
 | Meta feature | On Adventurer with DAT 1.0.1 and iOS | Phoenix Fox |
 | --- | --- | --- |
-| Wake with "Hey Meta" or a touchpad hold | **Partial.** The hardware wake word stays Meta's. DAT does not let another app register "Hey Meta" or replace it. The touchpad can report a tap only while an input session is up. Adventurer does not keep that session open, because it would block the camera. | Say **Jarvis**. The phone hears it over Bluetooth. Meta's wake word is unchanged. |
+| Wake with "Hey Meta" or a touchpad hold | **Partial.** The hardware wake word stays Meta's. DAT does not let another app register "Hey Meta" or replace it. The touchpad can report a tap only while a session is open, and an open session takes the glasses' single tap and long press for itself, so Phoenix Fox opens one only while Jarvis is already busy with the wearer (owner build). | Say **Jarvis**. The phone hears it over Bluetooth. Meta's wake word is unchanged. |
 | Look and ask / describe what I see | **Yes.** One still from `Camera` / the preview stream, then the camera turns off. | One compressed photo. A short question uses the cheap Grok model. A task goes to the relay. |
 | Live AI, continuous conversation | **Partial.** No always-on glasses assistant. After Jarvis, follow-ups work until silence. During "watch this" and translation, the conversation stays open and "Jarvis" plus the next request interrupts speech. Any-speech barge-in is not used, because the glasses mic hears the reply. | Same conversation window. The camera stays off unless you ask to look or watch. |
 | Live translation of a conversation | **Partial.** No Meta interpreter session and no lens captions on Adventurer. | "Start translating" or "translate to Spanish" captions the phone and speaks the translation. Meeting notes summarize that transcript. |

@@ -199,6 +199,14 @@
 		C6D958B829316517608AC340 /* AccessHearingAndGuideTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04B6BB5DFC6D70F308D9EA2F /* AccessHearingAndGuideTests.swift */; };
 		73DB593426F211656B91B932 /* AccessSeeingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCB7CA6407466B22BF6440BC /* AccessSeeingTests.swift */; };
 		4A41B1C4E03B72A2F9AB15E6 /* AccessPlatformTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4519AFC99D10284A42F1D08 /* AccessPlatformTests.swift */; };
+		F6C4B8313216F0772BD624D3 /* BuildFlavor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36C0C6BDE62220F9F0D7AFC2 /* BuildFlavor.swift */; };
+		95D9221AFFDC4F4C48E4467B /* GlassesCapabilitySettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = F210EA3722C08930DE62A004 /* GlassesCapabilitySettings.swift */; };
+		C86C79258531BE3A164C33E3 /* GlassesInputCore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6CAE7AB8766198A6FF246F6C /* GlassesInputCore.swift */; };
+		5F2B50A63C048CF123B910C0 /* StreamPlan.swift in Sources */ = {isa = PBXBuildFile; fileRef = 156F8E364B12C1A9A14DBBCF /* StreamPlan.swift */; };
+		B87B9778C3EF9404F6B040A4 /* GlassesLimitsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D1075235D45C264295E120C /* GlassesLimitsTests.swift */; };
+		4D61F179241CA43944CA0483 /* OwnerBuildTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8CA38BEC37F3694BBBDD75D6 /* OwnerBuildTests.swift */; };
+		8FD4B9B5759399478F557C19 /* GlassesLimitsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA4587C6165845F82CF03064 /* GlassesLimitsView.swift */; };
+		E225E96B1489C1A8B0E48BEB /* OwnerProfileSettingsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 52634453C039777CDB34A608 /* OwnerProfileSettingsTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -398,6 +406,14 @@
 		04B6BB5DFC6D70F308D9EA2F /* AccessHearingAndGuideTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccessHearingAndGuideTests.swift; sourceTree = "<group>"; };
 		BCB7CA6407466B22BF6440BC /* AccessSeeingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccessSeeingTests.swift; sourceTree = "<group>"; };
 		E4519AFC99D10284A42F1D08 /* AccessPlatformTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccessPlatformTests.swift; sourceTree = "<group>"; };
+		36C0C6BDE62220F9F0D7AFC2 /* BuildFlavor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BuildFlavor.swift; sourceTree = "<group>"; };
+		F210EA3722C08930DE62A004 /* GlassesCapabilitySettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlassesCapabilitySettings.swift; sourceTree = "<group>"; };
+		6CAE7AB8766198A6FF246F6C /* GlassesInputCore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlassesInputCore.swift; sourceTree = "<group>"; };
+		156F8E364B12C1A9A14DBBCF /* StreamPlan.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreamPlan.swift; sourceTree = "<group>"; };
+		1D1075235D45C264295E120C /* GlassesLimitsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlassesLimitsTests.swift; sourceTree = "<group>"; };
+		8CA38BEC37F3694BBBDD75D6 /* OwnerBuildTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OwnerBuildTests.swift; sourceTree = "<group>"; };
+		BA4587C6165845F82CF03064 /* GlassesLimitsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlassesLimitsView.swift; sourceTree = "<group>"; };
+		52634453C039777CDB34A608 /* OwnerProfileSettingsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OwnerProfileSettingsTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -450,6 +466,7 @@
 				71ACC88CE5E9E799ED607853 /* WebSearchSettingsView.swift */,
 				4BA2FDE24B15B51FD7449EB1 /* AccessibilitySettingsView.swift */,
 				5704DC60510D8F1C43EC78E8 /* LiveCaptionsView.swift */,
+				BA4587C6165845F82CF03064 /* GlassesLimitsView.swift */,
 			);
 			path = Settings;
 			sourceTree = "<group>";
@@ -597,6 +614,7 @@
 			children = (
 				C3FFDFCB5AA5A664CC70E183 /* OpenVisionApp.swift */,
 				D721D43D709E9412709ACC90 /* IncomingLink.swift */,
+				36C0C6BDE62220F9F0D7AFC2 /* BuildFlavor.swift */,
 			);
 			path = App;
 			sourceTree = "<group>";
@@ -847,6 +865,9 @@
 				04B6BB5DFC6D70F308D9EA2F /* AccessHearingAndGuideTests.swift */,
 				BCB7CA6407466B22BF6440BC /* AccessSeeingTests.swift */,
 				E4519AFC99D10284A42F1D08 /* AccessPlatformTests.swift */,
+				1D1075235D45C264295E120C /* GlassesLimitsTests.swift */,
+				8CA38BEC37F3694BBBDD75D6 /* OwnerBuildTests.swift */,
+				52634453C039777CDB34A608 /* OwnerProfileSettingsTests.swift */,
 			);
 			path = OpenVisionTests;
 			sourceTree = "<group>";
@@ -882,6 +903,7 @@
 				A11AA2000000000000000003 /* GlassesControlSession.swift */,
 				A11AA2000000000000000004 /* GlassesProductTarget.swift */,
 				D3A02A6407C18B263A7FA388 /* WearablesSDK.swift */,
+				2740DE07E1607A475F0D9CBC /* Core */,
 			);
 			path = Glasses;
 			sourceTree = "<group>";
@@ -968,6 +990,16 @@
 				EE890EABAA5C99A22355FB8E /* SoundAlerts.swift */,
 				4592C4569FF1257E84664080 /* TaskGuide.swift */,
 				450E22C668932E35B0706C23 /* WalkingRoute.swift */,
+			);
+			path = Core;
+			sourceTree = "<group>";
+		};
+		2740DE07E1607A475F0D9CBC /* Core */ = {
+			isa = PBXGroup;
+			children = (
+				F210EA3722C08930DE62A004 /* GlassesCapabilitySettings.swift */,
+				6CAE7AB8766198A6FF246F6C /* GlassesInputCore.swift */,
+				156F8E364B12C1A9A14DBBCF /* StreamPlan.swift */,
 			);
 			path = Core;
 			sourceTree = "<group>";
@@ -1140,6 +1172,9 @@
 				C6D958B829316517608AC340 /* AccessHearingAndGuideTests.swift in Sources */,
 				73DB593426F211656B91B932 /* AccessSeeingTests.swift in Sources */,
 				4A41B1C4E03B72A2F9AB15E6 /* AccessPlatformTests.swift in Sources */,
+				B87B9778C3EF9404F6B040A4 /* GlassesLimitsTests.swift in Sources */,
+				4D61F179241CA43944CA0483 /* OwnerBuildTests.swift in Sources */,
+				E225E96B1489C1A8B0E48BEB /* OwnerProfileSettingsTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1298,6 +1333,11 @@
 				5EE54CB4DF14FFA6BEC05FF5 /* WalkingGuide.swift in Sources */,
 				576C0631263F6515DF179353 /* AccessibilitySettingsView.swift in Sources */,
 				BC84F1932CA3EA9E362B776E /* LiveCaptionsView.swift in Sources */,
+				F6C4B8313216F0772BD624D3 /* BuildFlavor.swift in Sources */,
+				95D9221AFFDC4F4C48E4467B /* GlassesCapabilitySettings.swift in Sources */,
+				C86C79258531BE3A164C33E3 /* GlassesInputCore.swift in Sources */,
+				5F2B50A63C048CF123B910C0 /* StreamPlan.swift in Sources */,
+				8FD4B9B5759399478F557C19 /* GlassesLimitsView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1399,6 +1439,7 @@
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
+				PHOENIX_FOX_OWNER_BUILD = NO;
 				PRODUCT_BUNDLE_IDENTIFIER = "${PRODUCT_BUNDLE_IDENTIFIER}";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
@@ -1523,6 +1564,7 @@
 				META_APP_ID = "${META_APP_ID}";
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
+				PHOENIX_FOX_OWNER_BUILD = NO;
 				PRODUCT_BUNDLE_IDENTIFIER = "${PRODUCT_BUNDLE_IDENTIFIER}";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;

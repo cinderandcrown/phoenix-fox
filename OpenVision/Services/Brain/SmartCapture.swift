@@ -79,7 +79,7 @@ final class SmartCapture: ObservableObject {
     }
 
     private func loop() async {
-        await GlassesManager.shared.startStreaming()
+        await GlassesManager.shared.startStreaming(for: .smartCapture)
         guard isRunning else { return }
         guard GlassesManager.shared.isStreaming else {
             await finish("I couldn't start the glasses camera, so smart capture is off.")

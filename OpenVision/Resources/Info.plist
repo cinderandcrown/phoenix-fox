@@ -29,6 +29,11 @@
     <key>ITSAppUsesNonExemptEncryption</key>
     <false/>
 
+    <!-- YES in the owner's TestFlight build, NO everywhere else. The owner's build starts
+         with every feature on and may use the glasses toolkit's beta capabilities. -->
+    <key>PhoenixFoxOwnerBuild</key>
+    <string>$(PHOENIX_FOX_OWNER_BUILD)</string>
+
     <!-- Supported Orientations -->
     <key>UISupportedInterfaceOrientations</key>
     <array>

@@ -21,6 +21,9 @@ final class SettingsManager: ObservableObject {
             if settings != oldValue {
                 scheduleSave()
             }
+            if settings.glasses != oldValue.glasses {
+                GlassesControlSession.shared.settingsChanged()
+            }
         }
     }
 
@@ -69,7 +72,9 @@ final class SettingsManager: ObservableObject {
             keychain[account] = pendingDeletions.contains(account) ? .none : SettingsSecrets.read(account)
         }
         let merged = SettingsSecrets.merge(file: fileSettings, keychain: keychain)
-        settings = merged.settings
+        var loaded = merged.settings
+        let ownerProfileApplied = OwnerProfile.applyIfNeeded(to: &loaded, flavor: .current)
+        settings = loaded
         unreadableSecrets = merged.unreadable
         for (account, stored) in keychain { if case .value(let value) = stored { storedSecrets[account] = value } }
 
@@ -78,6 +83,11 @@ final class SettingsManager: ObservableObject {
         // A settings.json from an older build still has keys in plain text: move them now.
         if SettingsSecrets.fields.contains(where: { !fileSettings[keyPath: $0.keyPath].isEmpty }) {
             print("[SettingsManager] Moving API keys from settings.json to the Keychain")
+            saveNow()
+        }
+
+        if ownerProfileApplied {
+            print("[SettingsManager] Owner build: every feature turned on (profile \(OwnerProfile.version))")
             saveNow()
         }
 
@@ -129,8 +139,22 @@ final class SettingsManager: ObservableObject {
     /// Reset settings to defaults
     func resetToDefaults() {
         secretsToClear = unreadableSecrets
-        settings = AppSettings()
+        var fresh = AppSettings()
+        OwnerProfile.applyIfNeeded(to: &fresh, flavor: .current)
+        settings = fresh
         saveNow()
+    }
+
+    /// The glasses capabilities this build may use. The beta ones are off outside the
+    /// owner build, whatever the saved settings say.
+    var glassesCapabilities: GlassesCapabilitySettings {
+        settings.glasses.allowed(in: .current)
+    }
+
+    /// Turns every feature on again in the owner build. Does nothing in any other build.
+    func applyOwnerProfile() {
+        guard BuildFlavor.current == .owner else { return }
+        OwnerProfile.apply(to: &settings)
     }
 
     // MARK: - Memory Management

@@ -6,3 +6,7 @@ DEVELOPMENT_TEAM = YOUR_TEAM_ID
 PRODUCT_BUNDLE_IDENTIFIER = com.cinderandcrown.phoenixfox
 META_APP_ID = 1651172483404286
 META_CLIENT_TOKEN =
+
+// YES makes the owner's build: every feature on, and the glasses toolkit's beta
+// capabilities allowed. Leave it out for a standard build.
+// PHOENIX_FOX_OWNER_BUILD = YES

@@ -100,6 +100,13 @@ final class SessionRecorder: ObservableObject, @unchecked Sendable {
     private var playbackConverter: AVAudioConverter?
     private var playbackSourceFormat: AVAudioFormat?
     private let playbackConvertLock = NSLock()
+    /// Converter for sound that comes with the glasses' camera stream. Guarded by its lock:
+    /// the buffers arrive on the toolkit's thread.
+    private var glassesConverter: AVAudioConverter?
+    private var glassesSourceFormat: AVAudioFormat?
+    private let glassesConvertLock = NSLock()
+    /// When the last buffer of glasses sound was written. Touched only on `writerQueue`.
+    private var lastGlassesAudio: CMTime?
     /// Canonical output format we feed to the writer: mono Int16, 44.1kHz — trivial to package as
     /// a CMSampleBuffer and fine for AAC transcode.
     private let audioOutFormat = AVAudioFormat(commonFormat: .pcmFormatInt16,
@@ -110,6 +117,8 @@ final class SessionRecorder: ObservableObject, @unchecked Sendable {
     private init() {}
 
     // MARK: - Public API
+
+    private static let glassesSoundListener = "recording"
 
     /// Begin recording. Video frames must then be forwarded via `appendVideoSampleBuffer(_:)`.
     /// The writer is created lazily on the first video frame (once we know the pixel dimensions).
@@ -136,6 +145,7 @@ final class SessionRecorder: ObservableObject, @unchecked Sendable {
             self.sessionStart = nil
             self.finished = false
             self.videoFrameCount = 0
+            self.lastGlassesAudio = nil
         }
         playbackConvertLock.lock()
         playbackConverter = nil
@@ -143,6 +153,11 @@ final class SessionRecorder: ObservableObject, @unchecked Sendable {
         playbackConvertLock.unlock()
 
         try startMic()
+        // When the camera stream carries the glasses' own sound, it becomes the sound
+        // track. Nothing arrives here unless the stream was started with sound.
+        MicFanout.glasses.add(Self.glassesSoundListener) { [weak self] buffer, _ in
+            self?.appendGlassesAudio(buffer)
+        }
 
         DispatchQueue.main.async { self.isRecording = true }
         NSLog("[Recorder] Started → %@", url.lastPathComponent)
@@ -160,6 +175,7 @@ final class SessionRecorder: ObservableObject, @unchecked Sendable {
         }
         audioEngine.inputNode.removeTap(onBus: 0)
         audioEngine.stop()
+        MicFanout.glasses.remove(Self.glassesSoundListener)
 
         DispatchQueue.main.async { self.isRecording = false }
 
@@ -597,6 +613,35 @@ final class SessionRecorder: ObservableObject, @unchecked Sendable {
         guard PCMConversion.run(converter, from: buffer, into: outBuffer) else { return }
 
         writerQueue.async {
+            // While the glasses send the sound of the scene with the video, that is the
+            // sound track, and the phone's microphone is passed over.
+            if let last = self.lastGlassesAudio, CMTimeGetSeconds(CMTimeSubtract(now, last)) < 0.5 { return }
+            self.appendAudio(outBuffer, now: now)
+        }
+    }
+
+    /// Sound from the glasses' own microphones, which arrives with the camera stream when
+    /// the stream was started with sound. It is the scene as the camera heard it, so it
+    /// replaces the phone's microphone for as long as it flows. Safe to call from any thread.
+    func appendGlassesAudio(_ buffer: AVAudioPCMBuffer) {
+        let now = CMClockGetTime(hostClock)
+        glassesConvertLock.lock()
+        if glassesConverter == nil || glassesSourceFormat != buffer.format {
+            glassesConverter = AVAudioConverter(from: buffer.format, to: audioOutFormat)
+            glassesSourceFormat = buffer.format
+        }
+        let converter = glassesConverter
+        let ratio = audioOutFormat.sampleRate / max(buffer.format.sampleRate, 1)
+        let capacity = AVAudioFrameCount(Double(buffer.frameLength) * ratio) + 1024
+        var converted: AVAudioPCMBuffer?
+        if let converter, let out = AVAudioPCMBuffer(pcmFormat: audioOutFormat, frameCapacity: capacity),
+           PCMConversion.run(converter, from: buffer, into: out) {
+            converted = out
+        }
+        glassesConvertLock.unlock()
+        guard let outBuffer = converted else { return }
+        writerQueue.async {
+            self.lastGlassesAudio = now
             self.appendAudio(outBuffer, now: now)
         }
     }

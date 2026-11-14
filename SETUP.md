@@ -100,6 +100,38 @@ curl -X POST https://phoenix-fox-relay.cinderandcrown.workers.dev/push \
 
 An urgent message interrupts and is spoken at once. A normal one is spoken when the app is quiet. A low one is kept for later and is not spoken when it arrives. With the app open, this works through the inbox without Apple's push service.
 
+## The owner build
+
+A build from the TestFlight workflow is the owner build: every feature starts switched on, and the glasses features Meta still calls beta are allowed. Nothing starts by itself. The camera, a recording, and Guide mode still wait to be asked, Guide mode still reads its safety notice first, and saving a face still asks whether the person agreed.
+
+**Settings → Owner build** has two things: **Glasses limits**, and **Turn everything on again** for after you have switched things off. What each glasses switch does, and what it costs, is in [docs/GLASSES_SDK.md](docs/GLASSES_SDK.md).
+
+Do these once:
+
+1. Open **Settings → Glasses → Glasses limits** and tap **Allow the glasses' microphone**. Meta AI opens and asks. Without it, speech on the glasses stays quiet and everything else works.
+2. If the Glasses screen says the glasses need an update, use **Update the glasses** (their software) or **Update the glasses app** (Phoenix Fox's part on the glasses) on that screen.
+
+One thing behaves differently from a standard build. With **Speech on the glasses** on, whenever the phone's microphone is not listening, a single tap on the glasses' touchpad pauses Phoenix Fox's connection and a long press ends it, in place of what those gestures normally do. If you would rather keep them, switch that one off.
+
+None of this has run on glasses yet. These are the checks, with the glasses on:
+
+| Do this | What should happen |
+| --- | --- |
+| Say **Jarvis**, then double-tap the touchpad while it is answering a question | Jarvis listens again |
+| Swipe back on the touchpad while Jarvis is talking | Jarvis stops talking |
+| After **Jarvis**, press the capture button once | The light comes on and Jarvis says what it sees |
+| After **Jarvis**, press it twice | A picture is saved to Photos at 4032 by 3024 |
+| After **Jarvis**, hold it | A note is taken |
+| Teach a routine, say **Jarvis, delete my morning routine**, then nod twice | The routine is deleted. Shake your head and it is kept. |
+| Shake your head while Jarvis is talking | Jarvis stops talking |
+| Say **Jarvis, record a clip**, then stop it | The clip in Photos is 720 by 1280 with the sound of the room |
+| Long-press the touchpad while Jarvis is answering | The connection ends and is not reopened until you next say Jarvis |
+| **Settings → Glasses** while the camera is on | The Stream row shows the size and frame rate in use |
+
+Speech on the glasses only matters in the moments the phone is not listening, which are hard to stage, so it has no row here.
+
+If one of these fails, switch its switch off under Glasses limits and the rest keep working. With every switch off, this build uses the glasses exactly as a standard build does.
+
 ## Accessibility
 
 Guide mode, reading, money and label reading, colors, face recognition with consent, live captions, sound alerts, step-by-step tasks, and "what was I doing?" are set under Settings, then Accessibility, and each has a spoken command. Say "Jarvis, what can I say?" to hear them.

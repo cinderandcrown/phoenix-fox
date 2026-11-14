@@ -369,11 +369,13 @@ struct AppSettings: Codable, Equatable {
     /// Video frame rate for Gemini Live (frames per second)
     var geminiVideoFPS: Int = 1
 
-    /// v2. On-glasses speech from DAT. Off for the Adventurer v1 test (phone Whisper + HFP mic).
-    var glassesExperimentalSpeech: Bool = false
+    /// What Phoenix Fox asks of the glasses beyond a photo and the hands-free microphone.
+    /// Read it through `SettingsManager.glassesCapabilities`, which leaves out what this
+    /// build may not use.
+    var glasses = GlassesCapabilitySettings()
 
-    /// v2. Motion samples at 5 Hz. Off by default. Nothing is uploaded.
-    var glassesMotion: Bool = false
+    /// The version of `OwnerProfile` this installation has had applied. Zero means never.
+    var ownerProfileVersion: Int = 0
 
     // MARK: - Computed Properties
 
@@ -456,5 +458,38 @@ struct AppSettings: Codable, Equatable {
     var backendDisplayName: String {
         guard aiBackend == .localGemma else { return aiBackend.displayName }
         return "Local · \(GemmaLocalModel.from(modelId: localGemmaModelId).displayName)"
+    }
+}
+
+// MARK: - Owner build
+
+extension OwnerProfile {
+    /// Turns on every feature for the owner build, once per profile version.
+    ///
+    /// Returns whether anything was applied. An installation that has already had this
+    /// version is left alone, so a switch the owner turned off afterwards stays off.
+    @discardableResult
+    static func applyIfNeeded(to settings: inout AppSettings, flavor: BuildFlavor) -> Bool {
+        guard flavor == .owner, settings.ownerProfileVersion < version else { return false }
+        apply(to: &settings)
+        return true
+    }
+
+    /// The whole profile, whatever was applied before. "Turn everything on" in Settings.
+    static func apply(to settings: inout AppSettings) {
+        // Memory of what was said and seen, on this phone.
+        settings.mindMeldEnabled = true
+        // A short run of frames with "look at this", not one.
+        settings.jarvisLookClip = true
+        settings.jarvisFastMode = true
+        settings.smartCaptureReceipts = true
+        settings.smartCaptureCards = true
+        settings.smartCaptureBoards = true
+        settings.smartCaptureHighlights = true
+        settings.smartCaptureAutoRoute = true
+        settings.preferGlassesMic = true
+        apply(to: &settings.accessibility)
+        apply(to: &settings.glasses)
+        settings.ownerProfileVersion = version
     }
 }

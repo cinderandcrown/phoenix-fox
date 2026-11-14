@@ -102,7 +102,11 @@ enum PhoenixFoxFeatures {
             return .spoken("Say record a clip. I record the preview while the glasses light is on, and I won't pretend it's Meta's 3K file.")
         }
         if contains(lower, ["take a picture", "take a photo", "take photo"]) {
-            guard let data = await snapshot() else { return .spoken("I couldn't get a photo from the glasses.") }
+            // A picture to keep comes from the whole sensor when the glasses can give it.
+            // Otherwise it is a frame of the stream, as before.
+            var picture = await GlassesManager.shared.captureStill(.keepsake)
+            if picture == nil { picture = await snapshot() }
+            guard let data = picture else { return .spoken("I couldn't get a photo from the glasses.") }
             let saved = await savePhoto(data)
             return .spoken(saved ? "Picture saved on your phone." : "I took the picture but couldn't save it to Photos.")
         }
