@@ -19,12 +19,17 @@ if ! command -v xcodebuild >/dev/null 2>&1; then
 fi
 mkdir -p "$ROOT/.vendor" "$TARGET"
 
+# Skills live on the default branch under plugins/mwdat-ios/skills. Tagged SDK
+# releases (e.g. 1.0.1) ship binaries only and omit that path — always sync from
+# the tip of main for skills. Do NOT commit .agents/skills/meta-official-* or
+# .vendor/: Meta Wearables Developer Terms disallow redistributing the SDK.
 if [[ ! -d "$VENDOR/.git" ]]; then
   echo 'Fetching Meta official DAT SDK docs and AI skills from public GitHub...'
-  git clone --depth 1 https://github.com/meta/meta-wearables-dat-ios.git "$VENDOR"
+  git clone --depth 1 --branch main https://github.com/meta/meta-wearables-dat-ios.git "$VENDOR"
 else
   echo 'Updating official Meta docs/skills checkout (fast-forward only)...'
-  git -C "$VENDOR" pull --ff-only
+  git -C "$VENDOR" fetch --depth 1 origin main
+  git -C "$VENDOR" checkout -B main origin/main
 fi
 
 SOURCE="$VENDOR/plugins/mwdat-ios/skills"
@@ -42,7 +47,8 @@ for skill in "$SOURCE"/*; do
   rsync -a --delete "$skill/" "$dest/"
   count=$((count+1))
 done
-printf 'Synced %s official Meta skills to .agents/skills/meta-official-*/\n' "$count"
+printf 'Synced %s official Meta skills to .agents/skills/meta-official-*/ (gitignored; regenerate locally or via CI)\n' "$count"
+printf 'Pinned app SDK remains 1.0.1 via Package.resolved (SHA 0bd369298eef6a980ad0bdb6c8a5502f2c02a08c).\n'
 
 # Optional package manager tools (explicit opt-in only).
 if [[ "${1:-}" == '--install-tools' ]]; then
