@@ -13,6 +13,16 @@ enum PhoenixFoxTurn {
         speakFiller: (String) -> Void,
         speak: (String, String?, Bool) -> Void
     ) async {
+        if let outcome = await PhoenixFoxFeatures.handle(cleaned, snapshot: snapshot) {
+            switch outcome {
+            case .spoken(let line):
+                speak(line, nil, false)
+                return
+            case .look(let prompt):
+                await instant(text: prompt, photo: true, settings: settings, snapshot: snapshot)
+                return
+            }
+        }
         let route = FastModeRouter.rules(cleaned, context: FastModeRouter.Context(
             fastMode: settings.jarvisFastMode && settings.isGrokConfigured,
             isPro: true,

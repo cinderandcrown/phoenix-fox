@@ -101,6 +101,11 @@
     <key>NSCameraUsageDescription</key>
     <string>Phoenix Fox uses the glasses camera so your assistant can see what you see when you ask it to.</string>
 
+    <key>NSContactsUsageDescription</key>
+    <string>Phoenix Fox looks up a phone number when you ask Jarvis to call or text someone.</string>
+    <key>NSAppleMusicUsageDescription</key>
+    <string>Phoenix Fox pauses, plays, or skips the phone's music player when you ask Jarvis.</string>
+
     <!-- Speech recognition for wake word detection -->
     <key>NSSpeechRecognitionUsageDescription</key>
     <string>Phoenix Fox uses speech recognition to hear the wake word Jarvis and to transcribe what you say.</string>
