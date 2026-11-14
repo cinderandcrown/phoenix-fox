@@ -32,6 +32,7 @@ The first target is Meta Glasses Adventurer, which has a camera, microphones, an
 - **One output, one input.** Every reply is spoken. On glasses that report a display, the same call also draws a card on the lens. A tap, a band gesture, or the capture button enters the same turn as a spoken command. Display glasses and the Neural Band therefore need no second code path.
 - **Workshop.** Ten new features in the owner build, from voice walk-throughs and stock counts to a council of assistants and skills anyone can write as a small file. [docs/INNOVATION_BACKLOG.md](docs/INNOVATION_BACKLOG.md) has the ideas, the scores, and the status. [docs/SKILLS.md](docs/SKILLS.md) has the skill format.
 - **Accessibility.** Guide mode, reading, labels, money, colors, live captions, sound alerts, and step-by-step tasks run on the phone and are driven by voice. [docs/ACCESSIBILITY.md](docs/ACCESSIBILITY.md) has the safety limits and the status of each.
+- **Free where it counts.** Everything that runs on the phone, which includes the whole accessibility suite, is free and is never locked. Paid plans are for cloud models and for more than one assistant. Nothing is on sale yet, and the owner's build has everything unlocked. [docs/BUSINESS_MODEL.md](docs/BUSINESS_MODEL.md) has the plans, the cost of each feature with its sources, and the margins.
 - **Other providers.** Settings can switch the assistant to Grok, OpenAI, Gemini Live, Claude, a Hermes or OpenClaw server, Apple Intelligence, or a model that runs on the phone.
 
 ## Privacy and the capture light
@@ -54,9 +55,9 @@ There is no public App Store build. The owner's builds are made by GitHub Action
 | `OpenVision/` | The iOS app. The folder keeps the name of the project it started from. |
 | `OpenVisionTests/` | Unit tests. They run on a simulator in CI. |
 | `relay/` | The Cloudflare Worker that carries asks, replies, and alerts between the phone and the bots, with its own tests. |
-| `scripts/` | Project-file sync, App Store Connect calls, and the signed-app check, with their tests. |
+| `scripts/` | Project-file sync, App Store Connect calls, the signed-app check, and the cost model behind the business plan, with their tests. |
 | `Vendor/` | Kokoro text to speech and its dependencies, kept as their authors ship them. |
-| `docs/` | Feature status, the relay interface, notes on the glasses SDK, and design notes inherited from OpenVision. |
+| `docs/` | Feature status, the relay interface, notes on the glasses SDK, the business model, and design notes inherited from OpenVision. |
 | `.github/workflows/` | `ci.yml` builds and tests the app. `testflight.yml` signs and uploads it. |
 
 ## Building

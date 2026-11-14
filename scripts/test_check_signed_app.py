@@ -122,6 +122,59 @@ class SignedAppTests(unittest.TestCase):
         self.assertIn("PHOENIX_FOX_OWNER_BUILD=YES", workflow)
         self.assertIn("--owner-build yes", workflow)
 
+    def test_the_owner_build_must_not_ask_to_sell_plans(self):
+        owner = good_info()
+        owner["PhoenixFoxOwnerBuild"] = "YES"
+        for off in ("NO", "", False, "$(PHOENIX_FOX_STORE)"):
+            owner["PhoenixFoxStoreEnabled"] = off
+            self.assertEqual(check.problems(owner, good_entitlements(), TEAM, BUNDLE, "1.0.0", "42.1", True), [], repr(off))
+        owner.pop("PhoenixFoxStoreEnabled")
+        self.assertEqual(check.problems(owner, good_entitlements(), TEAM, BUNDLE, "1.0.0", "42.1", True), [])
+        for on in ("YES", "true", True):
+            owner["PhoenixFoxStoreEnabled"] = on
+            found = check.problems(owner, good_entitlements(), TEAM, BUNDLE, "1.0.0", "42.1", True)
+            self.assertTrue(any("PHOENIX_FOX_STORE must be NO" in problem for problem in found), repr(on))
+
+    def test_a_standard_build_may_ask_to_sell_plans(self):
+        standard = good_info()
+        standard["PhoenixFoxStoreEnabled"] = "YES"
+        self.assertEqual(check.problems(standard, good_entitlements(), TEAM, BUNDLE, "1.0.0", "42.1", False), [])
+        self.assertEqual(run(standard, good_entitlements()), [])
+
+    def test_the_repository_leaves_the_store_off(self):
+        root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        with open(os.path.join(root, "OpenVision/Resources/Info.plist"), "rb") as file:
+            info = plistlib.load(file)
+        self.assertEqual(info.get("PhoenixFoxStoreEnabled"), "$(PHOENIX_FOX_STORE)")
+        self.assertFalse(check.store_setting(info))
+        with open(os.path.join(root, "project.yml"), encoding="utf-8") as file:
+            self.assertIn('PHOENIX_FOX_STORE: "NO"', file.read())
+        with open(os.path.join(root, "PhoenixFox.xcodeproj/project.pbxproj"), encoding="utf-8") as file:
+            project = file.read()
+        self.assertEqual(project.count("PHOENIX_FOX_STORE = NO;"), 2)
+        self.assertNotIn("PHOENIX_FOX_STORE = YES", project)
+        with open(os.path.join(root, ".github/workflows/testflight.yml"), encoding="utf-8") as file:
+            workflow = file.read()
+        self.assertIn("PHOENIX_FOX_STORE=NO", workflow)
+        self.assertNotIn("PHOENIX_FOX_STORE=YES", workflow)
+
+    def test_the_command_says_whether_the_store_is_on(self):
+        with tempfile.TemporaryDirectory() as folder:
+            entitlements = os.path.join(folder, "entitlements.plist")
+            with open(entitlements, "wb") as file:
+                plistlib.dump(good_entitlements(), file)
+            for setting, expected in (("NO", "Store: off."), ("YES", "Store: asked for.")):
+                info = good_info()
+                info["PhoenixFoxStoreEnabled"] = setting
+                path = os.path.join(folder, f"info-{setting}.plist")
+                with open(path, "wb") as file:
+                    plistlib.dump(info, file)
+                output = io.StringIO()
+                with contextlib.redirect_stdout(output):
+                    status = check.main(["--info", path, "--entitlements", entitlements, "--team", TEAM, "--bundle-id", BUNDLE, "--version", "1.0.0", "--build", "42.1"])
+                self.assertEqual(status, 0)
+                self.assertIn(expected, output.getvalue())
+
     def test_the_command_never_prints_the_client_token(self):
         with tempfile.TemporaryDirectory() as folder:
             paths = {}

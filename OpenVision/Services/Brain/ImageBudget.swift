@@ -10,8 +10,13 @@ enum ImageBudget {
         guard let data, let image = UIImage(data: data) else { return data }
         let longest = max(image.size.width, image.size.height)
         let scale = longest > maxEdge ? maxEdge / longest : 1
-        let size = CGSize(width: image.size.width * scale, height: image.size.height * scale)
-        let renderer = UIGraphicsImageRenderer(size: size)
+        let size = CGSize(width: (image.size.width * scale).rounded(), height: (image.size.height * scale).rounded())
+        // One pixel for each point. The default is the screen's scale, which would draw a
+        // "768" photo at 2,304 pixels on a 3x phone, and pixels are what a model charges for.
+        let format = UIGraphicsImageRendererFormat()
+        format.scale = 1
+        format.opaque = true
+        let renderer = UIGraphicsImageRenderer(size: size, format: format)
         let scaled = renderer.image { _ in image.draw(in: CGRect(origin: .zero, size: size)) }
         return scaled.jpegData(compressionQuality: quality)
     }

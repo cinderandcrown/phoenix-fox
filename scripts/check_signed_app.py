@@ -25,12 +25,21 @@ from typing import Any
 LINK_HOST = "phoenix-fox-links.cinderandcrown.workers.dev"
 
 
-def is_owner_build(info: dict[str, Any]) -> bool:
-    """Whether the app will run as the owner's build. Mirrors BuildFlavor.swift."""
-    value = info.get("PhoenixFoxOwnerBuild")
+def is_on(value: Any) -> bool:
+    """Whether a yes-or-no build setting is on. Mirrors InfoFlag in BuildFlavor.swift."""
     if isinstance(value, bool):
         return value
     return isinstance(value, str) and value.strip().lower() in ("yes", "true", "1")
+
+
+def is_owner_build(info: dict[str, Any]) -> bool:
+    """Whether the app will run as the owner's build. Mirrors BuildFlavor.swift."""
+    return is_on(info.get("PhoenixFoxOwnerBuild"))
+
+
+def store_setting(info: dict[str, Any]) -> bool:
+    """Whether the build asks to sell plans. Mirrors StoreSwitch in StoreCatalog.swift."""
+    return is_on(info.get("PhoenixFoxStoreEnabled"))
 
 
 def problems(
@@ -62,6 +71,7 @@ def problems(
 
     if owner_build is True:
         expect(is_owner_build(info), "This is not the owner's build. PHOENIX_FOX_OWNER_BUILD=YES did not reach Info.plist, so every feature would start off.")
+        expect(not store_setting(info), "The owner's build asks to sell plans. PHOENIX_FOX_STORE must be NO in it. The app would still unlock everything, but the build is not the one that was meant.")
     elif owner_build is False:
         expect(not is_owner_build(info), "This is the owner's build, with every feature on and the beta glasses capabilities allowed. It must not go out as a standard build.")
 
@@ -99,6 +109,10 @@ def main(arguments: list[str]) -> int:
     print(f"Signed app is ready: {info['CFBundleShortVersionString']} ({info['CFBundleVersion']}), production push, Meta values present.")
     print("Entitlements: " + ", ".join(extra))
     print("Owner build: every feature on." if is_owner_build(info) else "Standard build.")
+    if store_setting(info) and not is_owner_build(info):
+        print("Store: asked for. It sells plans once the app has a privacy policy address.")
+    else:
+        print("Store: off. Nothing is for sale and everything is unlocked.")
     return 0
 
 

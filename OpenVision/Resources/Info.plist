@@ -34,6 +34,11 @@
     <key>PhoenixFoxOwnerBuild</key>
     <string>$(PHOENIX_FOX_OWNER_BUILD)</string>
 
+    <!-- YES in a build that sells plans through the App Store. NO everywhere else, where
+         everything is unlocked. The owner's build never sells, whatever this says. -->
+    <key>PhoenixFoxStoreEnabled</key>
+    <string>$(PHOENIX_FOX_STORE)</string>
+
     <!-- Supported Orientations -->
     <key>UISupportedInterfaceOrientations</key>
     <array>

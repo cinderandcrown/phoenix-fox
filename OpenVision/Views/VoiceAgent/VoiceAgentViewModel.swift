@@ -853,6 +853,7 @@ final class VoiceAgentViewModel: ObservableObject {
         }
         AccessibilityCoordinator.shared.apply()
         if BuildFlavor.current.allowsExperimental { WorkshopCoordinator.shared.start() }
+        SubscriptionStore.shared.start()
 
         // Command captured
         voiceCommandService.onCommandCaptured = { [weak self] (command: String) in
@@ -1256,6 +1257,11 @@ final class VoiceAgentViewModel: ObservableObject {
         lastProcessedCommand = command
         lastProcessedAt = now
 
+        // In a build that sells plans, a brain in the cloud needs a plan that covers it. The
+        // accessibility suite, "stop", and leaving live video are handled above, so none of
+        // them is ever locked, and a brain on the phone needs no plan.
+        guard planCovers(settingsManager.settings.aiBackend.paidFeature) else { return }
+
         // Face recognition on CLOUD backends: classify via the on-device model (if loaded) up front.
         // On the Local backend we DON'T do this — routing is merged into the single generation below
         // so we never run two Gemma generations per command (memory/jetsam).
@@ -1308,6 +1314,14 @@ final class VoiceAgentViewModel: ObservableObject {
             errorMessage = "Failed to send command: \(error.localizedDescription)"
             agentState = isSessionActive ? .listening : .idle
         }
+    }
+
+    /// Whether the wearer's plan covers a feature. Says what is missing when it does not.
+    /// Always true in a build that sells nothing, which includes the owner's build.
+    private func planCovers(_ feature: PaidFeature?) -> Bool {
+        guard let feature, !SubscriptionStore.shared.allows(feature) else { return true }
+        speakResponse(feature.refusal)
+        return false
     }
 
     /// Offers a sentence to the accessibility suite. True when the suite handled it.
@@ -1421,6 +1435,9 @@ final class VoiceAgentViewModel: ObservableObject {
             await startLocalLiveVideoMode()
             return
         }
+
+        // From here on live video runs on a model in the cloud, whichever brain is selected.
+        guard planCovers(.ownKeyAI) else { return }
 
         // Pick the live backend: OpenAI Realtime when OpenAI is the selected + configured backend,
         // otherwise Gemini Live (the default video provider for every other backend).
