@@ -172,8 +172,13 @@ enum TTSEngineType: String, Codable, CaseIterable, Identifiable {
 struct AppSettings: Codable, Equatable {
     // MARK: - AI Backend Selection
 
-    /// Which AI backend to use. Phoenix Fox starts on the owner's relay assistants.
-    var aiBackend: AIBackendType = .ownAssistant
+    /// Which AI backend to use. Cloud chat defaults to Grok when a key is present;
+    /// the relay (own assistants) stays available as a separate route.
+    var aiBackend: AIBackendType = .grok
+
+    /// Fallback chain as catalog tokens (`grok`, `anthropic`, `openai`, `on_device`).
+    /// Empty means use `model_catalog.json`.
+    var providerFallbackOrder: [String] = []
 
     // MARK: - OpenClaw Configuration
 
@@ -234,7 +239,7 @@ struct AppSettings: Codable, Equatable {
 
     /// Anthropic API key. Stored in the Keychain, not in settings.json.
     var claudeAPIKey: String = ""
-    var claudeModel: String = InstantModels.claude
+    var claudeModel: String = "claude-haiku-4-5"
 
     // MARK: - Own assistants (relay)
 
@@ -351,6 +356,17 @@ struct AppSettings: Codable, Equatable {
     /// device — true hands-free. Falls back to the phone mic automatically when the glasses aren't
     /// the audio route. Turn off to always use the phone. (Glasses mic uses more battery.)
     var preferGlassesMic: Bool = true
+
+    /// Left glasses setup during onboarding. Home shows a Register banner until connected.
+    var skippedGlassesSetup: Bool = false
+
+    /// Where spoken answers play. Automatic prefers the glasses whenever a Bluetooth
+    /// output is present. The phone speaker is only forced when the wearer chooses it.
+    var speakerPreference: SpeakerPreference = .auto
+
+    /// Rough paid-provider usage this month, plus an optional soft cap (dollars).
+    /// Soft cap warns only — never blocks a look or downgrades vision quality.
+    var providerUsage = ProviderUsageLedger()
 
     // MARK: - AI Customization
 
@@ -483,6 +499,7 @@ extension OwnerProfile {
             // An installation that had an earlier profile gets only what is new since
             // then. Re-applying the whole profile would undo what the owner switched off.
             if settings.ownerProfileVersion < 2 { apply(to: &settings.workshop) }
+            if settings.ownerProfileVersion < 3 { applyLookToTalk(to: &settings.workshop) }
             settings.ownerProfileVersion = version
         }
         return true

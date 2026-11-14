@@ -306,7 +306,8 @@ final class RelayClientTests: XCTestCase {
     func testEveryErrorHasASentenceToSpeak() {
         let all: [RelayError] = [
             .notConfigured, .unauthorized, .blocked, .rateLimited(retryAfter: 60), .tooLarge,
-            .server(status: 500), .server(status: 0), .offline, .noReply, .malformed,
+            .server(status: 500), .server(status: 0), .offline, .noReply,
+            .noBotConnected(wanted: nil), .noBotConnected(wanted: "Indy"), .malformed,
         ]
         for error in all {
             let line = error.localizedDescription

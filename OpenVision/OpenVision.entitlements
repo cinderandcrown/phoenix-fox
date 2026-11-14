@@ -8,6 +8,13 @@
     <true/>
     <key>aps-environment</key>
     <string>development</string>
+    <!-- Wi-Fi for the glasses camera: the phone joins the network the glasses host, and
+         the toolkit reads which network the phone is on. Both are in Meta's sample app,
+         and without them in the signature streaming over Wi-Fi fails without an error. -->
+    <key>com.apple.developer.networking.HotspotConfiguration</key>
+    <true/>
+    <key>com.apple.developer.networking.wifi-info</key>
+    <true/>
     <!-- Universal links. The Meta AI app returns here after glasses registration. -->
     <key>com.apple.developer.associated-domains</key>
     <array>

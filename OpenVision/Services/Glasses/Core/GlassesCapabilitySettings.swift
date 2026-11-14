@@ -105,7 +105,8 @@ enum OwnerProfile {
     /// turned off afterwards stays off.
     ///
     /// 1: the accessibility suite and the glasses capabilities. 2: the workshop.
-    static let version = 2
+    /// 3: reserved for Look to Talk default-on (not applied yet — switch stays manual).
+    static let version = 3
 
     static func apply(to access: inout AccessibilitySettings) {
         access.faceRecognition = true

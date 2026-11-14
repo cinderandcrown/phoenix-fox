@@ -38,6 +38,8 @@ CAPABILITY_NAMES = {
     "ASSOCIATED_DOMAINS": "Associated Domains",
     "PUSH_NOTIFICATIONS": "Push Notifications",
     "INCREASED_MEMORY_LIMIT": "Increased Memory Limit",
+    "HOT_SPOT": "Hotspot",
+    "ACCESS_WIFI_INFORMATION": "Access Wi-Fi Information",
 }
 
 

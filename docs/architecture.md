@@ -2,6 +2,8 @@
 
 How OpenVision is organized, and the seams to use when extending it.
 
+Product intent (presence with the wearer, not a passive Q&A box): [DESIGN_PRINCIPLES.md](DESIGN_PRINCIPLES.md).
+
 ```
 OpenVision/
 ├── App/                 App entry (OpenVisionApp)
@@ -54,6 +56,15 @@ OpenVisionTests/         Unit tests (pure logic: date resolution, routing, chunk
 - **Services are singletons** (`Service.shared`) orchestrated from the ViewModel. Pure logic
   that needs testing lives in enums/free functions (`NativeToolSupport`, `LocalAgent`,
   `TextChunking`) so tests never touch hardware, network, or models.
+
+## Cloud providers (`AIProvider`)
+
+Chat model vendors (Grok / OpenAI / Anthropic / Gemini) implement `AIProvider` under
+`Services/Brain/Providers/`. Model ids live in `Resources/model_catalog.json` (default:
+Grok, vision-capable Grok 4). Settings pick provider + model; keys stay in the Keychain
+with a **Test key** button. Fallback order is configurable. The Grok Bot relay
+(Fire Fox / Indy / Driver / Rally) is **not** a model provider — it stays on
+`OwnAssistantService` / `RelayClient`.
 
 ## The AIBackend seam
 

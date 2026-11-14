@@ -27,6 +27,18 @@ struct HomeContent: View {
                 LiveStage(phase: model.phase, signals: model.signals, fixedTime: model.fixedTime, onTap: actions.stage)
 
                 VStack(spacing: Theme.Space.snug) {
+                    if model.offline {
+                        OfflineBanner()
+                            .transition(.opacity)
+                    }
+                    if model.needsGlassesRegister {
+                        GlassesRegisterBanner(onRegister: actions.glasses)
+                            .transition(.opacity)
+                    }
+                    if let through = model.speakingThrough {
+                        SpeakingThroughChip(text: through)
+                            .transition(.opacity)
+                    }
                     if model.signals.cameraOn {
                         CameraBanner()
                             .transition(reduceMotion ? .opacity : .opacity.combined(with: .scale(scale: 0.96)))
@@ -76,6 +88,7 @@ struct HomeContent: View {
                     .transition(reduceMotion ? .opacity : .move(edge: .bottom).combined(with: .opacity))
             }
         }
+        .animation(Theme.Motion.state, value: model.offline)
         .animation(Theme.Motion.state, value: model.signals.cameraOn)
         .animation(Theme.Motion.state, value: model.trouble)
         .animation(Theme.Motion.state, value: model.document)
@@ -189,6 +202,52 @@ struct GlassesChip: View {
 
 /// The camera is on. This is the one red thing in the app, and it matches the capture
 /// light on the glasses.
+struct OfflineBanner: View {
+    var body: some View {
+        Label(NetworkPathStatus.offline.spoken, systemImage: "icloud.slash")
+            .font(.subheadline.weight(.semibold))
+            .foregroundStyle(Theme.ink)
+            .padding(.horizontal, Theme.Space.normal)
+            .padding(.vertical, Theme.Space.snug)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(Theme.surface, in: RoundedRectangle(cornerRadius: Theme.Radius.chip, style: .continuous))
+            .accessibilityLabel(NetworkPathStatus.offline.title)
+    }
+}
+
+/// Shown until the glasses are registered — including after onboarding skip.
+struct GlassesRegisterBanner: View {
+    var onRegister: () -> Void
+
+    var body: some View {
+        Button(action: onRegister) {
+            Label("Glasses not connected. Register to hear and look through them.", systemImage: "eyeglasses")
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(Theme.ink)
+                .padding(.horizontal, Theme.Space.normal)
+                .padding(.vertical, Theme.Space.snug)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(Theme.surface, in: RoundedRectangle(cornerRadius: Theme.Radius.chip, style: .continuous))
+        }
+        .buttonStyle(.plain)
+        .accessibilityHint("Opens glasses settings to register")
+    }
+}
+
+struct SpeakingThroughChip: View {
+    let text: String
+
+    var body: some View {
+        Label(text, systemImage: "speaker.wave.2")
+            .font(.footnote.weight(.medium))
+            .foregroundStyle(Theme.ink.opacity(0.8))
+            .padding(.horizontal, Theme.Space.normal)
+            .padding(.vertical, Theme.Space.tight)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .accessibilityElement(children: .combine)
+    }
+}
+
 struct CameraBanner: View {
     var body: some View {
         Label("Camera on. The capture light on your glasses is lit.", systemImage: "eye.fill")

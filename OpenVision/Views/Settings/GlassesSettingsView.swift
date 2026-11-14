@@ -11,8 +11,6 @@ struct GlassesSettingsView: View {
 
     // MARK: - State
 
-    @State private var isRegistering: Bool = false
-    @State private var errorMessage: String?
     @State private var showingUnregisterConfirmation: Bool = false
 
     // MARK: - Body
@@ -40,12 +38,16 @@ struct GlassesSettingsView: View {
                             .font(.subheadline)
                             .foregroundColor(.secondary)
 
+                        // The same steps first run shows. Meta AI refuses to connect
+                        // until they are done and says only "Internal error".
+                        GlassesPreparationList()
+
                         Button {
                             register()
                         } label: {
                             HStack {
                                 Spacer()
-                                if isRegistering {
+                                if glassesManager.registration.isWorking {
                                     ProgressView()
                                         .padding(.trailing, 8)
                                     Text("Opening Meta AI...")
@@ -57,17 +59,16 @@ struct GlassesSettingsView: View {
                             }
                         }
                         .buttonStyle(.borderedProminent)
-                        .disabled(isRegistering)
+                        .disabled(glassesManager.registration.isWorking)
                     }
-                }
 
-                if let error = errorMessage {
-                    HStack {
-                        Image(systemName: "exclamationmark.triangle.fill")
-                            .foregroundColor(.orange)
-                        Text(error)
-                            .font(.caption)
-                            .foregroundColor(.orange)
+                    if let stall = glassesManager.registration.stall {
+                        RegistrationRecovery(
+                            stall: stall,
+                            details: glassesManager.registrationDetails,
+                            isBusy: glassesManager.registration.isWorking,
+                            onRetry: { register() }
+                        )
                     }
                 }
             } header: {
@@ -203,6 +204,12 @@ struct GlassesSettingsView: View {
                 }
 
                 NavigationLink {
+                    GlassesCheckView()
+                } label: {
+                    Text("Glasses check")
+                }
+
+                NavigationLink {
                     TroubleshootingView()
                 } label: {
                     Text("Troubleshooting")
@@ -240,23 +247,10 @@ struct GlassesSettingsView: View {
 
     // MARK: - Methods
 
+    /// Opens Meta AI. How it went is in `glassesManager.registration`, which this screen
+    /// shows under the button.
     private func register() {
-        isRegistering = true
-        errorMessage = nil
-
-        Task {
-            do {
-                try await glassesManager.register()
-                await MainActor.run {
-                    isRegistering = false
-                }
-            } catch {
-                await MainActor.run {
-                    isRegistering = false
-                    errorMessage = error.localizedDescription
-                }
-            }
-        }
+        Task { await glassesManager.register() }
     }
 }
 
@@ -271,8 +265,12 @@ struct TroubleshootingView: View {
                     solution: "Make sure Meta AI app is installed and you're signed in."
                 )
                 TroubleshootingItem(
+                    title: "Meta AI says “Internal error”",
+                    solution: RegistrationStall.returnedUnconnected.steps.joined(separator: " ")
+                )
+                TroubleshootingItem(
                     title: "Registration fails",
-                    solution: "Enable Developer Mode in Meta AI app settings, then try again."
+                    solution: GlassesPreparation.steps.joined(separator: " ") + " " + GlassesPreparation.reason
                 )
                 TroubleshootingItem(
                     title: "App not appearing in Meta AI",

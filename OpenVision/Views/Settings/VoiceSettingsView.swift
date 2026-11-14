@@ -85,15 +85,20 @@ struct VoiceSettingsView: View {
                 Toggle(isOn: $settingsManager.settings.preferGlassesMic) {
                     VStack(alignment: .leading, spacing: 2) {
                         Text("Use Glasses Mic")
-                        Text("Listen through the glasses when worn")
+                        Text("Listen through the glasses when worn (HFP, mono 16 kHz)")
                             .font(.caption)
                             .foregroundColor(.secondary)
                     }
                 }
+                Picker("Speak through", selection: $settingsManager.settings.speakerPreference) {
+                    ForEach(SpeakerPreference.allCases, id: \.self) { preference in
+                        Text(preference.title).tag(preference)
+                    }
+                }
             } header: {
-                Text("Microphone")
+                Text("Microphone and speaker")
             } footer: {
-                Text("When on, voice input uses the glasses' Bluetooth microphone for true hands-free use, and falls back to the phone mic automatically when the glasses aren't the audio device. Uses more battery. Turn off to always use the phone mic.")
+                Text("HFP (mic + short replies) and A2DP (high-quality speaker) cannot run at the same time on the glasses. Automatic prefers the glasses voice link while listening. The phone speaker is only forced when you choose it.")
             }
 
             // Conversation Section

@@ -49,6 +49,14 @@ final class GlassesManager: ObservableObject {
     /// Error message for UI display
     @Published var errorMessage: String?
 
+    /// The try at connecting through Meta AI that is under way, or how the last one ended.
+    /// Meta AI can refuse without the SDK reporting anything, so this follows the wearer
+    /// there and back. See `RegistrationAttempt`.
+    @Published private(set) var registration = RegistrationAttempt()
+
+    /// Where the SDK says the connection to Meta AI stands.
+    @Published private(set) var registrationStage: RegistrationStage = .notRunning
+
     /// A connection that was started from the Meta AI app and waits for the wearer's answer.
     /// Nothing is connected until `answerPendingRegistration(approve:)` says so.
     @Published private(set) var pendingRegistration: RegistrationRequest?
@@ -73,6 +81,7 @@ final class GlassesManager: ObservableObject {
 
     // Listener tokens (retained to keep subscriptions active)
     private var registrationTask: Task<Void, Never>?
+    private var registrationWait: Task<Void, Never>?
     private var devicesTask: Task<Void, Never>?
     private var stateListenerToken: (any AnyListenerToken)?
     private var videoFrameListenerToken: (any AnyListenerToken)?
@@ -103,24 +112,110 @@ final class GlassesManager: ObservableObject {
 
     // MARK: - Registration
 
-    /// Register app with Meta AI
-    func register() async throws {
-        print("[GlassesManager] Starting registration")
-        guard let wearables else { throw GlassesUnavailable() }
-
-        // Check if already registered
-        for await state in wearables.registrationStateStream() {
-            if case .registered = state {
-                print("[GlassesManager] Already registered")
-                isRegistered = true
-                return
-            }
-            break
+    /// Asks the Meta AI app to connect the glasses to Phoenix Fox.
+    ///
+    /// The outcome is in `registration`, not in a thrown error: Meta AI can refuse a build
+    /// and tell the SDK nothing, so the try is judged when the wearer comes back.
+    func register() async {
+        registration.begin()
+        guard let wearables else {
+            endRegistration(with: .notRunning(GlassesUnavailable().reason))
+            return
         }
+        let stage = Self.stage(for: wearables.registrationState)
+        registrationStage = stage
+        noteRegistration("Connect asked for.")
+        if stage == .registered {
+            isRegistered = true
+            registration.registered()
+            return
+        }
+        do {
+            try await wearables.startRegistration()
+            startWait(registration.handedOff())
+            noteRegistration("Meta AI was asked to open.")
+        } catch {
+            if let stall = Self.stall(for: error) {
+                endRegistration(with: stall)
+            } else {
+                isRegistered = true
+                registration.registered()
+                noteRegistration("Already connected.")
+            }
+        }
+    }
 
-        // Start registration flow
-        try await wearables.startRegistration()
-        print("[GlassesManager] Registration initiated, waiting for Meta AI callback")
+    /// The app went to the background. During a try, that means Meta AI opened.
+    func appEnteredBackground() {
+        registration.enteredBackground()
+    }
+
+    /// The app is on the screen again. During a try, the wearer is back from Meta AI.
+    func appBecameActive() {
+        guard let wait = registration.becameActive() else { return }
+        noteRegistration("Back from Meta AI.")
+        startWait(wait)
+    }
+
+    /// Puts away the trouble from the last try.
+    func dismissRegistrationTrouble() {
+        registrationWait?.cancel()
+        registration.dismiss()
+    }
+
+    /// What the last try looked like, for the screen and for whoever is helping.
+    var registrationDetails: String {
+        registration.details(stage: registrationStage)
+    }
+
+    private func startWait(_ wait: RegistrationAttempt.Wait?) {
+        guard let wait else { return }
+        registrationWait?.cancel()
+        registrationWait = Task { [weak self] in
+            try? await Task.sleep(for: .seconds(wait.seconds))
+            guard !Task.isCancelled else { return }
+            self?.registrationWaited(wait)
+        }
+    }
+
+    private func registrationWaited(_ wait: RegistrationAttempt.Wait) {
+        registration.waited(wait)
+        if let stall = registration.stall {
+            noteRegistration("Not connected after \(Int(wait.seconds)) s: \(stall.title).")
+        }
+    }
+
+    private func endRegistration(with stall: RegistrationStall) {
+        registrationWait?.cancel()
+        registration.failed(stall)
+        noteRegistration("Stopped: \(stall.title).")
+    }
+
+    /// One line in the glasses log. It holds the SDK's state and what happened, and no
+    /// names, IDs, tokens or addresses.
+    private func noteRegistration(_ what: String) {
+        GlassesLink.shared.record("Registration: \(what) \(registrationDetails)")
+    }
+
+    private static func stage(for state: RegistrationState) -> RegistrationStage {
+        switch state {
+        case .unavailable: return .unavailable
+        case .available: return .available
+        case .registering: return .registering
+        case .registered: return .registered
+        }
+    }
+
+    /// Why the SDK would not start a registration. Nil when it says the glasses are
+    /// already connected, which is not a failure.
+    private static func stall(for error: any Error) -> RegistrationStall? {
+        switch error as? RegistrationError {
+        case .alreadyRegistered?: return nil
+        case .metaAINotInstalled?: return .notInstalled
+        case .networkUnavailable?: return .offline
+        case .configurationInvalid?: return .badBuild
+        default: return .refused(error.localizedDescription)
+        }
     }
 
     /// Unregister app from Meta AI
@@ -133,6 +228,7 @@ final class GlassesManager: ObservableObject {
             errorMessage = GlassesUnavailable().reason
             return
         }
+        dismissRegistrationTrouble()
         do {
             try await wearables.startUnregistration()
             isRegistered = false
@@ -174,6 +270,8 @@ final class GlassesManager: ObservableObject {
             GlassesLink.shared.record("Meta AI callback ignored: the glasses SDK is not running.")
             return
         }
+        registration.answerBegan()
+        var failure: String?
         do {
             let handled = try await wearables.handleUrl(url) { [weak self] request in
                 Task { @MainActor in self?.pendingRegistration = request }
@@ -185,8 +283,20 @@ final class GlassesManager: ObservableObject {
                 GlassesLink.shared.record("Opened by a link the glasses SDK did not recognise.")
             }
         } catch {
-            errorMessage = "Meta AI could not finish connecting. \(error.localizedDescription)"
+            failure = error.localizedDescription
             GlassesLink.shared.record("Meta AI callback failed: \(error.localizedDescription)")
+        }
+        let wasConnecting = registration.isWorking
+        startWait(registration.answerEnded(failure: failure))
+        if let failure {
+            // During a try, the trouble is shown where the wearer tapped. Otherwise it
+            // is a message on the Glasses screen.
+            if wasConnecting {
+                registrationWait?.cancel()
+                noteRegistration("Meta AI answered with an error.")
+            } else {
+                errorMessage = "Meta AI could not finish connecting. \(failure)"
+            }
         }
     }
 
@@ -241,6 +351,15 @@ final class GlassesManager: ObservableObject {
             print("[GlassesManager] Cannot start streaming - not registered")
             return
         }
+        // Raw frames only arrive while the app is in the foreground. Background gets
+        // HEVC that DAT does not decode, so a look while locked cannot work.
+        if UIApplication.shared.applicationState != .active {
+            errorMessage = "The glasses camera needs Phoenix Fox open on the screen. Unlock the phone and try again."
+            GlassesLink.shared.record("Camera refused: app not in the foreground (raw frames only).")
+            return
+        }
+        // HFP must settle before the camera stream, or glasses audio can fail silently.
+        await AudioSessionManager.shared.waitUntilCameraSafe()
         guard let deviceId = connectedDevice else {
             errorMessage = "No glasses connected"
             print("[GlassesManager] Cannot start streaming - no device connected")
@@ -624,7 +743,11 @@ final class GlassesManager: ObservableObject {
     /// when the glasses did not deliver. The caller then takes a frame from the stream,
     /// which is smaller and has always worked.
     func captureStill(_ use: StillUse) async -> Data? {
-        guard SettingsManager.shared.glassesCapabilities.highResolutionStills else { return nil }
+        // Full-sensor photo is experimental in DAT 1.0.1 and Meta says apps using it
+        // cannot ship to the App Store yet. Only the owner/TestFlight build may try it;
+        // store builds always use a stream frame.
+        guard BuildFlavor.current.allowsExperimental,
+              SettingsManager.shared.glassesCapabilities.highResolutionStills else { return nil }
         return await exclusively { await self.still(use) }
     }
 
@@ -786,15 +909,20 @@ final class GlassesManager: ObservableObject {
         registrationTask = Task {
             for await state in wearables.registrationStateStream() {
                 await MainActor.run {
-                    if case .registered = state {
+                    let stage = Self.stage(for: state)
+                    let changed = stage != self.registrationStage
+                    self.registrationStage = stage
+                    if stage == .registered {
                         self.isRegistered = true
+                        self.registrationWait?.cancel()
+                        self.registration.registered()
                         GlassesLink.shared.noteRegistration(true)
-                        print("[GlassesManager] Registration state: registered")
                     } else {
                         self.isRegistered = false
                         GlassesLink.shared.noteRegistration(false)
-                        print("[GlassesManager] Registration state: \(state)")
                     }
+                    if changed { self.noteRegistration("State changed.") }
+                    print("[GlassesManager] Registration state: \(stage.rawValue)")
                 }
             }
         }

@@ -33,23 +33,14 @@ enum BrainCatalog {
     }
 }
 
-/// Cheap model ids for fast mode. Override in Settings. These are voice defaults, not a
-/// commitment that a vendor will keep the alias. Empty settings fall back to these.
+/// Cheap / role model ids for fast mode. Source of truth is `model_catalog.json`
+/// (`ProviderModelCatalogStore`). Settings overrides still win when non-empty.
 enum InstantModels {
-    static let grok = "grok-4-fast-non-reasoning"
-    static let claude = "claude-haiku-4-5"
-    static let openAI = "gpt-4o-mini"
+    static var grok: String { ProviderModelCatalogStore.load().model(for: .grok, role: .instant) ?? "grok-4.20-non-reasoning" }
+    static var claude: String { ProviderModelCatalogStore.load().model(for: .anthropic, role: .instant) ?? "claude-haiku-4-5" }
+    static var openAI: String { ProviderModelCatalogStore.load().model(for: .openAI, role: .instant) ?? "gpt-4o-mini" }
 
-    static func id(for brain: AIBackendType, settings: AppSettings) -> String {
-        switch brain {
-        case .grok:
-            return settings.grokModel.isEmpty ? grok : settings.grokModel
-        case .claude:
-            return settings.claudeModel.isEmpty ? claude : settings.claudeModel
-        case .openAI:
-            return settings.openAIModel.isEmpty ? openAI : settings.openAIModel
-        default:
-            return openAI
-        }
+    static func id(for brain: AIBackendType, settings: AppSettings, role: ModelRole = .instant) -> String {
+        ProviderModelCatalogStore.modelID(for: brain, settings: settings, role: role)
     }
 }

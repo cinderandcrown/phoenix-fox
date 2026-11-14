@@ -49,10 +49,14 @@ final class ClaudeService: ObservableObject {
         }
         messages.append(["role": "user", "content": content])
 
+        // Prompt caching: the stable system prompt is marked ephemeral so Anthropic can
+        // reuse it across turns. See CapabilityMatrix / provider efficiency.
         let body: [String: Any] = [
             "model": InstantModels.id(for: .claude, settings: settings),
             "max_tokens": 300,
-            "system": system,
+            "system": [
+                ["type": "text", "text": system, "cache_control": ["type": "ephemeral"]],
+            ],
             "messages": messages,
         ]
         var request = URLRequest(url: URL(string: "https://api.anthropic.com/v1/messages")!)

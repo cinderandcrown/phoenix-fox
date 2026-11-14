@@ -16,6 +16,7 @@ struct GrokSettingsView: View {
     @State private var isSigningIn = false
     @State private var models: [String] = []
     @State private var errorMessage: String?
+    @State private var testStatus: String?
 
     var body: some View {
         Form {
@@ -91,18 +92,24 @@ struct GrokSettingsView: View {
                     .autocorrectionDisabled()
                     .onSubmit { Task { await loadModels() } }
             }
+            ProviderKeyTestButton(provider: .grok, apiKey: apiKey, status: $testStatus)
+            if let testStatus {
+                Text(testStatus)
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+            }
         } header: {
             Text("Authentication")
         } footer: {
             if apiKey.isEmpty {
-                Label("Required for Grok mode", systemImage: "exclamationmark.triangle.fill")
+                Label("Paste your xAI key here — this is the default brain.", systemImage: "exclamationmark.triangle.fill")
                     .foregroundColor(.orange).font(.caption)
             } else if let errorMessage {
-                // The key is saved but xAI rejected it (or couldn't be reached).
+                // The key is saved but xAI rejected it (or couldn't be reached). Never log the key.
                 Label(errorMessage, systemImage: "exclamationmark.triangle.fill")
                     .foregroundColor(.orange).font(.caption)
             } else {
-                Label("API key configured", systemImage: "checkmark.circle.fill")
+                Label("API key on this phone (Keychain). Default provider.", systemImage: "checkmark.circle.fill")
                     .foregroundColor(.green).font(.caption)
             }
         }

@@ -2,7 +2,22 @@
 
 Looking chooses an assistant, and the voice does the rest. You look at an assistant's chat window on your computer, the glasses camera sees it, and what you say next goes to that assistant without saying its name.
 
-**Status: written, owner build only, off by default.** The rules are covered by unit tests that run on Linux, and the code that joins them to the camera and the voice turn was type-checked on Linux against stand-ins. No Xcode build has compiled it and it has never run on glasses. It is on its own branch, to be merged after the first TestFlight build is stable. Nothing turns it on except its own switch, and with the switch off none of its commands match and none of its code runs.
+This is a core **presence** feature: looking selects a teammate, then conversation continues without re-naming them — experiencing the desk *with* the wearer. It must pass the [presence checklist](DESIGN_PRINCIPLES.md#presence-checklist-every-feature).
+
+**Status: written, owner build.** The owner profile turns Look to Talk **on** by default in owner / TestFlight builds; the Workshop switch can still turn it off, and with the switch off none of its commands match. The rules are covered by unit tests that run on Linux, and the code that joins them to the camera and the voice turn was type-checked on Linux against stand-ins. It has not been confirmed on glasses yet.
+
+## Presence checklist
+
+- [x] Shared experience — looking locks a teammate; Jarvis narrates the hand-off.
+- [x] Live follow-ups — while held, requests need no assistant name (conversation continues).
+- [x] Memory — lock persists across looks-away until “let go” or idle timeout.
+- [x] Context — camera + on-device OCR/QR; no cloud required to choose.
+- [x] Proactive — confirmation tone + short “Indy, locked.”; Interrupt-aware via existing voice path.
+- [x] Personality — Jarvis speaks the lock; the named bot answers the work.
+- [x] Privacy — frames read on-device and dropped; capture light on while looking.
+- [x] On-device / cost — selection is local; only the ask may hit the relay.
+- [x] Honesty — does not claim eye tracking; head direction only.
+- [ ] Anti-spam / hardware — quiet defaults verified on Adventurer (not yet run on glasses).
 
 ## Using it
 

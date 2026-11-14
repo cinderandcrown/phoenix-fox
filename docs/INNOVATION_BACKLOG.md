@@ -6,6 +6,8 @@ Two things to know before reading it.
 
 **Most single ideas already exist somewhere.** A short search before writing this found shipped products for an ear prompter, voice flashcards, medication logs, and "what did I promise Dana". They are named in the tables and in [Who else is building](#who-else-is-building). The search was brief, so "not found" below means only that. What nobody else has is the combination this app is built on: a camera on your face, a team of assistants that can act, a nod and a shake as input, and rules about the capture light that are never bent. The ideas that need all of that are the ones worth building first.
 
+**Presence is the filter.** An idea that only adds another wake-word Q&A does not ship. Every chosen feature must pass the [presence checklist](DESIGN_PRINCIPLES.md#presence-checklist-every-feature) in [DESIGN_PRINCIPLES.md](DESIGN_PRINCIPLES.md): with the wearer, context-aware, Interrupt-respecting, memory of what they saw/did, tunable proactive nudges, consistent personality.
+
 **Nothing in this file has run on glasses.** The ten chosen ideas are written and unit-tested. Their status is at the end of [The ten](#the-ten).
 
 ## What there is to work with
@@ -34,6 +36,17 @@ The assistants (Fire Fox, Indy, Driver, Rally) are reached through the relay. Th
 5. Health data stays on the phone, sealed, and is not sent to an assistant.
 6. An assistant acts for the wearer only after a spoken yes.
 7. A plugin cannot run code on the phone or name an address to send things to. It can only ask the wearer's own assistants.
+8. Presence rules in [DESIGN_PRINCIPLES.md](DESIGN_PRINCIPLES.md) are binding: on-device triggers for proactive lines, Interrupt respect, no spam, shared memory, consistent Jarvis personality.
+
+### Presence checklist (each backlog feature before Written → Built)
+
+- [ ] Shared experience with the wearer (not a passive Q&A bolt-on)
+- [ ] Live follow-ups in the conversation window without re-waking
+- [ ] Remembers what they saw/did together when relevant
+- [ ] Uses place / time / motion / people only when privacy-safe
+- [ ] Any nudge is on-device-triggered, tunable, quiet-period gated, Interrupt-aware
+- [ ] Consistent personality; honest about DAT / offline limits
+- [ ] Full list: [DESIGN_PRINCIPLES.md](DESIGN_PRINCIPLES.md#presence-checklist-every-feature)
 
 ## How ideas are scored
 

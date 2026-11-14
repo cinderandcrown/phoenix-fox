@@ -4,6 +4,8 @@ Phoenix Fox has an accessibility suite for people who are blind or have low visi
 
 Most of it runs on the phone. Reading, money, labels, colors, faces, sound alerts, task guidance, and recall need no signal and cost nothing to use.
 
+Accessibility is **presence under constraint**: timely callouts, interruptible speech, shared memory of what was just read, and no spam. Every row must satisfy the [presence checklist](DESIGN_PRINCIPLES.md#presence-checklist-every-feature) in [DESIGN_PRINCIPLES.md](DESIGN_PRINCIPLES.md) — especially Interrupt respect, quiet periods, and on-device triggers.
+
 ## Safety
 
 Read this before relying on any of it.
@@ -19,10 +21,14 @@ Read this before relying on any of it.
 
 Nothing in this table has been run on a pair of glasses yet. The words mean:
 
-- **Written**: the whole path is in the app. Its decisions are covered by unit tests, and the code that joins them to the phone was type-checked under strict concurrency against stand-ins for Apple's frameworks. It has not yet been built by Xcode in CI or run on the glasses. A row moves to Built when CI builds it, and to Done when the owner has seen it work.
+- **Written**: the whole path is in the app. Its decisions are covered by unit tests, and the code that joins them to the phone was type-checked under strict concurrency against stand-ins for Apple's frameworks. It has not yet been built by Xcode in CI or run on the glasses. A row moves to Built when CI builds it, and to Done when the owner has seen it work **and** its presence checklist is filled.
 - **Partial**: a real part is written, and the last column names what is missing.
 - **Blocked**: Meta or iOS does not allow it.
 - **Not started**: asked for or planned, and not written.
+
+### Presence checklist (each accessibility feature)
+
+- Shared experience; live follow-ups (“more”, “again”) without re-waking; memory of the open document / last label; context where safe; proactive callouts only when on-device-triggered, Interrupt-aware, tunable, and quiet-period gated; consistent Jarvis voice; privacy; honest limits. Full list: [DESIGN_PRINCIPLES.md](DESIGN_PRINCIPLES.md#presence-checklist-every-feature).
 
 ### Blind and low vision
 

@@ -1,227 +1,337 @@
-// OpenVision - AudioSessionManager.swift
-// Manages AVAudioSession configuration for different modes
+// SPDX-License-Identifier: Apache-2.0
+// Copyright 2026 Cinder and Crown LLC
+
+// The shared audio session for the glasses.
+//
+// HFP (voice mic + short replies) and A2DP (high-quality speaker) cannot run together on
+// Meta's glasses. This manager picks one link mode at a time, never both category options
+// at once. The HFP route must settle before the camera stream starts, or audio can fail
+// with no error. See AudioRoutePolicy and docs/GLASSES_SDK.md.
 
 import AVFoundation
+import Combine
+import Foundation
 
-/// Manages audio session configuration
 @MainActor
-final class AudioSessionManager {
-    // MARK: - Singleton
-
+final class AudioSessionManager: ObservableObject {
     static let shared = AudioSessionManager()
 
-    // MARK: - Properties
-
     private let audioSession = AVAudioSession.sharedInstance()
+    /// Observer token lives off the main actor so `deinit` can remove it under Swift 6.
+    private let routeObserverBox = ObserverBox()
 
-    /// Current audio mode
+    @Published private(set) var destination: AudioDestination = .phoneSpeaker
+    @Published private(set) var linkMode: GlassesLinkMode = .phone
+    @Published private(set) var routeDescription = "Input: none, Output: none"
+    @Published private(set) var usingGlassesMic = false
+    /// True once HFP has been active long enough for the camera to start safely.
+    @Published private(set) var hfpSettled = false
+
     private(set) var currentMode: AudioMode = .inactive
+    private var settleTask: Task<Void, Never>?
+    private var hfpActivatedAt: Date?
 
-    // MARK: - Audio Modes
+    var onRouteChanged: (() -> Void)?
 
     enum AudioMode {
-        /// No audio session active
         case inactive
-
-        /// Voice chat mode (aggressive echo cancellation for iPhone mic)
         case voiceChat
-
-        /// Video chat mode (mild echo cancellation for glasses mic)
         case videoChat
-
-        /// Measurement mode (for wake word detection)
         case measurement
     }
 
-    // MARK: - Initialization
+    private init() {
+        refreshPublished(from: snapshot())
+        let token = NotificationCenter.default.addObserver(
+            forName: AVAudioSession.routeChangeNotification,
+            object: audioSession,
+            queue: .main
+        ) { [weak self] _ in
+            Task { @MainActor in self?.routeDidChange() }
+        }
+        routeObserverBox.token = token
+    }
 
-    private init() {}
+    deinit {
+        routeObserverBox.remove()
+    }
 
-    // MARK: - Configuration
+}
 
-    /// Configure audio session for specified mode
+/// Holds a NotificationCenter token for removal from a nonisolated `deinit`.
+private final class ObserverBox: @unchecked Sendable {
+    var token: NSObjectProtocol?
+
+    func remove() {
+        if let token {
+            NotificationCenter.default.removeObserver(token)
+            self.token = nil
+        }
+    }
+}
+
+@MainActor
+extension AudioSessionManager {
+    // MARK: - Apply
+
+    @discardableResult
+    func applyPreferredRoute(
+        preferGlassesMic: Bool,
+        speakerPreference: SpeakerPreference,
+        cameraStreaming: Bool,
+        listening: Bool = true,
+        longPlayback: Bool = false
+    ) throws -> Bool {
+        let snap = snapshot()
+        let plan = AudioRoutePolicy.plan(
+            snapshot: snap,
+            preference: speakerPreference,
+            preferGlassesMic: preferGlassesMic,
+            cameraStreaming: cameraStreaming,
+            listening: listening,
+            longPlayback: longPlayback
+        )
+        try apply(plan)
+        return plan.preferHFPMic && isBluetoothHFPActive
+    }
+
+    func refresh(
+        preferGlassesMic: Bool,
+        speakerPreference: SpeakerPreference,
+        cameraStreaming: Bool,
+        listening: Bool = true,
+        longPlayback: Bool = false
+    ) {
+        do {
+            _ = try applyPreferredRoute(
+                preferGlassesMic: preferGlassesMic,
+                speakerPreference: speakerPreference,
+                cameraStreaming: cameraStreaming,
+                listening: listening,
+                longPlayback: longPlayback
+            )
+        } catch {
+            print("[AudioSession] Refresh failed: \(error.localizedDescription)")
+        }
+    }
+
+    @discardableResult
+    func configureForGlasses() throws -> Bool {
+        let settings = SettingsManager.shared.settings
+        return try applyPreferredRoute(
+            preferGlassesMic: true,
+            speakerPreference: settings.speakerPreference == .phone ? .auto : settings.speakerPreference,
+            cameraStreaming: GlassesManager.shared.isStreaming,
+            listening: true
+        )
+    }
+
+    func configureForPhone() throws {
+        let settings = SettingsManager.shared.settings
+        _ = try applyPreferredRoute(
+            preferGlassesMic: false,
+            speakerPreference: settings.speakerPreference,
+            cameraStreaming: GlassesManager.shared.isStreaming,
+            listening: true
+        )
+    }
+
     func configure(for mode: AudioMode) throws {
         guard mode != currentMode else { return }
-
         switch mode {
         case .inactive:
             try deactivate()
-
-        case .voiceChat:
-            try configureVoiceChat()
-
-        case .videoChat:
-            try configureVideoChat()
-
-        case .measurement:
-            try configureMeasurement()
+        case .voiceChat, .videoChat, .measurement:
+            let settings = SettingsManager.shared.settings
+            _ = try applyPreferredRoute(
+                preferGlassesMic: settings.preferGlassesMic,
+                speakerPreference: settings.speakerPreference,
+                cameraStreaming: GlassesManager.shared.isStreaming
+            )
         }
-
         currentMode = mode
-        print("[AudioSession] Configured for \(mode)")
     }
 
-    /// Deactivate audio session
     func deactivate() throws {
+        settleTask?.cancel()
+        hfpSettled = false
+        hfpActivatedAt = nil
         try audioSession.setActive(false, options: .notifyOthersOnDeactivation)
         currentMode = .inactive
+        linkMode = .phone
     }
 
-    // MARK: - Mode Configurations
-
-    /// Configure for voice chat (iPhone mic, aggressive AEC)
-    private func configureVoiceChat() throws {
-        try audioSession.setCategory(
-            .playAndRecord,
-            mode: .voiceChat,
-            options: [
-                .defaultToSpeaker,
-                .allowBluetoothHFP,
-                .allowBluetoothA2DP,
-                .mixWithOthers,
-                .duckOthers
-            ]
-        )
-        try audioSession.setActive(true)
+    /// Waits until HFP is settled when the current link is the voice link. Call before
+    /// starting the camera stream.
+    func waitUntilCameraSafe(timeoutSeconds: Double = 2.0) async {
+        guard linkMode == .hfpConversation else { return }
+        if hfpSettled { return }
+        let deadline = Date().addingTimeInterval(timeoutSeconds)
+        while Date() < deadline {
+            if hfpSettled { return }
+            try? await Task.sleep(for: .milliseconds(50))
+        }
+        // Timed out: still allow the camera, but log it — Meta's silent-fail case.
+        print("[AudioSession] HFP settle timed out after \(timeoutSeconds)s; camera may lose audio.")
     }
 
-    /// Configure for video chat (glasses mic, mild AEC)
-    private func configureVideoChat() throws {
-        try audioSession.setCategory(
-            .playAndRecord,
-            mode: .videoChat,
-            options: [
-                .defaultToSpeaker,
-                .allowBluetoothHFP,
-                .allowBluetoothA2DP,
-                .mixWithOthers
-            ]
-        )
-        try audioSession.setActive(true)
+    var cameraMayStart: Bool {
+        AudioRoutePolicy.cameraMayStart(link: linkMode, hfpSettled: hfpSettled)
     }
 
-    /// Configure for measurement (wake word detection)
-    private func configureMeasurement() throws {
-        try audioSession.setCategory(
-            .playAndRecord,
-            mode: .measurement,
-            options: [
-                .defaultToSpeaker,
-                .allowBluetoothHFP,
-                .duckOthers
-            ]
-        )
-        try audioSession.setActive(true)
-    }
+    // MARK: - Plan
 
-    // MARK: - Bluetooth HFP Routing
+    private func apply(_ plan: AudioSessionPlan) throws {
+        // Exclusive options: never HFP and A2DP together.
+        var options: AVAudioSession.CategoryOptions = [.mixWithOthers]
+        if plan.allowHFP { options.insert(.allowBluetoothHFP) }
+        if plan.allowA2DP { options.insert(.allowBluetoothA2DP) }
+        if plan.defaultToSpeaker { options.insert(.defaultToSpeaker) }
 
-    /// Configure the audio session for the glasses' Bluetooth HFP mic + speaker.
-    /// Returns `true` only if an HFP input was actually found and selected (i.e. the glasses are
-    /// connected as an audio device); `false` means no glasses audio is present and the caller
-    /// should fall back to the phone. NOTE: we must set the category with `.allowBluetoothHFP` and
-    /// activate the session *first* — only then does iOS expose the HFP input in `availableInputs`
-    /// (this is what previously made the glasses mic undetectable: the phone route disallows HFP).
-    @discardableResult
-    func configureForGlasses() throws -> Bool {
-        // Match OpenGlasses: `.default` mode + `.mixWithOthers` so the recognizer's session COEXISTS
-        // with the glasses camera's Bluetooth stream instead of taking exclusive HFP control. With
-        // `.voiceChat` + `.duckOthers` the camera stream killed the HFP mic (and iOS wouldn't revive
-        // it); `.mixWithOthers` keeps the glasses mic alive through photo capture.
-        try audioSession.setCategory(
-            .playAndRecord,
-            mode: .default,
-            options: [.mixWithOthers, .allowBluetoothHFP, .allowBluetoothA2DP, .defaultToSpeaker]
-        )
+        try audioSession.setCategory(.playAndRecord, mode: .default, options: options)
         try audioSession.setActive(true, options: .notifyOthersOnDeactivation)
 
-        // Now that HFP is allowed + the session is active, the glasses mic should be listed.
-        guard let hfpInput = findBluetoothHFPInput() else {
-            print("[AudioSession] No Bluetooth HFP input — glasses not connected as an audio device. Inputs: \(availableInputsDescription)")
-            return false
+        if plan.clearSpeakerOverride {
+            try? audioSession.overrideOutputAudioPort(.none)
         }
-        try audioSession.setPreferredInput(hfpInput)
+
+        if plan.preferHFPMic, let hfp = findBluetoothHFPInput() {
+            try audioSession.setPreferredInput(hfp)
+            usingGlassesMic = true
+            beginHFPSettle(seconds: plan.hfpSettleSeconds)
+        } else {
+            usingGlassesMic = false
+            if plan.link != .hfpConversation {
+                settleTask?.cancel()
+                hfpSettled = plan.link != .hfpConversation
+                hfpActivatedAt = nil
+            }
+        }
+
+        if plan.forceSpeakerOverride {
+            let stillQuiet = audioSession.currentRoute.outputs.contains { $0.portType == .builtInReceiver }
+            if stillQuiet {
+                try? audioSession.overrideOutputAudioPort(.speaker)
+            }
+        }
+
         currentMode = .voiceChat
-        print("[AudioSession] ✓ Configured for glasses (Bluetooth HFP): \(hfpInput.portName) — route: \(currentRouteDescription)")
-        return true
+        linkMode = plan.link
+        destination = plan.destination
+        routeDescription = snapshot().description
+        print("[AudioSession] \(plan.destination.title). Link: \(plan.link.title). Mic: \(usingGlassesMic ? "glasses 16 kHz mono" : "phone"). \(routeDescription)")
     }
 
-    /// Names + types of every input iOS currently reports — for diagnosing mic routing.
+    private func beginHFPSettle(seconds: Double) {
+        hfpSettled = false
+        hfpActivatedAt = Date()
+        settleTask?.cancel()
+        guard seconds > 0 else {
+            hfpSettled = true
+            return
+        }
+        settleTask = Task { [weak self] in
+            try? await Task.sleep(for: .seconds(seconds))
+            guard !Task.isCancelled else { return }
+            await MainActor.run {
+                self?.hfpSettled = true
+                print("[AudioSession] HFP settled; camera may start.")
+            }
+        }
+    }
+
+    private func routeDidChange() {
+        refreshPublished(from: snapshot())
+        let settings = SettingsManager.shared.settings
+        refresh(
+            preferGlassesMic: settings.preferGlassesMic,
+            speakerPreference: settings.speakerPreference,
+            cameraStreaming: GlassesManager.shared.isStreaming
+        )
+        onRouteChanged?()
+    }
+
+    private func refreshPublished(from snap: AudioRouteSnapshot) {
+        routeDescription = snap.description
+        let settings = SettingsManager.shared.settings
+        let plan = AudioRoutePolicy.plan(
+            snapshot: snap,
+            preference: settings.speakerPreference,
+            preferGlassesMic: settings.preferGlassesMic,
+            cameraStreaming: GlassesManager.shared.isStreaming
+        )
+        destination = plan.destination
+        linkMode = plan.link
+    }
+
+    // MARK: - Snapshot
+
+    func snapshot() -> AudioRouteSnapshot {
+        AudioRouteSnapshot(
+            inputs: audioSession.currentRoute.inputs.map(Self.port),
+            outputs: audioSession.currentRoute.outputs.map(Self.port),
+            availableInputs: (audioSession.availableInputs ?? []).map(Self.port)
+        )
+    }
+
+    private static func port(_ description: AVAudioSessionPortDescription) -> AudioPort {
+        AudioPort(kind: kind(for: description.portType), name: description.portName)
+    }
+
+    private static func kind(for type: AVAudioSession.Port) -> AudioPortKind {
+        switch type {
+        case .bluetoothHFP: return .bluetoothHFP
+        case .bluetoothA2DP: return .bluetoothA2DP
+        case .builtInSpeaker: return .builtInSpeaker
+        case .builtInReceiver: return .builtInReceiver
+        case .builtInMic: return .builtInMic
+        case .headphones: return .headphones
+        default: return .other
+        }
+    }
+
+    private func findBluetoothHFPInput() -> AVAudioSessionPortDescription? {
+        (audioSession.availableInputs ?? []).first { $0.portType == .bluetoothHFP }
+    }
+
+    // MARK: - Diagnostics
+
     var availableInputsDescription: String {
         (audioSession.availableInputs ?? []).map { "\($0.portName)[\($0.portType.rawValue)]" }.joined(separator: ", ")
     }
 
-    /// Configure audio for phone-only use (no glasses): record from the built-in mic and play
-    /// spoken responses out of the LOUD speaker. Without `.defaultToSpeaker`, `.playAndRecord`
-    /// routes output to the quiet earpiece — which is why phone-only audio was inaudible.
-    /// `.allowBluetoothA2DP` still lets AirPods / other Bluetooth audio work when present.
-    func configureForPhone() throws {
-        try audioSession.setCategory(
-            .playAndRecord,
-            mode: .default,
-            options: [.defaultToSpeaker, .allowBluetoothA2DP]
-        )
-        try audioSession.setActive(true)
-        // If still routed to the quiet earpiece (carried over from a glasses/voiceChat config),
-        // force the loud speaker — but leave AirPods / headphones alone if they're connected.
-        if audioSession.currentRoute.outputs.contains(where: { $0.portType == .builtInReceiver }) {
-            try? audioSession.overrideOutputAudioPort(.speaker)
-        }
-        currentMode = .voiceChat
-        print("[AudioSession] Configured for phone (built-in mic + loud speaker)")
-    }
+    var currentRouteDescription: String { snapshot().description }
 
-    /// Find Bluetooth HFP input port
-    private func findBluetoothHFPInput() -> AVAudioSessionPortDescription? {
-        for input in audioSession.availableInputs ?? [] {
-            if input.portType == .bluetoothHFP {
-                return input
-            }
-        }
-        return nil
-    }
-
-    /// Check if Bluetooth HFP is currently active
     var isBluetoothHFPActive: Bool {
-        let inputs = audioSession.currentRoute.inputs
-        let outputs = audioSession.currentRoute.outputs
-
-        let hasHFPInput = inputs.contains { $0.portType == .bluetoothHFP }
-        let hasHFPOutput = outputs.contains { $0.portType == .bluetoothHFP }
-
-        return hasHFPInput || hasHFPOutput
+        let route = audioSession.currentRoute
+        return route.inputs.contains { $0.portType == .bluetoothHFP }
+            || route.outputs.contains { $0.portType == .bluetoothHFP }
     }
 
-    /// Get current audio route description
-    var currentRouteDescription: String {
-        let inputs = audioSession.currentRoute.inputs.map { $0.portName }.joined(separator: ", ")
-        let outputs = audioSession.currentRoute.outputs.map { $0.portName }.joined(separator: ", ")
-        return "Input: \(inputs.isEmpty ? "none" : inputs), Output: \(outputs.isEmpty ? "none" : outputs)"
-    }
-
-    // MARK: - Utilities
-
-    /// Get current input sample rate
-    var inputSampleRate: Double {
-        audioSession.sampleRate
-    }
-
-    /// Get current output sample rate
-    var outputSampleRate: Double {
-        audioSession.sampleRate
-    }
-
-    /// Check if Bluetooth audio is available
     var isBluetoothAvailable: Bool {
-        audioSession.availableInputs?.contains { port in
-            port.portType == .bluetoothHFP || port.portType == .bluetoothA2DP
-        } ?? false
+        snapshot().hasBluetoothHFPInput || snapshot().hasBluetoothOutput
     }
 
-    /// Check if using built-in mic
     var isUsingBuiltInMic: Bool {
-        audioSession.currentRoute.inputs.contains { port in
-            port.portType == .builtInMic
-        }
+        audioSession.currentRoute.inputs.contains { $0.portType == .builtInMic }
+    }
+
+    var inputSampleRate: Double { audioSession.sampleRate }
+    var outputSampleRate: Double { audioSession.sampleRate }
+
+    func logSpeaking() {
+        print("[AudioSession] Speaking. \(destination.title). Link \(linkMode.title). \(currentRouteDescription)")
+    }
+
+    /// Lines for the Glasses check screen. No secrets.
+    var diagnosticLines: [String] {
+        [
+            destination.title,
+            "Link: \(linkMode.title)",
+            "Mic: \(usingGlassesMic ? "glasses (mono 16 kHz HFP)" : "phone")",
+            "HFP settled: \(hfpSettled ? "yes" : "no")",
+            "Camera may start: \(cameraMayStart ? "yes" : "no")",
+            routeDescription,
+        ]
     }
 }

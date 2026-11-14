@@ -52,6 +52,13 @@ final class OnboardingFlowTests: XCTestCase {
         XCTAssertTrue(promise.contains("only when you ask"))
     }
 
+    func testTheGlassesStepTellsTheWearerWhatToDoInMetaAIFirst() {
+        XCTAssertFalse(OnboardingStep.glasses.preparation.isEmpty)
+        XCTAssertTrue(OnboardingStep.glasses.summary.contains("Developer Mode"))
+        XCTAssertEqual(OnboardingStep.glassesButton(connected: false, stall: nil), "Open Meta AI")
+        XCTAssertEqual(OnboardingStep.glassesButton(connected: false, stall: .returnedUnconnected), "Try again")
+    }
+
     func testTheAssistantsStepSaysWhereTheTokenIsKept() {
         XCTAssertEqual(OnboardingStep.assistants.promise?.contains("Keychain"), true)
     }

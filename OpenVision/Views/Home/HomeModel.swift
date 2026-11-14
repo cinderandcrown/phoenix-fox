@@ -47,6 +47,15 @@ struct HomeModel: Equatable, Sendable {
 
     var trouble: String?
 
+    /// No path to the internet. On-device features still work.
+    var offline = false
+
+    /// Glasses are not registered yet. Home keeps a Register banner until they are.
+    var needsGlassesRegister = false
+
+    /// Where speech is going right now, e.g. "Speaking through Ray-Ban Meta".
+    var speakingThrough: String?
+
     /// Holds the orb's clock still. For previews and snapshot tests.
     var fixedTime: Double?
 

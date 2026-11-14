@@ -5,7 +5,8 @@
 
 A build can sign and upload without error and still be useless on a phone: the glasses
 cannot register without the Meta values, the Meta AI app cannot return without the
-associated domain, and push alerts need the production push service. This reads the app's
+associated domain, push alerts need the production push service, and the glasses camera
+needs the Wi-Fi keys and entitlements. This reads the app's
 Info.plist and the entitlements in its signature and fails on any of those.
 
     check_signed_app.py --info Info.plist --entitlements entitlements.plist \\
@@ -23,6 +24,13 @@ import sys
 from typing import Any
 
 LINK_HOST = "phoenix-fox-links.cinderandcrown.workers.dev"
+
+# What Meta's glasses toolkit needs to stream the camera over Wi-Fi.
+WIFI_SERVICE = "_bonjour._tcp"
+WIFI_ENTITLEMENTS = {
+    "com.apple.developer.networking.HotspotConfiguration": "Hotspot Configuration",
+    "com.apple.developer.networking.wifi-info": "Access Wi-Fi Information",
+}
 
 
 def is_on(value: Any) -> bool:
@@ -76,6 +84,12 @@ def problems(
         expect(not is_owner_build(info), "This is the owner's build, with every feature on and the beta glasses capabilities allowed. It must not go out as a standard build.")
 
     modes = info.get("UIBackgroundModes") or []
+    # Meta's toolkit checks these before it uses a link to the glasses. Without them the
+    # glasses connect and the camera never starts, with no error to read.
+    expect("bluetooth-central" in modes, "Background mode 'bluetooth-central' is missing. The glasses toolkit cannot use Bluetooth.")
+    expect(bool(str(info.get("NSBluetoothAlwaysUsageDescription") or "").strip()), "NSBluetoothAlwaysUsageDescription is empty. The glasses toolkit cannot use Bluetooth.")
+    expect(bool(str(info.get("NSLocalNetworkUsageDescription") or "").strip()), "NSLocalNetworkUsageDescription is empty. The glasses camera cannot stream over Wi-Fi.")
+    expect(WIFI_SERVICE in (info.get("NSBonjourServices") or []), f"NSBonjourServices does not list {WIFI_SERVICE}. The glasses camera cannot stream over Wi-Fi.")
     if "processing" in modes:
         expect(bool(info.get("BGTaskSchedulerPermittedIdentifiers")), "Background mode 'processing' needs BGTaskSchedulerPermittedIdentifiers. Apple refuses the upload without it.")
 
@@ -83,6 +97,8 @@ def problems(
     expect(entitlements.get("com.apple.developer.team-identifier") == team, "The signature's team is not the signing team.")
     expect(entitlements.get("aps-environment") == "production", "Push is not set to production. TestFlight builds would get no alerts.")
     expect(f"applinks:{LINK_HOST}" in (entitlements.get("com.apple.developer.associated-domains") or []), "Associated domain is missing. The Meta AI app could not return to Phoenix Fox.")
+    for key, name in WIFI_ENTITLEMENTS.items():
+        expect(entitlements.get(key) is True, f"The {name} entitlement is not in the signature. The phone could not join the glasses' Wi-Fi, and the camera would fail without an error.")
     expect(entitlements.get("get-task-allow") is not True, "This is a development signature. App Store Connect refuses it.")
     return found
 

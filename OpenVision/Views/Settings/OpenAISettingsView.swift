@@ -18,6 +18,7 @@ struct OpenAISettingsView: View {
     @State private var isSigningIn = false
     @State private var subscriptionModels: [ChatGPTSubscription.Model] = []
     @State private var subscriptionError: String?
+    @State private var testStatus: String?
 
     var body: some View {
         Form {
@@ -71,6 +72,12 @@ struct OpenAISettingsView: View {
                     .autocapitalization(.none)
                     .autocorrectionDisabled()
             }
+            ProviderKeyTestButton(provider: .openAI, apiKey: apiKey, status: $testStatus)
+            if let testStatus {
+                Text(testStatus)
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+            }
         } header: {
             Text("Authentication")
         } footer: {
@@ -78,7 +85,7 @@ struct OpenAISettingsView: View {
                 Label("Required for OpenAI mode", systemImage: "exclamationmark.triangle.fill")
                     .foregroundColor(.orange).font(.caption)
             } else {
-                Label("API key configured", systemImage: "checkmark.circle.fill")
+                Label("API key on this phone (Keychain). Never logged.", systemImage: "checkmark.circle.fill")
                     .foregroundColor(.green).font(.caption)
             }
         }
