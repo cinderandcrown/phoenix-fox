@@ -97,11 +97,12 @@ final class OwnerBuildTests: XCTestCase {
     func testTheOwnerProfileTurnsOnTheAccessibilitySuite() {
         var access = AccessibilitySettings()
         OwnerProfile.apply(to: &access)
-        XCTAssertTrue(access.faceRecognition)
+        // Face recognition and Guide cloud stay off until explicit opt-in (CUBI/BIPA, 5.1.1).
+        XCTAssertFalse(access.faceRecognition)
         XCTAssertTrue(access.soundAlerts)
         XCTAssertTrue(access.keepTranscripts)
         XCTAssertTrue(access.activityRecall)
-        XCTAssertTrue(access.guideCloudDescriptions)
+        XCTAssertFalse(access.guideCloudDescriptions)
         XCTAssertTrue(access.guideAudioCues)
     }
 

@@ -195,7 +195,7 @@ final class VoiceCommandService: ObservableObject {
         guard hasSpokenThisTurn, !currentTranscription.isEmpty else { return }
 
         let grace = Constants.Voice.vadCommitGrace + extraPause
-        print("[VoiceCommand] VAD end-of-speech → committing in \(grace)s: '\(currentTranscription)'")
+        print("[VoiceCommand] VAD end-of-speech → committing in \(grace)s (\(currentTranscription.count) chars)")
         // Turn latency starts counting from the moment the user actually stopped talking.
         MetricsCollector.shared.markSpeechEnd()
         vadCommitPending = true
@@ -572,7 +572,7 @@ final class VoiceCommandService: ObservableObject {
         }
 
         let transcription = result.bestTranscription.formattedString
-        print("[VoiceCommand] 🎤 heard(\(state)): \"\(transcription)\"")
+        print("[VoiceCommand] heard(\(state)): \(transcription.count) chars")
 
         switch state {
         case .idle:
@@ -647,7 +647,7 @@ final class VoiceCommandService: ObservableObject {
                 let command = extractCommandAfterWakeWord(transcription)
                 guard !command.isEmpty else { return }
 
-                print("[VoiceCommand] Wake word + command during TTS - interrupting: '\(command)'")
+                print("[VoiceCommand] Wake word + command during TTS — interrupting (\(command.count) chars)")
 
                 // Notify to stop TTS immediately
                 onWakeWordDetected?()
@@ -718,7 +718,7 @@ final class VoiceCommandService: ObservableObject {
         let lowercased = text.lowercased()
         let detected = Self.jarvisWakeVariations(including: wakeWord).contains { lowercased.contains($0) }
         if detected {
-            print("[VoiceCommand] Detected wake word in: '\(text)'")
+            print("[VoiceCommand] Detected wake word (\(text.count) chars)")
         }
         return detected
     }
@@ -785,7 +785,7 @@ final class VoiceCommandService: ObservableObject {
 
         guard !command.isEmpty else { return }
 
-        print("[VoiceCommand] Command captured: \(command)")
+        print("[VoiceCommand] Command captured (\(command.count) chars)")
         finishedUtterance = utteranceBuffer.finish()
         MetricsCollector.shared.count("command_captured")
 

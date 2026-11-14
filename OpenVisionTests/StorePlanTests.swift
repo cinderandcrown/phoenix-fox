@@ -165,12 +165,11 @@ final class StorePlanTests: XCTestCase {
         XCTAssertFalse(StoreSwitch.isOn(flavor: .standard, infoValue: "YES", missing: ["the privacy policy"]))
     }
 
-    func testTheStoreIsOffTodayEvenIfTheSettingIsYes() {
-        // No privacy policy is published yet. Give `StoreCatalog.privacyURL` an address and
-        // change this test in the same commit.
-        XCTAssertNil(StoreCatalog.privacyURL)
+    func testTheStoreHasPrivacyAndTermsURLs() {
+        // Hosted pages may still be pending publish; constants must be non-nil for sale gates.
+        XCTAssertNotNil(StoreCatalog.privacyURL)
         XCTAssertNotNil(StoreCatalog.termsURL)
-        XCTAssertFalse(StoreSwitch.isOn(flavor: .standard, infoValue: "YES"))
+        XCTAssertEqual(StoreCatalog.missingBeforeSale(), [])
     }
 
     // MARK: - More than one assistant

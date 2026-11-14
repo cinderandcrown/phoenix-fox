@@ -122,7 +122,10 @@ final class GuideMode: ObservableObject {
 
             // The model is asked only on a real change of scene, never more often than
             // every twelve seconds, and at most sixty times in a session.
-            let canAsk = settings.accessibility.guideCloudDescriptions && !modelBusy && modelCalls < 60
+            // Opt-in + cloud AI consent (5.1.1(iii) / 5.1.2(i)).
+            let cloudOK = settings.accessibility.guideCloudDescriptions
+                && CloudAIConsent.allowsCloudSend(backend: settings.aiBackend)
+            let canAsk = cloudOK && !modelBusy && modelCalls < 60
                 && change > FrameChange.sceneChangeThreshold && now.timeIntervalSince(lastModel) > 12
             if canAsk, let small = ImageBudget.jpeg(jpeg) {
                 lastModel = now
@@ -186,6 +189,7 @@ enum SceneDescriber {
             return local
         }
         guard SettingsManager.shared.settings.isGrokConfigured else { return nil }
+        guard CloudAIConsent.allowsCloudSend(backend: .grok) else { return nil }
         let system = "You are the eyes of a blind person. Be brief and concrete. Never guess, and never agree with something you cannot see: when you are not sure, say you are not sure."
         return try? await GrokService.shared.complete(prompt, imageData: jpeg, system: system)
     }

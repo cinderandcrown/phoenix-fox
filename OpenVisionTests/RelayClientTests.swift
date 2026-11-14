@@ -393,10 +393,22 @@ final class RelayClientTests: XCTestCase {
 
 final class RelayEndpointTests: XCTestCase {
 
-    func testAnEmptyAddressMeansTheOwnersRelay() throws {
-        let endpoint = try XCTUnwrap(RelayEndpoint(address: "  ", token: " secret \n"))
+    func testAnEmptyAddressIsNotTheOwnersRelayOnStoreBuilds() {
+        // CI / standard builds leave defaultAddress empty so empty input cannot hit the
+        // owner's Worker (legal C15). Owner builds still resolve blank → ownerAddress.
+        if BuildFlavor.current == .owner {
+            let endpoint = RelayEndpoint(address: "  ", token: " secret \n")
+            XCTAssertEqual(endpoint?.base.absoluteString, RelayEndpoint.ownerAddress)
+            XCTAssertEqual(endpoint?.token, "secret")
+        } else {
+            XCTAssertNil(RelayEndpoint(address: "  ", token: " secret \n"))
+            XCTAssertTrue(RelayEndpoint.defaultAddress.isEmpty)
+        }
+    }
+
+    func testTheOwnersRelayAddressIsExplicit() throws {
+        let endpoint = try XCTUnwrap(RelayEndpoint(address: RelayEndpoint.ownerAddress, token: "secret"))
         XCTAssertEqual(endpoint.base.absoluteString, "https://phoenix-fox-relay.cinderandcrown.workers.dev")
-        XCTAssertEqual(endpoint.token, "secret")
     }
 
     func testNoTokenMeansNotConfigured() {

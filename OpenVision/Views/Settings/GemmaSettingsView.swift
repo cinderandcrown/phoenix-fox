@@ -31,7 +31,7 @@ struct GemmaSettingsView: View {
     var body: some View {
         Form {
             Section {
-                ForEach(GemmaLocalModel.allCases) { model in
+                ForEach(GemmaLocalModel.offered) { model in
                     Button {
                         select(model)
                     } label: {

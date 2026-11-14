@@ -14,11 +14,15 @@ struct AccessibilitySettings: Codable, Equatable, Sendable {
     /// The wearer has heard and accepted that Guide mode is an aid, not a replacement for
     /// a cane or a guide dog.
     var guideSafetyAccepted = false
-    /// Guide mode may send a frame to the cloud model when the scene changes. Off keeps
-    /// Guide mode to what the phone can detect by itself.
-    var guideCloudDescriptions = true
+    /// Guide mode may send a frame to the cloud model when the scene changes. Off by
+    /// default (App Store 5.1.1(iii) minimization): keep Guide mode to what the phone
+    /// can detect by itself until the wearer opts in.
+    var guideCloudDescriptions = false
     var guideAudioCues = true
+    /// Face recognition feature switch. Default OFF until wearer CUBI/BIPA opt-in.
     var faceRecognition = false
+    /// Days without a match before face prints auto-delete (1…30). Default 30.
+    var faceRetentionDays = FaceLedger.defaultRetentionDays
 
     // Getting help
     var emergencyContactName = ""
@@ -56,6 +60,9 @@ struct AccessibilitySettings: Codable, Equatable, Sendable {
         guideCloudDescriptions = value(.guideCloudDescriptions, base.guideCloudDescriptions)
         guideAudioCues = value(.guideAudioCues, base.guideAudioCues)
         faceRecognition = value(.faceRecognition, base.faceRecognition)
+        faceRetentionDays = FaceRecognitionConsent.clampedRetentionDays(
+            value(.faceRetentionDays, base.faceRetentionDays)
+        )
         emergencyContactName = value(.emergencyContactName, base.emergencyContactName)
         emergencyContactNumber = value(.emergencyContactNumber, base.emergencyContactNumber)
         soundAlerts = value(.soundAlerts, base.soundAlerts)

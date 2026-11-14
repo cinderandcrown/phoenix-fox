@@ -243,7 +243,7 @@ struct AppSettings: Codable, Equatable {
 
     // MARK: - Own assistants (relay)
 
-    /// Address of the relay. Empty means the owner's relay, `RelayEndpoint.defaultAddress`.
+    /// Address of the relay. Empty means `RelayEndpoint.defaultAddress` (owner builds only).
     var relayURL: String = ""
     /// Bearer token the app sends to the relay. Keychain only.
     var relayToken: String = ""

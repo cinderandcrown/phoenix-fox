@@ -1,10 +1,11 @@
 // SPDX-License-Identifier: Apache-2.0
 // Copyright 2026 Cinder and Crown LLC
 
-// Saved faces: who they are, when they agreed, and matching a face in view against them.
+// Saved faces: who they are, when they said yes, and matching a face in view against them.
 //
-// Everything happens on the phone. Face prints are sealed by AccessStore, are never sent
-// anywhere, and are deleted the moment the wearer says to forget someone.
+// On-device only. Prints are sealed by AccessStore (encrypted, file protection, no backup),
+// never sent anywhere, never created for strangers, and auto-deleted after N days without a
+// match. See docs/legal/FACE_RETENTION.md.
 
 import Foundation
 
@@ -17,7 +18,16 @@ final class AccessFaces: ObservableObject {
     private static let file = "faces"
 
     private init() {
-        records = AccessStore.load([FaceRecord].self, from: Self.file) ?? []
+        let loaded = AccessStore.load([FaceRecord].self, from: Self.file) ?? []
+        // Do not touch `self.retentionDays` before `records` is assigned — that property
+        // reads SettingsManager and trips "self used before all stored properties".
+        let days = FaceRecognitionConsent.clampedRetentionDays(
+            SettingsManager.shared.settings.accessibility.faceRetentionDays
+        )
+        records = FaceLedger.pruningExpired(loaded, retentionDays: days)
+        if records.count != loaded.count {
+            persist()
+        }
         // An earlier build kept face prints in a plain file with no record of consent.
         // Those are deleted, not carried over.
         let documents = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
@@ -26,14 +36,34 @@ final class AccessFaces: ObservableObject {
         }
     }
 
+    private var retentionDays: Int {
+        FaceRecognitionConsent.clampedRetentionDays(
+            SettingsManager.shared.settings.accessibility.faceRetentionDays
+        )
+    }
+
+    /// Drops face prints past the retention window (default 30 days without a match).
+    @discardableResult
+    func pruneExpired(asOf now: Date = Date()) -> Int {
+        let before = records.count
+        records = FaceLedger.pruningExpired(records, asOf: now, retentionDays: retentionDays)
+        if records.count != before { persist() }
+        return before - records.count
+    }
+
     var names: [String] { records.map(\.name) }
 
     func knows(_ name: String) -> Bool {
         records.contains { $0.name.lowercased() == name.lowercased() }
     }
 
-    /// Saves the one face in the photo under a name. Call only after consent was confirmed.
-    func enroll(name: String, jpeg: Data, consentAt: Date) async -> String {
+    /// Saves the one face in the photo under a name. Call only after that person spoke yes.
+    func enroll(
+        name: String,
+        jpeg: Data,
+        consentAt: Date,
+        consentSource: String = "spoken_yes"
+    ) async -> String {
         let faces = await AccessVision.faces(in: jpeg)
         guard let face = faces.first else {
             return "I don't see a face clearly. Ask \(name) to look toward you, then say remember this person as \(name) again."
@@ -41,20 +71,27 @@ final class AccessFaces: ObservableObject {
         guard faces.count == 1 else {
             return "I see \(faces.count) faces, and I need to be sure which one is \(name). Try again with only \(name) in view."
         }
-        records = FaceLedger.saving(print: face.featurePrint, for: name, consentAt: consentAt, in: records)
+        records = FaceLedger.saving(
+            print: face.featurePrint,
+            for: name,
+            consentAt: consentAt,
+            consentSource: consentSource,
+            in: records
+        )
         guard AccessStore.save(records, to: Self.file) else {
             return "I couldn't save \(name)'s face on this phone. Nothing was kept."
         }
         let count = records.first { $0.name.lowercased() == name.lowercased() }?.prints.count ?? 1
         return count > 1
             ? "Added another look at \(name). I'll recognize them better now."
-            : "I'll recognize \(name) from now on. Their face data stays on this phone. Say forget \(name)'s face at any time."
+            : "I'll recognize \(name) from now on. Their face print stays on this phone only. Say forget \(name)'s face at any time."
     }
 
-    /// Who is in the photo. Returns the spoken answer and the names that were recognized.
+    /// Who is in the photo. Strangers are reported, never enrolled.
     func identify(jpeg: Data) async -> (spoken: String, names: [String]) {
+        pruneExpired()
         guard !records.isEmpty else {
-            return ("I haven't saved anyone yet. With their permission, say remember this person as, then their name.", [])
+            return ("I haven't saved anyone yet. With their spoken permission, say remember this person as, then their name.", [])
         }
         let faces = await AccessVision.faces(in: jpeg)
         let people = records
@@ -70,16 +107,16 @@ final class AccessFaces: ObservableObject {
             for index in records.indices where recognized.contains(records[index].name) {
                 records[index].lastSeen = now
             }
-            AccessStore.save(records, to: Self.file)
+            persist()
         }
         return (FaceLedger.spoken(matches), recognized)
     }
 
     func forget(name: String) -> String {
-        let before = records.count
-        records.removeAll { $0.name.lowercased() == name.lowercased() }
-        guard records.count < before else { return "I don't have a saved face for \(name)." }
-        AccessStore.save(records, to: Self.file)
+        let next = FaceLedger.forgetting(name: name, in: records)
+        guard next.count < records.count else { return "I don't have a saved face for \(name)." }
+        records = next
+        persist()
         return "Done. \(name)'s face data is deleted."
     }
 
@@ -91,5 +128,13 @@ final class AccessFaces: ObservableObject {
 
     func listSpoken() -> String {
         names.isEmpty ? "I haven't saved anyone's face." : "I can recognize \(FaceLedger.list(names))."
+    }
+
+    private func persist() {
+        if records.isEmpty {
+            AccessStore.remove(Self.file)
+        } else {
+            AccessStore.save(records, to: Self.file)
+        }
     }
 }

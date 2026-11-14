@@ -71,6 +71,26 @@ final class OAuthTokenStore: @unchecked Sendable {
         SecItemDelete(baseQuery(provider.id) as CFDictionary)
     }
 
+    /// Clears every known subscription sign-in (ChatGPT, SuperGrok, Hermes). Used by Delete all my data.
+    func signOutAllProviders() {
+        signOut(ChatGPTSubscription.provider)
+        signOut(GrokService.provider)
+        // Hermes dashboard bases vary; wipe any Keychain items under this service.
+        lock.lock(); defer { lock.unlock() }
+        for account in Array(cache.keys) + Array(loaded) {
+            cache[account] = nil
+            refreshes[account]?.cancel()
+            refreshes[account] = nil
+            SecItemDelete(baseQuery(account) as CFDictionary)
+        }
+        loaded.removeAll()
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: service,
+        ]
+        SecItemDelete(query as CFDictionary)
+    }
+
     // MARK: - Fresh access token
 
     /// Credentials with a usable access token, refreshing first if expired (or if `force`, e.g.

@@ -157,12 +157,8 @@ struct PlanView: View {
                 }
                 .accessibilityHint("Opens your subscriptions in the App Store.")
             }
-            if let terms = StoreCatalog.termsURL {
-                Link("Terms of use", destination: terms)
-            }
-            if let privacy = StoreCatalog.privacyURL {
-                Link("Privacy policy", destination: privacy)
-            }
+            Link("Terms of use", destination: StoreCatalog.termsURL)
+            Link("Privacy policy", destination: StoreCatalog.privacyURL)
         } footer: {
             Text("Payment is charged to your Apple Account when you confirm. A plan renews for the same period at the same price until you cancel. You can cancel at any time in your App Store account, at least a day before it renews.")
         }

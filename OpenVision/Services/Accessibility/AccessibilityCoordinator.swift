@@ -36,6 +36,7 @@ final class AccessibilityCoordinator: ObservableObject {
     private enum Action: Sendable {
         case enroll(name: String)
         case forgetAllFaces
+        case enableFaceRecognition
         case startGuide
         case emergencyCall
         case setEmergencyContact(name: String, number: String)
@@ -46,7 +47,7 @@ final class AccessibilityCoordinator: ObservableObject {
         /// for a change to the wearer's own lists that they asked for a moment ago.
         var needsSpokenYes: Bool {
             switch self {
-            case .enroll, .forgetAllFaces, .startGuide, .emergencyCall: return true
+            case .enroll, .forgetAllFaces, .enableFaceRecognition, .startGuide, .emergencyCall: return true
             case .setEmergencyContact, .deleteRoutine: return false
             }
         }
@@ -146,17 +147,27 @@ final class AccessibilityCoordinator: ObservableObject {
         // Faces
         case .whoIsThis: return await whoIsThis(snapshot: snapshot)
         case .rememberFace(let name):
-            guard settings.faceRecognition else { return Self.facesOff }
-            return ask("Has \(name) agreed to let me save their face on this phone? Say yes or no.", then: .enroll(name: name))
+            guard PrivacyFeatureFlags.faceRecognition else { return Self.facesOff }
+            guard settings.faceRecognition, FaceRecognitionConsent.isWearerNoticeAccepted() else {
+                return Self.facesOff
+            }
+            // The person themselves must say yes — not a passive sighting, not wearer-only.
+            return ask(FaceRecognitionConsent.enrollmentConsentPrompt(name), then: .enroll(name: name))
         case .forgetFace(let name): return AccessFaces.shared.forget(name: name)
         case .forgetAllFaces:
             guard !AccessFaces.shared.records.isEmpty else { return "I haven't saved anyone's face." }
             return ask("Delete every saved face? Say yes or no.", then: .forgetAllFaces)
         case .faceRecognition(let on):
-            settings.faceRecognition = on
-            return on
-                ? "Face recognition is on. I only recognize people you save, and I ask for their permission first. Face data stays on this phone."
-                : "Face recognition is off. Saved faces are kept until you say forget all faces."
+            guard PrivacyFeatureFlags.faceRecognition else { return Self.facesOff }
+            if on {
+                if FaceRecognitionConsent.isWearerNoticeAccepted() {
+                    settings.faceRecognition = true
+                    return "Face recognition is on. I only enroll people who say yes themselves. Prints stay on this phone and delete after \(settings.faceRetentionDays) days with no match."
+                }
+                return ask(FaceRecognitionConsent.spokenOptInPrompt, then: .enableFaceRecognition)
+            }
+            settings.faceRecognition = false
+            return "Face recognition is off. Saved faces stay until they expire or you say forget all faces."
 
         // Getting around
         case .guide(let on):
@@ -275,9 +286,18 @@ final class AccessibilityCoordinator: ObservableObject {
         switch action {
         case .enroll(let name):
             guard let jpeg = await snapshot() else { return Self.noPicture }
-            return await AccessFaces.shared.enroll(name: name, jpeg: jpeg, consentAt: Date())
+            return await AccessFaces.shared.enroll(
+                name: name,
+                jpeg: jpeg,
+                consentAt: Date(),
+                consentSource: "spoken_yes"
+            )
         case .forgetAllFaces:
             return AccessFaces.shared.forgetAll()
+        case .enableFaceRecognition:
+            FaceRecognitionConsent.acceptWearerNotice()
+            settings.faceRecognition = true
+            return "Face recognition is on. I only enroll people who say yes themselves. Prints stay on this phone and delete after \(settings.faceRetentionDays) days with no match."
         case .startGuide:
             return startGuideAfterSafetyNotice()
         case .emergencyCall:
@@ -377,7 +397,7 @@ final class AccessibilityCoordinator: ObservableObject {
     // MARK: - Faces
 
     private func whoIsThis(snapshot: Snapshot) async -> String {
-        guard settings.faceRecognition else { return Self.facesOff }
+        guard PrivacyFeatureFlags.faceRecognition, settings.faceRecognition else { return Self.facesOff }
         guard let jpeg = await snapshot() else { return Self.noPicture }
         let result = await AccessFaces.shared.identify(jpeg: jpeg)
         let notes = result.names.flatMap { name in
@@ -543,5 +563,5 @@ final class AccessibilityCoordinator: ObservableObject {
 
     private static let noPicture = "I couldn't get a picture from the glasses. Check that they're connected and on, then try again."
     private static let noTask = "No task is running. Say guide me through, then what you want to do."
-    private static let facesOff = "Face recognition is off. Say turn on face recognition. I only recognize people who agreed to be saved."
+    private static let facesOff = "Face recognition is off. Say turn on face recognition to hear the biometric notice. I only enroll people who say yes themselves, and strangers are never stored."
 }

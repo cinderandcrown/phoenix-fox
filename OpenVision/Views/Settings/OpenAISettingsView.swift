@@ -24,7 +24,9 @@ struct OpenAISettingsView: View {
         Form {
             Section {
                 Picker("Connect With", selection: $authMode) {
-                    ForEach(OpenAIAuthMode.allCases) { mode in
+                    ForEach(OpenAIAuthMode.allCases.filter { mode in
+                        mode != .chatGPTSubscription || PrivacyFeatureFlags.chatGPTSubscriptionSignIn
+                    }) { mode in
                         ConnectMethodRow(title: mode.displayName, summary: mode.summary, icon: mode.icon).tag(mode)
                     }
                 }
@@ -43,6 +45,10 @@ struct OpenAISettingsView: View {
         .navigationBarTitleDisplayMode(.inline)
         .onAppear {
             authMode = settingsManager.settings.openAIAuthMode
+            if authMode == .chatGPTSubscription && !PrivacyFeatureFlags.chatGPTSubscriptionSignIn {
+                authMode = .apiKey
+                settingsManager.settings.openAIAuthMode = .apiKey
+            }
             apiKey = settingsManager.settings.openAIAPIKey
             model = settingsManager.settings.openAIModel
             baseURL = settingsManager.settings.openAIBaseURL

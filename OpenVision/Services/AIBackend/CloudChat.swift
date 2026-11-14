@@ -137,7 +137,7 @@ enum CloudChat {
         let args = ToolArguments(jsonText: arguments)
         if toolName == "web_search" {
             let query = args["query"]?.stringValue ?? ""
-            NSLog("[CloudChat] web_search: \"%@\"", query)
+            NSLog("[CloudChat] web_search: %d chars", query.count)
             let r = await WebSearchService.search(query)
             return r.isEmpty ? "No results found for \"\(query)\"." : r
         }

@@ -171,7 +171,8 @@ packages:
   # our MLX models use nor the CPU — so it doesn't contend with on-device inference.
   FluidAudio:
     url: https://github.com/FluidInference/FluidAudio.git
-    from: "0.15.5"
+    # Exact pin: 0.16+ / 0.18.x pull eSpeak-NG GPL and CC-BY-SA TTS data. See docs/legal.
+    exactVersion: "0.15.5"
   swift-huggingface:
     url: https://github.com/huggingface/swift-huggingface.git
     # Pinned. LocalModelHub calls HubClient.downloadSnapshot from this release.

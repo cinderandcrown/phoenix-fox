@@ -156,11 +156,10 @@
     <key>NSRemindersFullAccessUsageDescription</key>
     <string>Phoenix Fox creates reminders when you ask Jarvis.</string>
 
-    <!-- App Transport Security (allow WebSocket connections) -->
+    <!-- App Transport Security: no arbitrary HTTP. Local networking covers LAN relays / Influx.
+         Cloud AI, Hugging Face, and Meta use HTTPS. -->
     <key>NSAppTransportSecurity</key>
     <dict>
-        <key>NSAllowsArbitraryLoads</key>
-        <true/>
         <key>NSAllowsLocalNetworking</key>
         <true/>
     </dict>
@@ -178,6 +177,13 @@
         <string>$(META_CLIENT_TOKEN)</string>
         <key>TeamID</key>
         <string>$(DEVELOPMENT_TEAM)</string>
+        <!-- Conservative default: opt out of Meta DAT SDK telemetry until Nicholas decides.
+             Documented at https://wearables.developer.meta.com/docs/develop/dat/telemetry/ -->
+        <key>Analytics</key>
+        <dict>
+            <key>OptOut</key>
+            <true/>
+        </dict>
     </dict>
 
     <!-- Appearance -->

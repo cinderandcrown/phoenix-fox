@@ -22,7 +22,9 @@ struct GrokSettingsView: View {
         Form {
             Section {
                 Picker("Connect With", selection: $authMode) {
-                    ForEach(GrokAuthMode.allCases) { mode in
+                    ForEach(GrokAuthMode.allCases.filter { mode in
+                        mode != .superGrok || PrivacyFeatureFlags.superGrokSignIn
+                    }) { mode in
                         ConnectMethodRow(title: mode.displayName, summary: mode.summary, icon: mode.icon).tag(mode)
                     }
                 }

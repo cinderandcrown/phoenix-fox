@@ -1173,6 +1173,13 @@ final class VoiceAgentViewModel: ObservableObject {
         // Look to Talk is last of the three, and matches nothing while its switch is off.
         if await handleLookCommand(command) { return }
 
+        // Guideline 5.1.2(i): no prompt / photo / memory to a third-party AI without consent.
+        if !CloudAIConsent.allowsCloudSend(backend: settingsManager.settings.aiBackend) {
+            let line = "Cloud AI needs your OK first. Open Settings, Privacy and Data, and allow data sharing for that provider. On-device answers still work."
+            CompanionSurface.present(bot: nil, text: line) { self.speakResponse($0) }
+            return
+        }
+
         let lowerCommand = command.lowercased()
 
         // Check for "stop" command - stops TTS and waits for next command.
