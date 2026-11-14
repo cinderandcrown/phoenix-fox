@@ -77,12 +77,13 @@ struct OwnAssistantSettingsView: View {
 
             Section {
                 Toggle("Fast answers on Grok", isOn: $settingsManager.settings.jarvisFastMode)
+                Toggle("Short spoken replies", isOn: $settingsManager.settings.shortSpokenReplies)
                 Toggle("Mind meld", isOn: $settingsManager.settings.mindMeldEnabled)
                 TextField("Wake word", text: $settingsManager.settings.wakeWord)
             } header: {
                 Text("Voice")
             } footer: {
-                Text("The app is Phoenix Fox. Jarvis is only the wake word. Mind meld keeps what you say on this phone. It does not keep a photo unless you say remember, and the capture light is on for that shot.")
+                Text("The app is Phoenix Fox. Jarvis is only the wake word. With short spoken replies on, a long answer pauses after about half a minute. Say “go on” to hear the rest. The whole answer is always in History. Mind meld keeps what you say on this phone. It does not keep a photo unless you say remember, and the capture light is on for that shot.")
             }
 
             Section("Assistants") {

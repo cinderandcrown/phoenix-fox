@@ -8,14 +8,31 @@ import Foundation
 
 @MainActor
 enum PhoenixFoxTurn {
+    /// The part of a long answer that is waiting for "go on". Any other request drops it.
+    private static var held: String?
+    /// Requests acknowledged so far, so the quick word varies.
+    private static var acknowledged = 0
+
+    /// - Parameter record: Takes the whole answer as it was written, for History. What is
+    ///   spoken may be shorter.
     static func run(
         cleaned: String,
         transcript: String,
         settings: AppSettings,
         snapshot: () async -> Data?,
         speakFiller: (String) -> Void,
-        speak: (String, String?, Bool) -> Void
+        speak: (String, String?, Bool) -> Void,
+        record: (String) -> Void = { _ in }
     ) async {
+        if let waiting = held {
+            held = nil
+            if SpokenReply.asksForMore(cleaned) {
+                let next = SpokenReply.next(of: waiting)
+                held = next.later
+                speak(next.now, nil, false)
+                return
+            }
+        }
         if let line = await CompanionRuntime.shared.consume(cleaned, snapshot: snapshot) {
             if !line.isEmpty {
                 speak(line, nil, false)
@@ -49,9 +66,9 @@ enum PhoenixFoxTurn {
         case .instant(let text, let photo, _):
             await instant(text: text, photo: photo, settings: settings, snapshot: snapshot)
         case .relay(let turn):
-            await relay(turn, transcript: transcript, settings: settings, snapshot: snapshot, speakFiller: speakFiller, speak: speak)
+            await relay(turn, transcript: transcript, settings: settings, snapshot: snapshot, speakFiller: speakFiller, speak: speak, record: record)
         case .mind(let command):
-            await mind(command, transcript: transcript, settings: settings, snapshot: snapshot, speakFiller: speakFiller, speak: speak)
+            await mind(command, transcript: transcript, settings: settings, snapshot: snapshot, speakFiller: speakFiller, speak: speak, record: record)
         }
     }
 
@@ -61,7 +78,8 @@ enum PhoenixFoxTurn {
         settings: AppSettings,
         snapshot: () async -> Data?,
         speakFiller: (String) -> Void,
-        speak: (String, String?, Bool) -> Void
+        speak: (String, String?, Bool) -> Void,
+        record: (String) -> Void
     ) async {
         let bots = settings.assistantBots.map(\.name)
         switch command {
@@ -94,7 +112,8 @@ enum PhoenixFoxTurn {
                 settings: settings,
                 snapshot: snapshot,
                 speakFiller: speakFiller,
-                speak: speak
+                speak: speak,
+                record: record
             )
         }
     }
@@ -124,11 +143,15 @@ enum PhoenixFoxTurn {
         settings: AppSettings,
         snapshot: () async -> Data?,
         speakFiller: (String) -> Void,
-        speak: (String, String?, Bool) -> Void
+        speak: (String, String?, Bool) -> Void,
+        record: (String) -> Void
     ) async {
+        // The quick word comes first, before the photo is taken, so the wearer hears at once
+        // that the request landed and where it went.
+        speakFiller(Acknowledgement.line(targetBot: turn.targetBot, bots: settings.assistantBots, photo: turn.photo, turn: acknowledged))
+        acknowledged += 1
         var images: [Data] = []
         if turn.photo, let frame = await snapshot() { images.append(frame) }
-        speakFiller("On it.")
         do {
             let replies = try await OwnAssistantService.shared.ask(
                 transcript: transcript,
@@ -142,8 +165,12 @@ enum PhoenixFoxTurn {
                 speak("Nothing came back.", nil, false)
                 return
             }
-            for reply in replies {
-                speak(reply.text, reply.fromBot, alwaysName)
+            // History keeps every word. The voice gets plain words and a short first part.
+            record(replies.count == 1 ? replies[0].text : replies.map { "\($0.fromBot): \($0.text)" }.joined(separator: "\n"))
+            let shaped = SpokenReply.turn(replies.map { (text: $0.text, from: $0.fromBot) }, short: settings.shortSpokenReplies)
+            held = shaped.later
+            for line in shaped.lines {
+                speak(line.text, replies[line.index].fromBot, alwaysName)
             }
             let combined = replies.map(\.text).joined(separator: " ")
             ConversationContext.shared.record(user: turn.text, assistant: combined)

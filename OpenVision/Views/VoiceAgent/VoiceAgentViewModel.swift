@@ -276,8 +276,25 @@ final class VoiceAgentViewModel: ObservableObject {
     /// that's enough. It stops the answer and nothing else, exactly as talking over it
     /// does. Guide mode, a recording, and live video carry on.
     private func quietFromGlasses() {
+        stopTalking()
+    }
+
+    /// Stops the answer and nothing else, exactly as talking over it does. The conversation
+    /// stays open and the microphone listens again.
+    func stopTalking() {
         guard ttsService.isSpeaking || NeuralSpeech.isAnySpeaking else { return }
         voiceCommandService.onInterruption?()
+    }
+
+    /// A tap on the orb. While Jarvis is talking it means "that's enough", which is what a
+    /// person reaching for the phone mid-answer wants. Otherwise it starts or ends the
+    /// conversation.
+    func stageTapped(_ tap: StageTap) {
+        if tap == .stopTalking, ttsService.isSpeaking || NeuralSpeech.isAnySpeaking {
+            stopTalking()
+        } else {
+            toggleSession()
+        }
     }
 
     /// Two nods or a shake of the head.
@@ -788,7 +805,8 @@ final class VoiceAgentViewModel: ObservableObject {
         voiceCommandService.onWakeWordDetected = { [weak self] in
             guard let self else { return }
             print("[VoiceAgent] Wake word detected!")
-            HapticFeedback.medium()
+            // The haptic for this moment is played by the home screen with the other beats
+            // of a turn. See `HapticCue`.
             self.soundService.playWakeWordSound()
 
             // If TTS is speaking, stop it immediately (interrupt)
@@ -1407,6 +1425,11 @@ final class VoiceAgentViewModel: ObservableObject {
                 CompanionSurface.present(bot: from, text: text) { _ in
                     self.speakResponse(line.text)
                 }
+            },
+            record: { [weak self] whole in
+                // Before the first line is spoken, so History holds the whole answer and
+                // not the shortened one.
+                self?.recordAssistantReply(whole)
             }
         )
         if !ttsService.isSpeaking && !NeuralSpeech.isAnySpeaking {
@@ -2496,6 +2519,9 @@ final class VoiceAgentViewModel: ObservableObject {
     /// play before sentence 1 (the comment claiming order was preserved was wrong). Kokoro now
     /// owns a FIFO drained by a single task, making ordering structural.
     private func speakStreamedChunk(_ sentence: String) {
+        // A model writes for a screen. Markup, web addresses, and emoji are not spoken.
+        let sentence = SpokenReply.plain(sentence)
+        guard !sentence.isEmpty else { return }
         // First-wins: the first sentence handed over starts the TTS TTFB clock.
         MetricsCollector.shared.markTTSRequested()
         if let neuralTTS = streamingNeuralTTS {

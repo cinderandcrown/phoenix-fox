@@ -241,6 +241,8 @@
 		9233C808B28503BD3A99D575 /* LivePhase.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD07FF68C0EF0EA9156CC195 /* LivePhase.swift */; };
 		DC4D503676E6E616C98E1933 /* EmberGeometryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6DF68BC9DC264E2E6D662014 /* EmberGeometryTests.swift */; };
 		BC5440EA2BF9196CADCE25E1 /* LivePhaseTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1FDF4B6630312A96D96B0966 /* LivePhaseTests.swift */; };
+		6E59CF8D930E8FD7774E196C /* SpokenReply.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E558F23BAC6F632F716B670 /* SpokenReply.swift */; };
+		3972911E035994223CE884CE /* SpokenReplyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 538850BD44341657AC81B31F /* SpokenReplyTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -482,6 +484,8 @@
 		BD07FF68C0EF0EA9156CC195 /* LivePhase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LivePhase.swift; sourceTree = "<group>"; };
 		6DF68BC9DC264E2E6D662014 /* EmberGeometryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmberGeometryTests.swift; sourceTree = "<group>"; };
 		1FDF4B6630312A96D96B0966 /* LivePhaseTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LivePhaseTests.swift; sourceTree = "<group>"; };
+		7E558F23BAC6F632F716B670 /* SpokenReply.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpokenReply.swift; sourceTree = "<group>"; };
+		538850BD44341657AC81B31F /* SpokenReplyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpokenReplyTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -952,6 +956,7 @@
 				1C2AE37B0C64909C3BEB50D4 /* FoxMarkGeometryTests.swift */,
 				6DF68BC9DC264E2E6D662014 /* EmberGeometryTests.swift */,
 				1FDF4B6630312A96D96B0966 /* LivePhaseTests.swift */,
+				538850BD44341657AC81B31F /* SpokenReplyTests.swift */,
 			);
 			path = OpenVisionTests;
 			sourceTree = "<group>";
@@ -1016,6 +1021,7 @@
 				C21AA200000000000000000D /* Companion.swift */,
 				C21AA200000000000000000E /* SmartCapture.swift */,
 				D31AA2000000000000000002 /* MindMeld.swift */,
+				7E558F23BAC6F632F716B670 /* SpokenReply.swift */,
 			);
 			path = Brain;
 			sourceTree = "<group>";
@@ -1336,6 +1342,7 @@
 				0C4DC323150403EAB6CFE85C /* FoxMarkGeometryTests.swift in Sources */,
 				DC4D503676E6E616C98E1933 /* EmberGeometryTests.swift in Sources */,
 				BC5440EA2BF9196CADCE25E1 /* LivePhaseTests.swift in Sources */,
+				3972911E035994223CE884CE /* SpokenReplyTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1522,6 +1529,7 @@
 				B7CA51747E03A2FE014F748D /* FoxMark.swift in Sources */,
 				6A9059850856DE0C6B09E058 /* EmberGeometry.swift in Sources */,
 				9233C808B28503BD3A99D575 /* LivePhase.swift in Sources */,
+				6E59CF8D930E8FD7774E196C /* SpokenReply.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

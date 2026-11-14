@@ -244,6 +244,8 @@ struct AppSettings: Codable, Equatable {
     var relayToken: String = ""
     /// Short questions use the cheap instant model. Tasks go to the relay.
     var jarvisFastMode: Bool = true
+    /// A long answer from an assistant pauses after about half a minute and waits for "go on".
+    var shortSpokenReplies: Bool = true
     /// Spoken persona may say "sir". Off until turned on.
     var jarvisAddressAsSir: Bool = false
     /// On-phone log of what he says. Off until he says "mind meld on". Never stores camera bytes.
