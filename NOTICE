@@ -5,6 +5,23 @@ This product includes software from the projects listed in THIRD_PARTY_NOTICES.m
 Those notices and their licenses stay in force for those portions. They are not
 replaced by the Apache License 2.0 that covers Cinder and Crown LLC's own work.
 
+Vendored third-party source (each keeps its own LICENSE file, unchanged):
+  - Vendor/kokoro-ios (KokoroSwift): MIT License, Copyright (c) 2025 Lassi Maksimainen
+  - Vendor/MisakiSwift: Apache License 2.0, by mlalma; a Swift port of
+    Misaki (https://github.com/hexgrad/misaki, Apache License 2.0)
+  - Vendor/MLXUtilsLibrary: Apache License 2.0, by mlalma
+
+Portions of the iOS app in OpenVision/ are derived from OpenVision
+(https://github.com/rayl15/OpenVision), MIT License,
+Copyright (c) 2026 OpenVision Contributors.
+
+This product links SwiftCrypto, which carries this notice:
+  The SwiftCrypto Project
+  Copyright 2019 The SwiftCrypto Project
+  This product contains test vectors from Google's wycheproof project
+  (Apache License 2.0) and a derivation of various files from SwiftNIO
+  (Apache License 2.0).
+
 The name "Phoenix Fox", the Phoenix Fox logo, and related branding are trademarks
 of Cinder and Crown LLC. They are not licensed under the Apache License 2.0.
 See section 6 of that license.

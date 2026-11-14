@@ -1,3 +1,7 @@
+// SPDX-License-Identifier: Apache-2.0 AND MIT
+// Derived from OpenVision (https://github.com/rayl15/OpenVision), MIT License,
+// Copyright (c) 2026 OpenVision Contributors. Changes by Cinder and Crown LLC are
+// licensed under Apache-2.0. See LICENSE, NOTICE, and THIRD_PARTY_NOTICES.md.
 // OpenVision - CloudTTSFallbackTests.swift
 // A cloud-voice sentence that fails is spoken in the Apple voice, in its place in the reply (#62).
 // Uses a fake provider that returns short silent WAV clips and fails chosen sentences. The cloud

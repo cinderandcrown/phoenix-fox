@@ -1,3 +1,7 @@
+// SPDX-License-Identifier: Apache-2.0 AND MIT
+// Derived from OpenVision (https://github.com/rayl15/OpenVision), MIT License,
+// Copyright (c) 2026 OpenVision Contributors. Changes by Cinder and Crown LLC are
+// licensed under Apache-2.0. See LICENSE, NOTICE, and THIRD_PARTY_NOTICES.md.
 // OpenVision - GeminiVisionService.swift
 // Gemini Live as a vision-only sensor - receives video, can be queried for scene description
 // This is NOT the brain - OpenClaw is. Gemini just provides "eyes".

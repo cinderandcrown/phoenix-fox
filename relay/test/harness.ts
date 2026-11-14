@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: Apache-2.0
+// Copyright 2026 Cinder and Crown LLC
+
 import { handleRelay, type RelayDeps } from "../src/handle";
 import { MemoryMailbox } from "../src/mailbox";
 import type { PushDevice, PushOutcome } from "../src/apns";
