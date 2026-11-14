@@ -20,5 +20,10 @@
     <array>
         <string>applinks:phoenix-fox-links.cinderandcrown.workers.dev</string>
     </array>
+    <!-- Apple Music / MusicKit -->
+    <key>com.apple.developer.music-kit</key>
+    <true/>
+    <key>com.apple.developer.media-player</key>
+    <true/>
 </dict>
 </plist>

@@ -35,6 +35,7 @@ settings:
     PRODUCT_BUNDLE_IDENTIFIER: com.cinderandcrown.phoenixfox
     META_APP_ID: "1651172483404286"
     META_CLIENT_TOKEN: ${META_CLIENT_TOKEN}
+    SPOTIFY_CLIENT_ID: ${SPOTIFY_CLIENT_ID}
 
 configs:
   Debug:

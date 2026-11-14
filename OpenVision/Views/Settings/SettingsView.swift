@@ -159,6 +159,16 @@ struct SettingsView: View {
                             }
                         }
                     }
+                    NavigationLink {
+                        MusicSettingsView()
+                    } label: {
+                        HStack {
+                            Label("Music", systemImage: "music.note")
+                            Spacer()
+                            Text(settingsManager.settings.musicProvider.displayName)
+                                .foregroundColor(.secondary)
+                        }
+                    }
                 } header: {
                     Text("Voice")
                 }

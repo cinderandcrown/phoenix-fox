@@ -335,6 +335,9 @@ struct AppSettings: Codable, Equatable {
     /// Selected Kokoro voice (e.g. "af_heart"). First letter: a = American, b = British.
     var kokoroVoice: String = "af_heart"
 
+    /// Hands-free music backend (Spotify App Remote / Web API, or Apple Music / MusicKit).
+    var musicProvider: MusicProviderID = .spotify
+
     // MARK: - Telemetry (opt-in, self-hosted)
 
     /// Push runtime metrics to your own InfluxDB. OFF by default and inert until a URL is set.

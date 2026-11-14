@@ -288,6 +288,17 @@
 		876B670BF350C504B0B276B5 /* AIProviderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C1B2E8F44C4F8E9DF4497E0 /* AIProviderTests.swift */; };
 		51DC379730E532EDC5A9FD24 /* ClaudeSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEC14BA021F1D9079985414D /* ClaudeSettingsView.swift */; };
 		53668B6AD58B7F2F8D2C4FF5 /* ProviderKeyTestButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D2890A98299C4B809AE20C7 /* ProviderKeyTestButton.swift */; };
+		37950082F1B64607B5A83F41 /* AppleMusicProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 19C09A542C49990237A63D00 /* AppleMusicProvider.swift */; };
+		2E4F32449A5FB66954230491 /* MusicCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5725065CCE3ADEC1313E33DB /* MusicCommand.swift */; };
+		D096B29D9078B312F492B075 /* MusicProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C2A80AD64D8AAF91DD9378E /* MusicProvider.swift */; };
+		31944E80E1F593054F5770EE /* MusicSessionPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98B532576FC28107138769CB /* MusicSessionPolicy.swift */; };
+		8BF129CDB60D2B6DB2BA6604 /* MusicCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = D385467F2A896A74A3FAE411 /* MusicCoordinator.swift */; };
+		858958A68D8DAFEBD4EA948A /* ShazamIdentify.swift in Sources */ = {isa = PBXBuildFile; fileRef = 348E64CEBEB44B90FA1EF7D9 /* ShazamIdentify.swift */; };
+		C835B320BC64F67D43E2B3BC /* SpotifyMusicProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FE60902AFE1785A980458BC /* SpotifyMusicProvider.swift */; };
+		9CBA55E8E0AAD9CCB389FA0E /* SpotifyPKCEAuth.swift in Sources */ = {isa = PBXBuildFile; fileRef = C76294BE0C7B66B7972B140A /* SpotifyPKCEAuth.swift */; };
+		390B51B463E6C63877480434 /* SpotifyWebAPI.swift in Sources */ = {isa = PBXBuildFile; fileRef = 322773586024A5B0AD4EC9F1 /* SpotifyWebAPI.swift */; };
+		C72042382BD092E5554F0FD7 /* MusicSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 817A73A9B9873BF9B511FB3F /* MusicSettingsView.swift */; };
+		25294F0F25C920CB210EA940 /* MusicCommandTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D9C60615149CCFE1DE489BF /* MusicCommandTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -576,6 +587,17 @@
 		0C1B2E8F44C4F8E9DF4497E0 /* AIProviderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIProviderTests.swift; sourceTree = "<group>"; };
 		CEC14BA021F1D9079985414D /* ClaudeSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClaudeSettingsView.swift; sourceTree = "<group>"; };
 		4D2890A98299C4B809AE20C7 /* ProviderKeyTestButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProviderKeyTestButton.swift; sourceTree = "<group>"; };
+		19C09A542C49990237A63D00 /* AppleMusicProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleMusicProvider.swift; sourceTree = "<group>"; };
+		5725065CCE3ADEC1313E33DB /* MusicCommand.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MusicCommand.swift; sourceTree = "<group>"; };
+		4C2A80AD64D8AAF91DD9378E /* MusicProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MusicProvider.swift; sourceTree = "<group>"; };
+		98B532576FC28107138769CB /* MusicSessionPolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MusicSessionPolicy.swift; sourceTree = "<group>"; };
+		D385467F2A896A74A3FAE411 /* MusicCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MusicCoordinator.swift; sourceTree = "<group>"; };
+		348E64CEBEB44B90FA1EF7D9 /* ShazamIdentify.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShazamIdentify.swift; sourceTree = "<group>"; };
+		2FE60902AFE1785A980458BC /* SpotifyMusicProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpotifyMusicProvider.swift; sourceTree = "<group>"; };
+		C76294BE0C7B66B7972B140A /* SpotifyPKCEAuth.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpotifyPKCEAuth.swift; sourceTree = "<group>"; };
+		322773586024A5B0AD4EC9F1 /* SpotifyWebAPI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpotifyWebAPI.swift; sourceTree = "<group>"; };
+		817A73A9B9873BF9B511FB3F /* MusicSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MusicSettingsView.swift; sourceTree = "<group>"; };
+		7D9C60615149CCFE1DE489BF /* MusicCommandTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MusicCommandTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -636,6 +658,7 @@
 				B89165C6810545BD34CDC61B /* GlassesCheckView.swift */,
 				CEC14BA021F1D9079985414D /* ClaudeSettingsView.swift */,
 				4D2890A98299C4B809AE20C7 /* ProviderKeyTestButton.swift */,
+				817A73A9B9873BF9B511FB3F /* MusicSettingsView.swift */,
 			);
 			path = Settings;
 			sourceTree = "<group>";
@@ -842,6 +865,7 @@
 				55F747B2BBB8A220AAFC4394 /* Workshop */,
 				FE855D9BEED3D4DA13019523 /* Store */,
 				CDAAE118E2421360DD17DBB9 /* LookToTalk */,
+				FC50D2215BC65C4D2BB591D4 /* Music */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -1070,6 +1094,7 @@
 				1E5E803A1AAD693F3F59E29F /* AudioRoutePolicyTests.swift */,
 				57995089192F8CA478B88A6B /* OnDeviceLookTests.swift */,
 				0C1B2E8F44C4F8E9DF4497E0 /* AIProviderTests.swift */,
+				7D9C60615149CCFE1DE489BF /* MusicCommandTests.swift */,
 			);
 			path = OpenVisionTests;
 			sourceTree = "<group>";
@@ -1359,6 +1384,46 @@
 			path = Providers;
 			sourceTree = "<group>";
 		};
+		FC50D2215BC65C4D2BB591D4 /* Music */ = {
+			isa = PBXGroup;
+			children = (
+				D6CA4FBFA8C6BD5008FA6218 /* AppleMusic */,
+				6ED703B5B158070A865C706E /* Core */,
+				D385467F2A896A74A3FAE411 /* MusicCoordinator.swift */,
+				348E64CEBEB44B90FA1EF7D9 /* ShazamIdentify.swift */,
+				B7D39FD7371515166622663E /* Spotify */,
+			);
+			path = Music;
+			sourceTree = "<group>";
+		};
+		D6CA4FBFA8C6BD5008FA6218 /* AppleMusic */ = {
+			isa = PBXGroup;
+			children = (
+				19C09A542C49990237A63D00 /* AppleMusicProvider.swift */,
+			);
+			path = AppleMusic;
+			sourceTree = "<group>";
+		};
+		6ED703B5B158070A865C706E /* Core */ = {
+			isa = PBXGroup;
+			children = (
+				5725065CCE3ADEC1313E33DB /* MusicCommand.swift */,
+				4C2A80AD64D8AAF91DD9378E /* MusicProvider.swift */,
+				98B532576FC28107138769CB /* MusicSessionPolicy.swift */,
+			);
+			path = Core;
+			sourceTree = "<group>";
+		};
+		B7D39FD7371515166622663E /* Spotify */ = {
+			isa = PBXGroup;
+			children = (
+				2FE60902AFE1785A980458BC /* SpotifyMusicProvider.swift */,
+				C76294BE0C7B66B7972B140A /* SpotifyPKCEAuth.swift */,
+				322773586024A5B0AD4EC9F1 /* SpotifyWebAPI.swift */,
+			);
+			path = Spotify;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -1556,6 +1621,7 @@
 				8BCE34AD6CBF565DB24FFBC6 /* AudioRoutePolicyTests.swift in Sources */,
 				F09B402FB088F7C971E19F3A /* OnDeviceLookTests.swift in Sources */,
 				876B670BF350C504B0B276B5 /* AIProviderTests.swift in Sources */,
+				25294F0F25C920CB210EA940 /* MusicCommandTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1774,6 +1840,16 @@
 				FA1DC6774294E547C8DF9A2F /* ProviderRouter.swift in Sources */,
 				51DC379730E532EDC5A9FD24 /* ClaudeSettingsView.swift in Sources */,
 				53668B6AD58B7F2F8D2C4FF5 /* ProviderKeyTestButton.swift in Sources */,
+				37950082F1B64607B5A83F41 /* AppleMusicProvider.swift in Sources */,
+				2E4F32449A5FB66954230491 /* MusicCommand.swift in Sources */,
+				D096B29D9078B312F492B075 /* MusicProvider.swift in Sources */,
+				31944E80E1F593054F5770EE /* MusicSessionPolicy.swift in Sources */,
+				8BF129CDB60D2B6DB2BA6604 /* MusicCoordinator.swift in Sources */,
+				858958A68D8DAFEBD4EA948A /* ShazamIdentify.swift in Sources */,
+				C835B320BC64F67D43E2B3BC /* SpotifyMusicProvider.swift in Sources */,
+				9CBA55E8E0AAD9CCB389FA0E /* SpotifyPKCEAuth.swift in Sources */,
+				390B51B463E6C63877480434 /* SpotifyWebAPI.swift in Sources */,
+				C72042382BD092E5554F0FD7 /* MusicSettingsView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
