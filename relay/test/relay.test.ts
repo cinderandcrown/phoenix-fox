@@ -255,7 +255,12 @@ describe("health", () => {
     const relay = harness({
       apnsReady: true,
       webhooks: {
-        targets: [{ bot: "Indy", url: "https://bots.test/indy?key=hunter2", secret: "s3cret" }],
+        targets: [{
+          bot: "Indy",
+          url: "https://bots.test/indy?key=hunter2",
+          secret: "s3cret",
+          headers: { Authorization: "Bearer header-secret-value" },
+        }],
         problems: ["Driver: url must be https"],
       },
     });
@@ -266,6 +271,8 @@ describe("health", () => {
     expect(text).not.toContain("hunter2");
     expect(text).not.toContain("s3cret");
     expect(text).not.toContain("bots.test");
+    expect(text).not.toContain("header-secret-value");
+    expect(text).not.toContain("Bearer");
   });
 
   it("needs the bearer like every other route", async () => {

@@ -5,6 +5,7 @@ import {
   SIGNATURE_HEADER,
   TIMESTAMP_HEADER,
   deliver,
+  parseHeaders,
   parseWebhooks,
   sign,
   targetsFor,
@@ -15,8 +16,8 @@ import { harness, type Sent } from "./harness";
 const SECRET = "signing-secret";
 const HOOKS: WebhookConfig = {
   targets: [
-    { bot: "Fire Fox", url: "https://bots.test/firefox", secret: SECRET },
-    { bot: "Indy", url: "https://bots.test/indy", secret: "indy-secret" },
+    { bot: "Fire Fox", url: "https://bots.test/firefox", secret: SECRET, headers: {} },
+    { bot: "Indy", url: "https://bots.test/indy", secret: "indy-secret", headers: {} },
   ],
   problems: [],
 };
@@ -42,6 +43,58 @@ describe("webhook configuration", () => {
     expect(config).toEqual(HOOKS);
   });
 
+  it("reads custom headers such as Authorization and X-Webhook-Key", () => {
+    const config = parseWebhooks(JSON.stringify({
+      "Fire Fox": {
+        url: "https://bots.test/firefox",
+        headers: {
+          Authorization: "Bearer sender-key",
+          "X-Webhook-Key": "alternate-key",
+        },
+      },
+    }), SECRET);
+    expect(config.problems).toEqual([]);
+    expect(config.targets).toEqual([{
+      bot: "Fire Fox",
+      url: "https://bots.test/firefox",
+      secret: SECRET,
+      headers: {
+        Authorization: "Bearer sender-key",
+        "X-Webhook-Key": "alternate-key",
+      },
+    }]);
+  });
+
+  it("rejects Host and Content-Length overrides without echoing values", () => {
+    for (const name of ["Host", "Content-Length", "content-type", "User-Agent", SIGNATURE_HEADER]) {
+      const config = parseWebhooks(JSON.stringify({
+        "Fire Fox": {
+          url: "https://bots.test/firefox",
+          headers: { [name]: "evil-value-must-not-appear" },
+        },
+      }), SECRET);
+      expect(config.targets).toEqual([]);
+      expect(config.problems).toHaveLength(1);
+      expect(config.problems[0]).toMatch(/cannot be set/i);
+      expect(config.problems[0]).not.toContain("evil-value-must-not-appear");
+    }
+  });
+
+  it("rejects CR/LF in header values without echoing them", () => {
+    const sneaky = "Bearer good\r\nX-Injected: bad";
+    const config = parseWebhooks(JSON.stringify({
+      "Fire Fox": {
+        url: "https://bots.test/firefox",
+        headers: { Authorization: sneaky },
+      },
+    }), SECRET);
+    expect(config.targets).toEqual([]);
+    expect(config.problems).toHaveLength(1);
+    expect(config.problems[0]).toMatch(/forbidden character/i);
+    expect(config.problems.join(" ")).not.toContain("Injected");
+    expect(config.problems.join(" ")).not.toContain("Bearer");
+  });
+
   it("reports what is wrong without repeating the URL", () => {
     const config = parseWebhooks(JSON.stringify({
       Driver: "http://bots.test/driver?key=hunter2",
@@ -55,7 +108,7 @@ describe("webhook configuration", () => {
     expect(config.problems).toEqual([
       "Driver: url must be https",
       "Rally: url must not carry a user name or password",
-      'Indy: expected a URL or { "url", "secret" }',
+      'Indy: expected a URL or { "url", "secret"?, "headers"? }',
       '"all" is not a bot name',
       "fire fox: listed more than once",
     ]);
@@ -86,6 +139,19 @@ describe("webhook configuration", () => {
     expect(targetsFor(HOOKS, " fire fox").map((target) => target.bot)).toEqual(["Fire Fox"]);
     expect(targetsFor(HOOKS, "ALL").map((target) => target.bot)).toEqual(["Fire Fox", "Indy"]);
     expect(targetsFor(HOOKS, "Rally")).toEqual([]);
+  });
+});
+
+describe("parseHeaders", () => {
+  it("returns empty headers when omitted", () => {
+    expect(parseHeaders(undefined)).toEqual({ headers: {}, problem: null });
+  });
+
+  it("rejects a non-string header value without echoing it", () => {
+    expect(parseHeaders({ Authorization: 123 })).toEqual({
+      headers: {},
+      problem: 'header "Authorization" must be a string',
+    });
   });
 });
 
@@ -132,6 +198,43 @@ describe("webhook delivery", () => {
     });
     expect(Object.keys(body.ask as object)).not.toContain("deliveries");
     expect(Object.keys(body.ask as object)).not.toContain("replies");
+  });
+
+  it("sends configured custom headers on every delivery POST", async () => {
+    const webhooks: WebhookConfig = {
+      targets: [{
+        bot: "Fire Fox",
+        url: "https://bots.test/firefox",
+        secret: SECRET,
+        headers: { Authorization: "Bearer sender-key", "X-Webhook-Key": "alt" },
+      }],
+      problems: [],
+    };
+    const relay = harness({ webhooks });
+    await relay.post("/ask", ASK);
+    await relay.settle();
+    expect(relay.sent).toHaveLength(1);
+    expect(relay.sent[0].headers.get("Authorization")).toBe("Bearer sender-key");
+    expect(relay.sent[0].headers.get("X-Webhook-Key")).toBe("alt");
+    expect(await verifies(relay.sent[0], SECRET)).toBe(true);
+  });
+
+  it("treats HTTP 202 with a non-JSON body as delivered and waits for POST /reply", async () => {
+    const relay = harness({ webhooks: HOOKS }, () => new Response("accepted", {
+      status: 202,
+      headers: { "content-type": "text/plain" },
+    }));
+    await relay.post("/ask", ASK);
+    await relay.settle();
+    expect(relay.sent).toHaveLength(1);
+    expect((await relay.read<{ asks: unknown[] }>("/pending?target_bot=Fire%20Fox")).asks).toEqual([]);
+    const all = await relay.read<{ asks: { deliveries: Record<string, { state: string; status: number }> }[] }>(
+      "/pending?target_bot=Fire%20Fox&include_delivered=1",
+    );
+    expect(all.asks[0].deliveries["fire fox"]).toMatchObject({ state: "delivered", status: 202 });
+    expect(await relay.read("/reply/a1")).toEqual({ id: "a1", status: "pending" });
+    await relay.post("/reply/a1", { text: "Booked for seven.", from_bot: "Fire Fox" });
+    expect(await relay.read("/reply/a1")).toMatchObject({ status: "ready", text: "Booked for seven." });
   });
 
   it("signs each bot's webhook with that bot's secret", async () => {
