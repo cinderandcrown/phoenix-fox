@@ -56,6 +56,10 @@ targets:
       - path: OpenVisionTests
     dependencies:
       - target: PhoenixFox
+      # Meta Mock Device Kit — DAT integration tests without physical glasses (CI).
+      - package: meta-wearables-dat-ios
+        products:
+          - MWDATMockDevice
     settings:
       base:
         GENERATE_INFOPLIST_FILE: YES

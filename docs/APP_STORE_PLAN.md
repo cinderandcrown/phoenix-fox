@@ -77,3 +77,4 @@ Do not put his relay URL, token, or bot names in the binary. He types those afte
 5. Host the privacy policy and terms, and paste the review notes from this folder. The app will not sell anything until the privacy policy's address is in `StoreCatalog.privacyURL`.
 6. Create the subscription group and products, and build with `PHOENIX_FOX_STORE=YES`. The steps are in [BUSINESS_MODEL.md](BUSINESS_MODEL.md).
 7. Turn anything hosted on only after its allowance is enforced on the server. Until then, buyers bring their own key or their own assistants.
+8. **Acceptable Use Policy.** Before Meta AI app discovery, Ray-Ban Display discovery, or a Meta AI Connector listing, comply with the Meta Wearables Developer Acceptable Use Policy (FAQ → Publishing & Discovery). Checklist: [BETA_TESTING.md](BETA_TESTING.md). Connector plan: [META_AI_CONNECTOR_PLAN.md](META_AI_CONNECTOR_PLAN.md). Display Web App plan: [DISPLAY_WEB_APP_PLAN.md](DISPLAY_WEB_APP_PLAN.md).

@@ -88,9 +88,10 @@ final class GlassesControlSession {
     private var pressRelease: Task<Void, Never>?
     private var dragTravel: Float = 0
 
-    // Head gestures
+    // Head gestures (DAT Motion / IMU — beta, no runtime permission)
     private var motion: Motion?
     private var motionSamples: Task<Void, Never>?
+    private var motionTokens: [any AnyListenerToken] = []
 
     // Speech on the glasses
     private var speech: Speech?
@@ -651,11 +652,26 @@ final class GlassesControlSession {
 
     private func attachMotion(to session: DeviceSession) {
         do {
-            // A nod swings two or three times a second. Thirty readings a second draw its
-            // shape well, and sixty would only cost the glasses more battery.
+            // DAT Motion (beta): MotionConfiguration sampling rate is a target. Meta docs
+            // recommend 30 Hz for responsive head-motion input; each MotionSample field is
+            // independently optional (accel m/s² with gravity, gyro rad/s, mag µT, quaternion).
+            // No runtime permission. Subscribe to samples before start(); cancel before removeMotion().
             let configuration = MotionConfiguration(samplingRate: .hz30)
             guard let motion = try session.addMotion(configuration: configuration) else { return }
             self.motion = motion
+            // State / error publishers do not replay — attach before start(), and retain tokens.
+            motionTokens = [
+                motion.statePublisher.listen { state in
+                    Task { @MainActor in
+                        GlassesLink.shared.record("Motion state: \(String(describing: state))")
+                    }
+                },
+                motion.errorPublisher.listen { error in
+                    Task { @MainActor in
+                        GlassesLink.shared.record("Motion error: \(String(describing: error))")
+                    }
+                },
+            ]
             let samples = motion.samples
             // Readings are worked through off the main actor, and nothing is kept: they
             // are not stored and never leave the phone.
@@ -663,14 +679,23 @@ final class GlassesControlSession {
                 var detector = HeadGestureDetector()
                 for await sample in samples {
                     guard !Task.isCancelled else { return }
-                    guard sample.source != .neuralBand, let turning = sample.gyroscope else { continue }
+                    // Neural Band motion is a different source; head yes/skip uses glasses IMU only.
+                    guard sample.source != .neuralBand else { continue }
+                    let turning = sample.gyroscope.map {
+                        HeadMotion.Vector(x: Double($0.x), y: Double($0.y), z: Double($0.z))
+                    } ?? .zero
                     let reading = HeadMotion(
                         time: Double(sample.timestampNs) / 1_000_000_000,
-                        turning: HeadMotion.Vector(x: Double(turning.x), y: Double(turning.y), z: Double(turning.z)),
+                        turning: turning,
                         acceleration: sample.accelerometer.map {
                             HeadMotion.Vector(x: Double($0.x), y: Double($0.y), z: Double($0.z))
                         }
                     )
+                    // Posture / resume only need accelerometer; gestures need gyroscope swings.
+                    await MainActor.run {
+                        PresenceContext.shared.ingestMotion(reading, worn: GlassesLink.shared.worn)
+                    }
+                    guard sample.gyroscope != nil else { continue }
                     guard let answer = detector.take(reading) else { continue }
                     await MainActor.run {
                         NotificationCenter.default.post(name: .jarvisHeadAnswer, object: answer.rawValue)
@@ -696,6 +721,7 @@ final class GlassesControlSession {
     private func forgetMotion() {
         motionSamples?.cancel()
         motionSamples = nil
+        motionTokens = []
         motion?.stop()
         motion = nil
     }
