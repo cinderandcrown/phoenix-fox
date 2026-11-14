@@ -21,7 +21,7 @@ struct OpenClawRequest: Codable {
 }
 
 /// OpenClaw WebSocket response frame
-struct OpenClawResponse: Codable {
+struct OpenClawResponse: Codable, @unchecked Sendable {
     let type: String // "res"
     let id: String
     let ok: Bool

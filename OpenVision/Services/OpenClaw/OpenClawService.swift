@@ -105,7 +105,7 @@ final class OpenClawService: ObservableObject {
 
     // MARK: - App Lifecycle
 
-    private var lifecycleObservers: [Any] = []
+    nonisolated(unsafe) private var lifecycleObservers: [Any] = []
     private var wasConnectedBeforeSuspend: Bool = false
 
     // MARK: - Initialization

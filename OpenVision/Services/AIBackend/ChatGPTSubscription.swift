@@ -16,6 +16,11 @@
 
 import Foundation
 
+/// JSON rows handed across an async boundary. The dictionaries are not mutated after the call.
+struct SendableJSON: @unchecked Sendable {
+    var rows: [[String: Any]]
+}
+
 enum ChatGPTSubscription {
 
     static let provider = OAuthProvider(
@@ -81,12 +86,12 @@ enum ChatGPTSubscription {
 
     /// One Responses turn. Returns the output items (messages, function calls, reasoning) in order;
     /// callers append them to `input` verbatim when continuing a tool loop.
-    static func respond(model: String, instructions: String, input: [[String: Any]],
-                        tools: [[String: Any]]) async throws -> [[String: Any]] {
+    static func respond(model: String, instructions: String, input: SendableJSON,
+                        tools: SendableJSON) async throws -> SendableJSON {
         var body: [String: Any] = [
             "model": model,
             "instructions": instructions,
-            "input": input,
+            "input": input.rows,
             "store": false,
             "stream": true,
             // With store:false, reasoning models need their reasoning items echoed back in a tool
@@ -96,8 +101,8 @@ enum ChatGPTSubscription {
             // on every request, and /models lists "low" for every model.)
             "reasoning": ["effort": "low"],
         ]
-        if !tools.isEmpty {
-            body["tools"] = tools
+        if !tools.rows.isEmpty {
+            body["tools"] = tools.rows
             body["tool_choice"] = "auto"
         }
         let payload = try JSONSerialization.data(withJSONObject: body)
@@ -113,7 +118,7 @@ enum ChatGPTSubscription {
         }
         let (items, failure) = parseStream(data)
         if let failure { throw ChatGPTSubscriptionError.api(failure) }
-        return items
+        return SendableJSON(rows: items)
     }
 
     /// Roughly the API-key path's `max_tokens: 400` (~4 characters per token). This backend rejects

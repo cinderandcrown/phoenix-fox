@@ -31,8 +31,8 @@ final class OAuthLoopbackServer: @unchecked Sendable {
     /// query items of the first request on the callback path that carries our `state`.
     /// `onFailure` fires if the listener fails after starting: NWListener's init usually succeeds
     /// even when the port is taken, and the bind error (EADDRINUSE) only arrives later as `.failed`.
-    func start(onCallback: @escaping ([URLQueryItem]) -> Void,
-               onFailure: @escaping (OAuthError) -> Void) throws {
+    func start(onCallback: @escaping @Sendable ([URLQueryItem]) -> Void,
+               onFailure: @escaping @Sendable (OAuthError) -> Void) throws {
         guard let nwPort = NWEndpoint.Port(rawValue: port) else { throw OAuthError.portUnavailable(port) }
         let parameters = NWParameters.tcp
         // Loopback only — the redirect never needs to be reachable from the network.

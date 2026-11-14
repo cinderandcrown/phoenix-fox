@@ -12,7 +12,7 @@ import Security
 enum SettingsSecrets {
 
     /// Every secret field, by its Keychain account.
-    static let fields: [(account: String, keyPath: WritableKeyPath<AppSettings, String>)] = [
+    nonisolated(unsafe) static let fields: [(account: String, keyPath: WritableKeyPath<AppSettings, String>)] = [
         ("openClawAuthToken", \.openClawAuthToken),
         ("geminiAPIKey", \.geminiAPIKey),
         ("openAIAPIKey", \.openAIAPIKey),

@@ -83,7 +83,7 @@ final class OAuthSignIn: NSObject, ASWebAuthenticationPresentationContextProvidi
 }
 
 /// Resumes a continuation at most once — the loopback callback and the sheet's dismissal race.
-private final class ResumeOnce<T>: @unchecked Sendable {
+private final class ResumeOnce<T: Sendable>: @unchecked Sendable {
     private var continuation: CheckedContinuation<T, Error>?
     private let lock = NSLock()
 

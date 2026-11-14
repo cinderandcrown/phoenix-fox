@@ -7,7 +7,7 @@
 
 import UserNotifications
 
-final class NotificationForegroundPresenter: NSObject, UNUserNotificationCenterDelegate {
+final class NotificationForegroundPresenter: NSObject, UNUserNotificationCenterDelegate, @unchecked Sendable {
     static let shared = NotificationForegroundPresenter()
 
     /// Call once at launch to receive foreground notifications.

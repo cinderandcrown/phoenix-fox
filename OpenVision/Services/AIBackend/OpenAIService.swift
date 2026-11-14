@@ -89,7 +89,12 @@ final class OpenAIService: ObservableObject {
         let model = settings.openAISubscriptionModel.isEmpty ? ChatGPTSubscription.defaultModel : settings.openAISubscriptionModel
 
         for _ in 0..<4 {
-            let items = try await ChatGPTSubscription.respond(model: model, instructions: instructions, input: input, tools: tools)
+            let items = try await ChatGPTSubscription.respond(
+                model: model,
+                instructions: instructions,
+                input: SendableJSON(rows: input),
+                tools: SendableJSON(rows: tools)
+            ).rows
             // Echo every item (reasoning included) back — the backend is stateless (store:false).
             input.append(contentsOf: items)
 

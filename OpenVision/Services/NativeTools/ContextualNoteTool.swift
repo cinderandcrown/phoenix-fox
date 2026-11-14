@@ -101,7 +101,7 @@ struct ContextualNote: Codable, Identifiable {
     }
 }
 
-final class ContextualNoteStore {
+final class ContextualNoteStore: @unchecked Sendable {
     static let shared = ContextualNoteStore()
     private let key = "contextualNotes"
 
@@ -131,7 +131,7 @@ final class ContextualNoteStore {
 /// Uses the *cached* location rather than blocking on a fresh GPS fix — a note must save instantly.
 /// The delegate keeps the last fix warm; the reverse-geocode is hard-bounded to ~3s. If no recent
 /// location is available yet, the note simply saves without a place (and warms up for next time).
-final class LocationHelper: NSObject, CLLocationManagerDelegate {
+final class LocationHelper: NSObject, CLLocationManagerDelegate, @unchecked Sendable {
     static let shared = LocationHelper()
     private let manager = CLLocationManager()
     private var lastFix: CLLocation?

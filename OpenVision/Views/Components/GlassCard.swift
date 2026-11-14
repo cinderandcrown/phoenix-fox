@@ -131,12 +131,8 @@ struct GlowingOrbButton: View {
         .onAppear {
             startAnimations()
         }
-        .onChange(of: isActive) { _ in
-            startAnimations()
-        }
-        .onChange(of: isProcessing) { _ in
-            startAnimations()
-        }
+        .onChange(of: isActive) { startAnimations() }
+        .onChange(of: isProcessing) { startAnimations() }
     }
 
     private var accentColor: Color {
@@ -204,9 +200,7 @@ struct WaveformVisualizer: View {
         .onAppear {
             startAnimation()
         }
-        .onChange(of: isActive) { _ in
-            startAnimation()
-        }
+        .onChange(of: isActive) { startAnimation() }
     }
 
     private func startAnimation() {

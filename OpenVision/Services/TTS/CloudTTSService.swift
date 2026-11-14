@@ -14,7 +14,7 @@
 // its place in the queue, so the reply has no silent hole. After two failures in a row the rest
 // of the reply goes to the Apple voice outright rather than alternating per sentence.
 
-import AVFoundation
+@preconcurrency import AVFoundation
 import Foundation
 
 /// Where and how one cloud TTS provider synthesizes a sentence.
@@ -420,7 +420,7 @@ struct CloudVoice: Identifiable, Hashable {
 // MARK: - Grok (xAI)
 
 extension CloudVoiceProvider {
-    static let grok = CloudVoiceProvider(
+    @MainActor static let grok = CloudVoiceProvider(
         name: "GrokTTS",
         isReady: { SettingsManager.shared.settings.isGrokConfigured },
         selectedVoice: {
@@ -480,7 +480,7 @@ extension CloudTTSService {
 extension CloudVoiceProvider {
     /// OpenAI's speech endpoint needs API credits — a ChatGPT subscription token is recognised
     /// but refused ("no credits remaining"), so this requires the API-key sign-in.
-    static let openAI = CloudVoiceProvider(
+    @MainActor static let openAI = CloudVoiceProvider(
         name: "OpenAITTS",
         isReady: { SettingsManager.shared.settings.isOpenAIAPIAvailable },
         selectedVoice: {

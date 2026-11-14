@@ -12,9 +12,10 @@ struct RelayReply: Equatable, Sendable {
 }
 
 /// Last push the inbox delivered, so "reply …" can thread a new ask back to that bot.
-enum InboxThread {
-    static var lastId: String?
-    static var lastFrom: String?
+enum InboxThread: Sendable {
+    // Written from the main-actor inbox loop and read when the wearer says "reply".
+    nonisolated(unsafe) static var lastId: String?
+    nonisolated(unsafe) static var lastFrom: String?
 }
 
 enum RelayFailure: LocalizedError {

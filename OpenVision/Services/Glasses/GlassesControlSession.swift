@@ -257,6 +257,8 @@ final class GlassesControlSession {
             }
         case .drag(let action, _, _, let dx, _, _, _):
             kind = action == .up ? .dragEnded(dx: dx) : .dragEnded(dx: 0)
+        @unknown default:
+            kind = .select
         }
         return GestureSignal(source: source, kind: kind)
     }

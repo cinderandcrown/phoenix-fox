@@ -586,14 +586,14 @@ enum Thumbnail {
     }
 }
 
-enum JarvisWake {
-    static var pending = false
+enum JarvisWake: Sendable {
+    nonisolated(unsafe) static var pending = false
 }
 
 struct JarvisWakeIntent: AppIntent {
-    static var title: LocalizedStringResource = "Jarvis"
-    static var description = IntentDescription("Wake Phoenix Fox. Jarvis is the spoken name, not the app name.")
-    static var openAppWhenRun = true
+    static let title: LocalizedStringResource = "Jarvis"
+    static let description = IntentDescription("Wake Phoenix Fox. Jarvis is the spoken name, not the app name.")
+    static let openAppWhenRun = true
 
     func perform() async throws -> some IntentResult {
         JarvisWake.pending = true
@@ -636,7 +636,7 @@ final class HeardPieces {
 }
 
 /// Arms a circular region after the wearer asks. The system location arrow stays visible.
-final class PlaceReminders: NSObject, CLLocationManagerDelegate {
+final class PlaceReminders: NSObject, CLLocationManagerDelegate, @unchecked Sendable {
     static let shared = PlaceReminders()
     private let manager = CLLocationManager()
     private let defaultsKey = "phoenix.geofence.notes"
@@ -733,11 +733,16 @@ final class PhoenixPushDelegate: NSObject, UIApplicationDelegate {
         }
     }
 
-    /// Nonisolated so the non-Sendable userInfo dictionary is not sent onto the main actor.
-    /// The payload is ignored. The inbox is the source of truth.
-    nonisolated func application(_ application: UIApplication, didReceiveRemoteNotification userInfo: [AnyHashable: Any]) async -> UIBackgroundFetchResult {
-        await OwnAssistantService.shared.pullInboxOnce()
-        return .newData
+    /// The inbox is the source of truth. The payload is not read.
+    func application(
+        _ application: UIApplication,
+        didReceiveRemoteNotification userInfo: [AnyHashable: Any],
+        fetchCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void
+    ) {
+        Task { @MainActor in
+            await OwnAssistantService.shared.pullInboxOnce()
+            completionHandler(.newData)
+        }
     }
 }
 

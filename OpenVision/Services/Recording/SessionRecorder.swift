@@ -35,7 +35,7 @@ enum RecorderError: LocalizedError {
     }
 }
 
-final class SessionRecorder: ObservableObject {
+final class SessionRecorder: ObservableObject, @unchecked Sendable {
 
     static let shared = SessionRecorder()
 

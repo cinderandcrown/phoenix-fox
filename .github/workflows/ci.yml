@@ -59,8 +59,6 @@ jobs:
             -scheme PhoenixFox \
             -destination 'generic/platform=iOS Simulator' \
             -sdk iphonesimulator \
-            ARCHS=arm64 \
-            ONLY_ACTIVE_ARCH=YES \
             -clonedSourcePackagesDirPath .spm \
             -derivedDataPath DerivedData \
             -skipPackagePluginValidation \

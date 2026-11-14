@@ -60,7 +60,7 @@ struct OAuthCredentials: Codable, Equatable, Sendable {
     func isExpired(now: Date = Date()) -> Bool { accessToken.isEmpty || expiresAt <= now }
 }
 
-enum OAuthError: LocalizedError, Equatable {
+enum OAuthError: LocalizedError, Equatable, Sendable {
     case cancelled
     case timedOut
     case portUnavailable(UInt16)

@@ -29,7 +29,7 @@ protocol JarvisRouteClassifying: AnyObject {
 
 enum FastModeRouter {
     /// Swap in an LLM classifier without touching call sites. A nil result falls through to the rules.
-    static weak var classifier: JarvisRouteClassifying?
+    nonisolated(unsafe) static weak var classifier: JarvisRouteClassifying?
 
     struct Context {
         var fastMode: Bool

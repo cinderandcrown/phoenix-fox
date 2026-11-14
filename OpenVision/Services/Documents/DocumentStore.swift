@@ -33,7 +33,7 @@ struct DocumentHit {
     let score: Double
 }
 
-final class DocumentStore {
+final class DocumentStore: @unchecked Sendable {
     static let shared = DocumentStore()
 
     private let queue = DispatchQueue(label: "com.openvision.document-store")

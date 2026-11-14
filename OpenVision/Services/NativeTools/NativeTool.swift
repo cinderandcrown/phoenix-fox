@@ -44,7 +44,7 @@ extension NativeTool {
 
 /// Central registry of the available native tools. Read-only after init, so it's safe to read from
 /// any thread (the backend's request loop runs off the main thread).
-final class NativeToolRegistry {
+final class NativeToolRegistry: @unchecked Sendable {
     static let shared = NativeToolRegistry()
 
     private let tools: [String: NativeTool]
