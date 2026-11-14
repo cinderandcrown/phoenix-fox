@@ -3,6 +3,7 @@
 
 import AVFoundation
 import SwiftUI
+import UIKit
 
 /// A short checklist for the glasses: registration, audio link, mic, a test tone, a test
 /// look, and the relay. Accounts for DAT limits: HFP vs A2DP exclusivity, HFP settle
@@ -10,10 +11,12 @@ import SwiftUI
 struct GlassesCheckView: View {
     @EnvironmentObject private var glassesManager: GlassesManager
     @EnvironmentObject private var settingsManager: SettingsManager
+    @ObservedObject private var link = GlassesLink.shared
 
     @State private var toneNote: String?
     @State private var captureNote: String?
     @State private var busy = false
+    @State private var copied = false
 
     private var audio: AudioSessionManager { .shared }
     private var network: NetworkPath { .shared }
@@ -22,14 +25,47 @@ struct GlassesCheckView: View {
         List {
             Section {
                 row("Registration", glassesManager.isRegistered ? "Connected" : "Not connected")
+                row("SDK stage", glassesManager.registrationStage.rawValue)
+                row("Attempt", attemptPhaseLabel)
                 row("Devices in reach", "\(glassesManager.connectedDeviceCount)")
                 row("Network", network.status.title)
+                if let stall = glassesManager.registration.stall {
+                    Text(stall.title)
+                        .foregroundStyle(.red)
+                    Text(stall.explanation)
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                }
             } header: {
                 Text("Connection")
             } footer: {
                 if !glassesManager.isRegistered {
-                    Text("Pair the glasses in Meta AI, turn on Developer Mode, then Register.")
+                    Text("Pair the glasses in Meta AI, turn on Developer Mode, then Register. Details: \(glassesManager.registrationDetails)")
                 }
+            }
+
+            Section {
+                if link.logs.isEmpty {
+                    Text("No registration events yet. Tap Register on the Glasses screen, then come back.")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                } else {
+                    ForEach(Array(link.logs.suffix(40).enumerated()), id: \.offset) { _, line in
+                        Text(line)
+                            .font(.system(.caption2, design: .monospaced))
+                            .textSelection(.enabled)
+                    }
+                }
+                Button {
+                    copyLog()
+                } label: {
+                    Label(copied ? "Copied" : "Copy log", systemImage: copied ? "checkmark" : "doc.on.doc")
+                }
+                .disabled(link.logs.isEmpty)
+            } header: {
+                Text("Registration log")
+            } footer: {
+                Text("Each line is a registration state or error without tokens or IDs. Copy and paste into a bug report if connect fails.")
             }
 
             Section {
@@ -95,6 +131,17 @@ struct GlassesCheckView: View {
         .navigationBarTitleDisplayMode(.inline)
     }
 
+    private var attemptPhaseLabel: String {
+        switch glassesManager.registration.phase {
+        case .idle: return "idle"
+        case .opening: return "opening Meta AI"
+        case .away: return "in Meta AI"
+        case .confirming: return "confirming"
+        case .awaitingConsent: return "awaiting Connect"
+        case .stalled(let stall): return "stalled: \(stall.title)"
+        }
+    }
+
     private func row(_ title: String, _ value: String) -> some View {
         HStack {
             Text(title)
@@ -102,6 +149,22 @@ struct GlassesCheckView: View {
             Text(value).foregroundStyle(.secondary)
         }
         .accessibilityElement(children: .combine)
+    }
+
+    private func copyLog() {
+        let header = [
+            "Phoenix Fox glasses log",
+            glassesManager.registrationDetails,
+            "Registered: \(glassesManager.isRegistered)",
+            "Devices: \(glassesManager.connectedDeviceCount)",
+            "---",
+        ].joined(separator: "\n")
+        UIPasteboard.general.string = header + "\n" + link.logs.joined(separator: "\n")
+        copied = true
+        Task {
+            try? await Task.sleep(for: .seconds(2))
+            copied = false
+        }
     }
 
     private func playTone() {

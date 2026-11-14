@@ -8,6 +8,11 @@
 // toolkit then reports nothing to Phoenix Fox: no error is thrown and no link brings the
 // wearer back. So a try is judged by what is true when the wearer returns, not only by
 // an error. The rules are here, without the toolkit, so they can be tested.
+//
+// P0 (TestFlight 29.1): short forAnswer timeouts raced the in-app "Connect your glasses?"
+// consent alert and declared returnedUnconnected while the wearer was still deciding.
+// Consent pauses auto-fail; post-consent waits are longer. Matches DAT flow: configure →
+// startRegistration → handleUrl → (optional) RegistrationRequest.continueRegistration.
 
 import Foundation
 
@@ -157,6 +162,8 @@ struct RegistrationAttempt: Equatable, Sendable {
         case away
         /// Back in Phoenix Fox, giving the answer a moment to arrive.
         case confirming
+        /// Meta AI asked the wearer to Connect; auto-fail is paused until they answer.
+        case awaitingConsent
         case stalled(RegistrationStall)
     }
 
@@ -175,8 +182,10 @@ struct RegistrationAttempt: Equatable, Sendable {
 
         var seconds: Double {
             switch kind {
-            case .forMetaAIToOpen: return 6
-            case .forAnswer: return 4
+            // Meta AI can take a while to come forward on a cold start.
+            case .forMetaAIToOpen: return 20
+            // Only used after consent is answered (or when no consent sheet appeared).
+            case .forAnswer: return 45
             }
         }
     }
@@ -192,7 +201,7 @@ struct RegistrationAttempt: Equatable, Sendable {
     /// The button that starts a try shows it is working.
     var isWorking: Bool {
         switch phase {
-        case .opening, .away, .confirming: return true
+        case .opening, .away, .confirming, .awaitingConsent: return true
         case .idle, .stalled: return false
         }
     }
@@ -206,6 +215,7 @@ struct RegistrationAttempt: Equatable, Sendable {
         phase = .opening
         leftApp = false
         answerReceived = false
+        answersRunning = 0
         ticket += 1
     }
 
@@ -228,6 +238,8 @@ struct RegistrationAttempt: Equatable, Sendable {
 
     mutating func becameActive() -> Wait? {
         guard isWorking, leftApp else { return nil }
+        // Consent sheet owns the next step — do not start a fail timer over it.
+        if phase == .awaitingConsent { return nil }
         phase = .confirming
         return issue(.forAnswer)
     }
@@ -235,16 +247,44 @@ struct RegistrationAttempt: Equatable, Sendable {
     /// Meta AI's link arrived and is being handled.
     mutating func answerBegan() {
         answersRunning += 1
+        // Invalidate any short return wait; the link is the answer.
+        ticket += 1
     }
 
     /// The link was handled. `failure` is the toolkit's words when it reported an error.
-    mutating func answerEnded(failure: String?) -> Wait? {
+    /// When Meta presents an in-app Connect alert, pass `expectingConsent: true` so we do
+    /// not start a timeout over that alert (TF 29.1 P0).
+    mutating func answerEnded(failure: String?, expectingConsent: Bool = false) -> Wait? {
         answersRunning = max(0, answersRunning - 1)
         guard isWorking else { return nil }
         answerReceived = true
         leftApp = true
         if let failure {
             failed(.refused(failure))
+            return nil
+        }
+        if expectingConsent {
+            phase = .awaitingConsent
+            ticket += 1
+            return nil
+        }
+        phase = .confirming
+        return issue(.forAnswer)
+    }
+
+    /// Wearer is looking at "Connect your glasses?" — pause auto-fail.
+    mutating func consentPresented() {
+        guard isWorking else { return }
+        phase = .awaitingConsent
+        ticket += 1
+    }
+
+    /// Wearer tapped Connect or Not now. Start waiting for the SDK stream to confirm.
+    mutating func consentAnswered(approved: Bool) -> Wait? {
+        guard isWorking || phase == .awaitingConsent else { return nil }
+        if !approved {
+            // Declined — treat as unconnected so they can retry with guidance.
+            failed(.returnedUnconnected)
             return nil
         }
         phase = .confirming
@@ -257,7 +297,8 @@ struct RegistrationAttempt: Equatable, Sendable {
         case .forMetaAIToOpen:
             if phase == .away, !leftApp { failed(.didNotOpen) }
         case .forAnswer:
-            // While a link is still being handled, its end starts the next wait.
+            // Never fail over the consent alert or while a link is still being handled.
+            if phase == .awaitingConsent { return }
             if phase == .confirming, answersRunning == 0 { failed(.returnedUnconnected) }
         }
     }
@@ -276,7 +317,17 @@ struct RegistrationAttempt: Equatable, Sendable {
 
     /// One line for the log and for whoever is helping. It holds no names, IDs or keys.
     func details(stage: RegistrationStage) -> String {
-        "Glasses toolkit: \(stage.rawValue). Meta AI opened: \(leftApp ? "yes" : "no"). Answer from Meta AI: \(answerReceived ? "yes" : "no")."
+        let phaseName: String = {
+            switch phase {
+            case .idle: return "idle"
+            case .opening: return "opening"
+            case .away: return "away"
+            case .confirming: return "confirming"
+            case .awaitingConsent: return "awaitingConsent"
+            case .stalled(let s): return "stalled:\(s.title)"
+            }
+        }()
+        return "Glasses toolkit: \(stage.rawValue). Attempt: \(phaseName). Meta AI opened: \(leftApp ? "yes" : "no"). Answer from Meta AI: \(answerReceived ? "yes" : "no")."
     }
 
     private mutating func issue(_ kind: Wait.Kind) -> Wait {
