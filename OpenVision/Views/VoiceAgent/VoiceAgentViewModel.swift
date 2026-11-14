@@ -305,9 +305,9 @@ final class VoiceAgentViewModel: ObservableObject {
     /// Two nods or a shake of the head.
     ///
     /// A shake declines the question that is waiting. A nod agrees only to a question
-    /// whose yes does not have to be spoken. See `HeadAnswerPolicy`. With no question waiting, a
-    /// shake stops Jarvis talking, except on a walk, where the head turns to look around
-    /// and the next thing said may be a warning.
+    /// whose yes does not have to be spoken. See `HeadAnswerPolicy`. Walk-my-inbox claims
+    /// yes/skip next. With no question waiting, a shake stops Jarvis talking, except on a
+    /// Guide walk, where the head turns to look around and the next thing said may be a warning.
     private func acceptHeadAnswer(_ answer: HeadAnswer) {
         if let pending = pendingAnswer {
             // An assistant asked before acting. Its yes has to be spoken.
@@ -320,6 +320,16 @@ final class VoiceAgentViewModel: ObservableObject {
             userTranscript = "No"
             agentState = .thinking
             pending.continuation.resume(returning: "no")
+            return
+        }
+        // Walk my inbox: nod = act on this item, shake = skip to the next.
+        if PresenceContext.shared.headAnswerPolicy.accepts(answer),
+           let step = PresenceContext.shared.takeInboxAnswer(answer) {
+            let word = step.action == .act ? "Yes" : "Skip"
+            userTranscript = "\(word) — \(step.item.spokenSummary)"
+            Task { await self.sendCommand(step.action == .act
+                ? "act on inbox item \(step.item.id)"
+                : "skip inbox item \(step.item.id)") }
             return
         }
         if AccessibilityCoordinator.shared.headAnswerPolicy.accepts(answer)

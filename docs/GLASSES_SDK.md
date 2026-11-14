@@ -29,6 +29,23 @@ v1 proves three things on this pair: the phone hears the wearer over Bluetooth (
 
 Ray-Ban Meta, Ray-Ban Meta Optics, Oakley Meta HSTN, and Oakley Meta Vanguard are the same class of displayless glasses. They are supported, and they use the same audio-and-camera path. They are not the pair under test.
 
+## Motion / IMU (DAT 1.0)
+
+Verified against Meta’s [Motion guide](https://wearables.developer.meta.com/docs/develop/dat/motion/) and the iOS Cursor rules under `.cursor/rules/meta-dat/`:
+
+- Import `MWDATMotion`. Call `session.addMotion(configuration:)` only on a **started** `DeviceSession`.
+- `MotionConfiguration(samplingRate:)` — we use `.hz30` for head gestures; posture can tolerate lower.
+- Subscribe to `samples` (and retain `statePublisher` / `errorPublisher` tokens) **before** `motion.start()`.
+- Treat `accelerometer`, `gyroscope`, `magnetometer`, `orientation` as optional; do not drop a sample for posture just because gyro is missing.
+- `motion.stop()` then cancel tasks/tokens then `session.removeMotion()`.
+- Tests without hardware: **Mock Device Kit** (`MWDATMockDevice`) — `MockDeviceKit.shared.enable()`, `pairGlasses(model:)`, `don()` / `doff()`, `services.motion.setMotionFeed`. FAQ: Mock Device Kit does **not** fully stand in for display glasses.
+
+Phoenix Fox maps samples into `HeadMotion` → `HeadGestureDetector` (yes/no) and `WornPostureTracker` (level / up / down) for Walk-my-inbox skip/act and pick-up-where-I-left-off. See `PresenceContext`.
+
+## Agent skills (Cursor)
+
+Meta publishes AI coding skills for DAT iOS and Display Web Apps. This repo vendors the DAT Cursor rules in `.cursor/rules/meta-dat/` (from [meta-wearables-dat-ios](https://github.com/meta/meta-wearables-dat-ios)). Web App skills install to the agent’s Cursor plugins from [meta-wearables-webapp](https://github.com/meta/meta-wearables-webapp). Prefer those rules + `https://mcp.developer.meta.com/wearables` over guessing API names.
+
 ## What v1 uses
 
 This is the standard build. It asks the least of the glasses and uses nothing Meta calls beta.
@@ -69,7 +86,7 @@ Everything here goes through the toolkit's public interface. Nothing changes the
 | Touchpad and action button | Select, navigation, back | A double tap talks to Jarvis. A swipe back stops Jarvis talking. | Not used |
 | Capture button | Short press, double press, hold | One press looks, two keep a picture, a hold takes a note | Not used |
 | Neural Band | Select, navigation, drag | Listened for on display glasses, the pair a band comes with, and handled like the touchpad. Nothing waits on one. | Same |
-| Motion | Head orientation and acceleration, 5 to 60 samples a second | 30 a second, used only to notice two nods or a shake. Nothing is stored or sent. | Not used |
+| Motion (IMU) | Accelerometer (m/s², includes gravity), gyroscope (rad/s), optional magnetometer / quaternion; `timestampNs` monotonic; every field independently optional; no runtime permission; **beta** | 30 Hz: head nod/shake (yes / skip), worn+posture for resume; Mock Device Kit feeds in CI. Nothing raw is stored or sent. | Not used |
 | Speech on the glasses | Text from the glasses' own recognizer | Listens for the wake word when the phone's microphone is not listening | Not used |
 | Display | Cards on the lens | Used when the glasses report a display. Adventurer has none. | Same |
 | Device state | Link, battery, charging, worn, hinge, heat, compatibility | All read. Taking the glasses off ends the controls' session. Heat steps the stream down. | Read. Heat at the top level turns the camera off. |

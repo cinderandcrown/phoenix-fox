@@ -96,11 +96,13 @@ final class GlassesLink: ObservableObject {
         takenOff = state.donState == .doffed
         if takenOff, !wasOff {
             GlassesControlSession.shared.glassesTakenOff()
+            PresenceContext.shared.noteWorn(false)
         }
         if worn, !wasWorn {
             // Current firmware stops sending button and touchpad presses after the
             // glasses are taken off and put back on. The controls are attached again.
             GlassesControlSession.shared.glassesPutOn()
+            PresenceContext.shared.noteWorn(true)
         }
 
         let now = Self.heat(for: state.thermalLevel)
