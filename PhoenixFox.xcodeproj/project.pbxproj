@@ -265,6 +265,8 @@
 		084A0616D93164BE5316F87A /* LookToTalkReadingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 175F0E0A6BE6D3FAC6F4E1B9 /* LookToTalkReadingTests.swift */; };
 		5D5AD4E1A05FD9AD9787D7DD /* LookToTalkTrackerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94E55AF003BF42F1DEBE8BF3 /* LookToTalkTrackerTests.swift */; };
 		EA89069908710E4C60E545CE /* LookToTalk.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEA8512D78CF57F3182FD27A /* LookToTalk.swift */; };
+		CDB063F2FABB86AA7D845B77 /* LookBadgeImage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 60DEAF35D69BF0991A5CB1A1 /* LookBadgeImage.swift */; };
+		CD54199082FAE8F9DD6D51E4 /* LookToTalkSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AFFC3AF4EF308F62AC2F633B /* LookToTalkSettingsView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -530,6 +532,8 @@
 		175F0E0A6BE6D3FAC6F4E1B9 /* LookToTalkReadingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LookToTalkReadingTests.swift; sourceTree = "<group>"; };
 		94E55AF003BF42F1DEBE8BF3 /* LookToTalkTrackerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LookToTalkTrackerTests.swift; sourceTree = "<group>"; };
 		DEA8512D78CF57F3182FD27A /* LookToTalk.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LookToTalk.swift; sourceTree = "<group>"; };
+		60DEAF35D69BF0991A5CB1A1 /* LookBadgeImage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LookBadgeImage.swift; sourceTree = "<group>"; };
+		AFFC3AF4EF308F62AC2F633B /* LookToTalkSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LookToTalkSettingsView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -585,6 +589,8 @@
 				BA4587C6165845F82CF03064 /* GlassesLimitsView.swift */,
 				5C27C613A99D052AC6C3D979 /* WorkshopSettingsView.swift */,
 				B51BE4DEC3DD23AA1B0A4826 /* PlanView.swift */,
+				60DEAF35D69BF0991A5CB1A1 /* LookBadgeImage.swift */,
+				AFFC3AF4EF308F62AC2F633B /* LookToTalkSettingsView.swift */,
 			);
 			path = Settings;
 			sourceTree = "<group>";
@@ -1658,6 +1664,8 @@
 				DB5DE2B391876F631D49F1F3 /* LookTracker.swift in Sources */,
 				4A311B1DD505E61F6EB53E78 /* WindowReader.swift in Sources */,
 				EA89069908710E4C60E545CE /* LookToTalk.swift in Sources */,
+				CDB063F2FABB86AA7D845B77 /* LookBadgeImage.swift in Sources */,
+				CD54199082FAE8F9DD6D51E4 /* LookToTalkSettingsView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

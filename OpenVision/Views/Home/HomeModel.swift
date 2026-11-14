@@ -38,6 +38,9 @@ struct HomeModel: Equatable, Sendable {
     /// The document that answers are being drawn from, when one is open.
     var document: String?
 
+    /// Look to Talk, while it is looking or holding an assistant. Nil while it is off.
+    var look: LookNote?
+
     var canRecord = false
     var isRecording = false
     var recordingNote: String?
@@ -50,12 +53,23 @@ struct HomeModel: Equatable, Sendable {
     var phase: LivePhase { LivePhase(signals) }
 }
 
+/// What Look to Talk is doing, in a few words: "Locked on to Indy".
+struct LookNote: Equatable, Sendable {
+    var title: String
+    /// The SF Symbol beside the title.
+    var symbol: String
+    /// The assistant requests go to, when one is held.
+    var name: String?
+}
+
 /// What the home screen can ask the app to do.
 struct HomeActions {
     var stage: (StageTap) -> Void = { _ in }
     var glasses: () -> Void = {}
     var record: () -> Void = {}
     var closeDocument: () -> Void = {}
+    /// Lets go of the assistant Look to Talk holds, and stops it looking.
+    var releaseLook: () -> Void = {}
     var dismissTrouble: () -> Void = {}
     var connectAssistants: () -> Void = {}
     var chooseBrain: () -> Void = {}
@@ -123,6 +137,13 @@ enum HomeSamples {
         model.signals.activity = .speaking
         model.signals.askedAssistant = nil
         model.reply = "The invoice matches the order. Two filters are back-ordered until Friday."
+        return model
+    }
+
+    /// Look to Talk has chosen Indy, and the camera is off again.
+    static var lockedOn: HomeModel {
+        var model = ready
+        model.look = LookNote(title: "Locked on to Indy", symbol: "lock.fill", name: "Indy")
         return model
     }
 

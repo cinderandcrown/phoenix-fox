@@ -129,6 +129,24 @@ struct WorkshopSettingsView: View {
             }
 
             Section {
+                NavigationLink {
+                    LookToTalkSettingsView()
+                } label: {
+                    HStack {
+                        Text("Look to Talk")
+                        Spacer()
+                        Text(settingsManager.settings.workshop.lookToTalk ? "On" : "Off")
+                            .foregroundColor(.secondary)
+                    }
+                    .accessibilityElement(children: .combine)
+                }
+            } header: {
+                Text("After the first release")
+            } footer: {
+                Text("Look at an assistant's chat window on your computer and talk to it without saying its name. It is off until you turn it on here, and it is not one of the ten above: it was written after them and has not been tried on glasses yet.")
+            }
+
+            Section {
                 Button("Erase everything the workshop keeps", role: .destructive) {
                     confirmingEraseAll = true
                 }

@@ -31,6 +31,7 @@ struct VoiceAgentView: View {
     @StateObject private var documentFocus = DocumentFocus.shared
     @ObservedObject private var companion = CompanionRuntime.shared
     @ObservedObject private var team = TeamBoardStore.shared
+    @ObservedObject private var look = LookToTalk.shared
 
     @Environment(\.scenePhase) private var scenePhase
 
@@ -163,6 +164,9 @@ struct VoiceAgentView: View {
         }
         model.largeCaption = LiveCaptions.shared.isOn
         model.document = documentFocus.activeDocument?.title
+        if look.status != .off {
+            model.look = LookNote(title: look.status.title, symbol: look.status.symbol, name: look.status.name)
+        }
         model.canRecord = glassesManager.isRegistered
         model.isRecording = viewModel.isRecording
         model.recordingNote = viewModel.recordingStatus
@@ -176,6 +180,7 @@ struct VoiceAgentView: View {
             glasses: { sheet = .glasses },
             record: { viewModel.toggleRecording() },
             closeDocument: { documentFocus.deactivate() },
+            releaseLook: { look.stop() },
             dismissTrouble: { viewModel.errorMessage = nil },
             connectAssistants: { sheet = .assistants },
             chooseBrain: { sheet = .brain }
