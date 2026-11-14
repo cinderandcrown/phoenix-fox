@@ -76,8 +76,14 @@ jobs:
           defaults write com.apple.dt.XCBuild IgnoreFileSystemDeviceInodeChanges -bool YES
           find Vendor -exec touch -t 202601010000 {} +
 
-      # Signing is left on. An unsigned app has no entitlements, and the simulator then
+      # The app and its tests are signed, with no identity and no team, as a simulator
+      # build is on any Mac. An unsigned app has no entitlements, and the simulator then
       # refuses it the Keychain, where every API key and the relay token are stored.
+      #
+      # Packages are not signed. A setting on the command line reaches every target, and
+      # codesign refuses the MisakiSwift and KokoroSwift resource bundles because each
+      # holds a folder named Resources. PHOENIX_FOX_TARGET is YES only on our two
+      # targets and is empty everywhere else, which turns signing off there.
       - name: Build for simulator
         run: |
           set -o pipefail
@@ -92,6 +98,7 @@ jobs:
             -skipMacroValidation \
             ARCHS=arm64 \
             ONLY_ACTIVE_ARCH=NO \
+            'CODE_SIGNING_ALLOWED=$(PHOENIX_FOX_TARGET)' \
             DEVELOPMENT_TEAM= \
           | tee xcodebuild.log \
           | xcbeautify --renderer github-actions

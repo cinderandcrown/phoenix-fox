@@ -1197,6 +1197,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
+				PHOENIX_FOX_TARGET = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = "$(PRODUCT_BUNDLE_IDENTIFIER)";
 				SDKROOT = iphoneos;
 				SUPPORTS_MACCATALYST = NO;
@@ -1293,6 +1294,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
+				PHOENIX_FOX_TARGET = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = "$(PRODUCT_BUNDLE_IDENTIFIER)";
 				SDKROOT = iphoneos;
 				SUPPORTS_MACCATALYST = NO;
@@ -1311,6 +1313,7 @@
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
+				PHOENIX_FOX_TARGET = YES;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/PhoenixFox.app/PhoenixFox";
@@ -1327,6 +1330,7 @@
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
+				PHOENIX_FOX_TARGET = YES;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/PhoenixFox.app/PhoenixFox";

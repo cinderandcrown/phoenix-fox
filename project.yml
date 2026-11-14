@@ -51,6 +51,7 @@ targets:
     settings:
       base:
         GENERATE_INFOPLIST_FILE: YES
+        PHOENIX_FOX_TARGET: "YES"
 
   PhoenixFox:
     type: application
@@ -73,6 +74,10 @@ targets:
         ENABLE_PREVIEWS: true
         CODE_SIGN_ENTITLEMENTS: OpenVision/OpenVision.entitlements
         CODE_SIGN_IDENTITY: $(APP_CODE_SIGN_IDENTITY)
+        # Marks the targets that are ours. CI signs only these in the simulator build
+        # (CODE_SIGNING_ALLOWED=$(PHOENIX_FOX_TARGET)), because codesign refuses two of
+        # the package resource bundles.
+        PHOENIX_FOX_TARGET: "YES"
         "AD_HOC_CODE_SIGNING_ALLOWED[sdk=iphoneos*]": $(APP_AD_HOC_SIGNING)
         SWIFT_OBJC_BRIDGING_HEADER: OpenVision/OpenVision-Bridging-Header.h
     dependencies:
