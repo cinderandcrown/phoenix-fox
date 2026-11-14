@@ -19,7 +19,7 @@
 // actor and audio buffers on the audio render thread, so both are hopped onto that queue.
 
 import Foundation
-import AVFoundation
+@preconcurrency import AVFoundation
 import Photos
 import CoreMedia
 
@@ -35,7 +35,11 @@ enum RecorderError: LocalizedError {
     }
 }
 
-final class SessionRecorder: ObservableObject {
+/// Not actor-isolated on purpose: frames and audio arrive on capture threads and must not wait
+/// for the main actor. Writer state is confined to `writerQueue`, converter state to its lock,
+/// and `isRecording` is only written on the main queue, which is what the unchecked
+/// conformance stands on.
+final class SessionRecorder: ObservableObject, @unchecked Sendable {
 
     static let shared = SessionRecorder()
 
@@ -272,8 +276,10 @@ final class SessionRecorder: ObservableObject {
         guard isRecording else { return }
         guard let pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else { return }
         let now = CMClockGetTime(hostClock)
+        // The pixel buffer is retained by the closure and only read on the writer queue.
+        nonisolated(unsafe) let frame = pixelBuffer
         writerQueue.async {
-            self.handleVideo(pixelBuffer: pixelBuffer, now: now)
+            self.handleVideo(pixelBuffer: frame, now: now)
         }
     }
 
@@ -395,16 +401,9 @@ final class SessionRecorder: ObservableObject {
         guard let outBuffer = AVAudioPCMBuffer(pcmFormat: audioOutFormat, frameCapacity: capacity) else {
             playbackConvertLock.unlock(); return
         }
-        var supplied = false
-        var convError: NSError?
-        converter.convert(to: outBuffer, error: &convError) { _, statusPtr in
-            if supplied { statusPtr.pointee = .noDataNow; return nil }
-            supplied = true
-            statusPtr.pointee = .haveData
-            return buffer
-        }
+        let converted = PCMConversion.run(converter, from: buffer, into: outBuffer)
         playbackConvertLock.unlock()
-        guard convError == nil, outBuffer.frameLength > 0 else { return }
+        guard converted else { return }
 
         writerQueue.async {
             self.appendPlayback(outBuffer, at: time)
@@ -590,19 +589,7 @@ final class SessionRecorder: ObservableObject {
         let capacity = AVAudioFrameCount(Double(buffer.frameLength) * ratio) + 1024
         guard let outBuffer = AVAudioPCMBuffer(pcmFormat: audioOutFormat, frameCapacity: capacity) else { return }
 
-        var supplied = false
-        var convError: NSError?
-        converter.convert(to: outBuffer, error: &convError) { _, statusPtr in
-            if supplied {
-                statusPtr.pointee = .noDataNow
-                return nil
-            }
-            supplied = true
-            statusPtr.pointee = .haveData
-            return buffer
-        }
-        if let convError { NSLog("[Recorder] audio convert error: %@", convError); return }
-        guard outBuffer.frameLength > 0 else { return }
+        guard PCMConversion.run(converter, from: buffer, into: outBuffer) else { return }
 
         writerQueue.async {
             self.appendAudio(outBuffer, now: now)

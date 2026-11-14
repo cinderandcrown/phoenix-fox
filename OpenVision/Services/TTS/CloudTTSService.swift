@@ -14,17 +14,17 @@
 // its place in the queue, so the reply has no silent hole. After two failures in a row the rest
 // of the reply goes to the Apple voice outright rather than alternating per sentence.
 
-import AVFoundation
+@preconcurrency import AVFoundation
 import Foundation
 
 /// Where and how one cloud TTS provider synthesizes a sentence.
-struct CloudVoiceProvider {
+struct CloudVoiceProvider: Sendable {
     /// Log tag.
     let name: String
-    let isReady: @MainActor () -> Bool
-    let selectedVoice: @MainActor () -> String
+    let isReady: @MainActor @Sendable () -> Bool
+    let selectedVoice: @MainActor @Sendable () -> String
     /// One sentence in `voice` → WAV bytes (plus the HTTP response, for the status code).
-    let synthesize: @MainActor (_ text: String, _ voice: String) async throws -> (Data, URLResponse)
+    let synthesize: @MainActor @Sendable (_ text: String, _ voice: String) async throws -> (Data, URLResponse)
 }
 
 @MainActor

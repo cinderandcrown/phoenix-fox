@@ -95,7 +95,7 @@ final class CloudTTSFallbackTests: XCTestCase {
 
     /// Fails any sentence containing one of `failing` like a dropped connection; others get a
     /// short silent clip.
-    private final class RequestLog { var texts: [String] = [] }
+    @MainActor private final class RequestLog { var texts: [String] = [] }
 
     private static func fakeProvider(failing: Set<String>, log: RequestLog? = nil,
                                      clipSeconds: Double = 0.15) -> CloudVoiceProvider {
