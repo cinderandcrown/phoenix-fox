@@ -17,7 +17,8 @@ struct PushRegistration: Equatable {
     }
 
     private(set) var token: String?
-    private var accepted: Send?
+    /// The token and relay of the last send the relay took.
+    private var held: Send?
 
     /// Records the token Apple gave this launch.
     mutating func received(token: String) {
@@ -28,11 +29,11 @@ struct PushRegistration: Equatable {
     func pending(for endpoint: RelayEndpoint?) -> Send? {
         guard let token, let endpoint else { return nil }
         let send = Send(token: token, endpoint: endpoint)
-        return send == accepted ? nil : send
+        return send == held ? nil : send
     }
 
     /// Records that the relay took it.
     mutating func accepted(_ send: Send) {
-        accepted = send
+        held = send
     }
 }
