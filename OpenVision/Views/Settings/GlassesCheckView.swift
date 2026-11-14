@@ -29,6 +29,7 @@ struct GlassesCheckView: View {
                 row("SDK stage", glassesManager.registrationStage.rawValue)
                 row("Attempt", attemptPhaseLabel)
                 row("MetaAppID", DATEligibility.configuredMetaAppID)
+                row("DAT path", DATEligibility.usesDeveloperModeAppID ? "Dev Mode (AppID 0)" : "Release channel")
                 row("isDevMode", DATEligibility.isDevModeLabel(from: WearablesSDK.interface))
                 row("Bluetooth", WearablesSDK.bluetoothAtConfigure)
                 row("Devices listed", "\(glassesManager.connectedDeviceCount)")

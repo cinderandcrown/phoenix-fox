@@ -52,13 +52,13 @@ enum WearablesSDK {
             interface = Wearables.shared
             failure = nil
             GlassesLink.shared.record(
-                "Wearables.configure OK. MetaAppID=\(DATEligibility.configuredMetaAppID) isDevMode=\(DATEligibility.isDevModeLabel(from: interface))"
+                "Wearables.configure OK. MetaAppID=\(DATEligibility.configuredMetaAppID) path=\(DATEligibility.datPathLabel) isDevMode=\(DATEligibility.isDevModeLabel(from: interface))"
             )
         } catch WearablesError.alreadyConfigured {
             interface = Wearables.shared
             failure = nil
             GlassesLink.shared.record(
-                "Wearables already configured. MetaAppID=\(DATEligibility.configuredMetaAppID) isDevMode=\(DATEligibility.isDevModeLabel(from: interface))"
+                "Wearables already configured. MetaAppID=\(DATEligibility.configuredMetaAppID) path=\(DATEligibility.datPathLabel) isDevMode=\(DATEligibility.isDevModeLabel(from: interface))"
             )
         } catch {
             failure = message(for: error)

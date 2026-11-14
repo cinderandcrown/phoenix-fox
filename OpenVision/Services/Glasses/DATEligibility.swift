@@ -20,12 +20,21 @@ enum DATEligibility {
         return id
     }
 
-    /// True when MetaAppID is 0 / empty — pure Developer Mode binary (no attestation).
-    /// A real MetaAppID can still register as a Dev Mode app while Meta AI Developer Mode
-    /// is on (Meta Android DAT #197); that is not the same as shipping MetaAppID 0.
+    /// True when MetaAppID is 0 / empty — DAT Developer Mode binary (no attestation).
+    /// Meta iOS build-integration: “Unless using Developer Mode, set MetaAppID from the
+    /// Wearables Developer Center.” Owner TestFlight ships 0. Real App ID is the
+    /// release-channel path (Developer Mode off).
     static var usesDeveloperModeAppID: Bool {
         let id = configuredMetaAppID.trimmingCharacters(in: .whitespacesAndNewlines)
         return id == "0" || id == "$(META_APP_ID)" || id.isEmpty || id == "(missing)"
+    }
+
+    /// One line for Copy log / Glasses check: which DAT identity this binary uses.
+    static var datPathLabel: String {
+        if usesDeveloperModeAppID {
+            return "Developer Mode AppID (0) — Meta AI Dev Mode ON; no WDC release channel"
+        }
+        return "Production AppID \(configuredMetaAppID) — needs WDC release channel; Meta AI Dev Mode OFF"
     }
 
     /// iOS WearablesInterface docs do not list `isDevMode` (Android does). Probe safely.
@@ -66,8 +75,9 @@ enum DATEligibility {
     ) -> [String] {
         var lines = [
             "MetaAppID: \(configuredMetaAppID)",
-            "Dev-mode AppID path: \(usesDeveloperModeAppID ? "yes (0/empty)" : "no (real app id — needs release channel)")",
-            "isDevMode: \(isDevModeLabel(from: wearables))",
+            "DAT path: \(datPathLabel)",
+            "Owner build: \(BuildFlavor.current.label)",
+            "isDevMode (SDK): \(isDevModeLabel(from: wearables))",
             "Bluetooth auth: \(bluetooth)",
             "DAT link: \(linkLabel)",
             "Link ready: \(linkConnected ? "yes" : "no")",

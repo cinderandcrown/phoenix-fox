@@ -72,16 +72,23 @@ def problems(
 
     meta = info.get("MWDAT") or {}
     expect(meta.get("AppLinkURLScheme") == f"https://{LINK_HOST}/dat", "MWDAT AppLinkURLScheme is not the universal link registered with Meta.")
-    expect(str(meta.get("MetaAppID", "")).isdigit(), "MWDAT MetaAppID is missing.")
+    app_id = str(meta.get("MetaAppID", ""))
+    expect(app_id.isdigit(), "MWDAT MetaAppID is missing.")
     expect(meta.get("TeamID") == team, "MWDAT TeamID is not the signing team.")
-    token = meta.get("ClientToken") or ""
+    token = str(meta.get("ClientToken") or "")
     expect(bool(token) and "$(" not in token, "MWDAT ClientToken is empty. The META_CLIENT_TOKEN secret did not reach the build.")
 
     if owner_build is True:
         expect(is_owner_build(info), "This is not the owner's build. PHOENIX_FOX_OWNER_BUILD=YES did not reach Info.plist, so every feature would start off.")
         expect(not store_setting(info), "The owner's build asks to sell plans. PHOENIX_FOX_STORE must be NO in it. The app would still unlock everything, but the build is not the one that was meant.")
+        # DAT Developer Mode identity (Meta iOS build-integration: unless using Developer
+        # Mode, set MetaAppID from Wearables Developer Center — so Dev Mode uses 0).
+        expect(app_id == "0", "Owner build must ship MetaAppID 0 for DAT Developer Mode.")
+        expect(token == "0", "Owner build must ship ClientToken 0 for DAT Developer Mode.")
     elif owner_build is False:
         expect(not is_owner_build(info), "This is the owner's build, with every feature on and the beta glasses capabilities allowed. It must not go out as a standard build.")
+        expect(app_id != "0", "Standard builds use the real Wearables Developer Center MetaAppID (not 0).")
+        expect(token != "0", "Standard builds need the real ClientToken from Wearables Developer Center.")
 
     modes = info.get("UIBackgroundModes") or []
     # Meta's toolkit checks these before it uses a link to the glasses. Without them the

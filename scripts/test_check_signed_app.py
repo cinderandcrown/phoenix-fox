@@ -16,6 +16,7 @@ BUNDLE = "com.example.app"
 
 
 def good_info():
+    """Standard (release-channel) binary: real MetaAppID + ClientToken."""
     return {
         "CFBundleIdentifier": BUNDLE,
         "CFBundleShortVersionString": "1.0.0",
@@ -32,6 +33,20 @@ def good_info():
             "ClientToken": "secret-client-token",
         },
     }
+
+
+def good_owner_info():
+    """Owner / DAT Developer Mode binary: MetaAppID 0 + ClientToken 0."""
+    info = good_info()
+    info["PhoenixFoxOwnerBuild"] = "YES"
+    info["PhoenixFoxStoreEnabled"] = "NO"
+    info["MWDAT"] = {
+        "AppLinkURLScheme": "https://phoenix-fox-links.cinderandcrown.workers.dev/dat",
+        "MetaAppID": "0",
+        "TeamID": TEAM,
+        "ClientToken": "0",
+    }
+    return info
 
 
 def good_entitlements():
@@ -96,8 +111,7 @@ class SignedAppTests(unittest.TestCase):
         self.assertEqual(run(info, good_entitlements()), [])
 
     def test_the_owner_build_flag_is_checked_only_when_asked(self):
-        standard, owner = good_info(), good_info()
-        owner["PhoenixFoxOwnerBuild"] = "YES"
+        standard, owner = good_info(), good_owner_info()
         unset = good_info()
         unset["PhoenixFoxOwnerBuild"] = "$(PHOENIX_FOX_OWNER_BUILD)"
 
@@ -112,6 +126,11 @@ class SignedAppTests(unittest.TestCase):
         self.assertEqual(check_owner(standard, False), [])
         self.assertEqual(check_owner(unset, False), [])
         self.assertTrue(any("must not go out as a standard build" in problem for problem in check_owner(owner, False)))
+        # Owner with a real App ID is rejected when --owner-build yes.
+        wrong = good_info()
+        wrong["PhoenixFoxOwnerBuild"] = "YES"
+        found = check_owner(wrong, True)
+        self.assertTrue(any("MetaAppID 0" in problem for problem in found), found)
 
     def test_the_owner_build_flag_reads_the_way_the_app_reads_it(self):
         for value, expected in (("YES", True), (" yes\n", True), ("true", True), ("1", True), (True, True),
@@ -134,10 +153,11 @@ class SignedAppTests(unittest.TestCase):
             workflow = file.read()
         self.assertIn("PHOENIX_FOX_OWNER_BUILD=YES", workflow)
         self.assertIn("--owner-build yes", workflow)
+        self.assertIn("META_APP_ID = 0", workflow)
+        self.assertIn("META_CLIENT_TOKEN = 0", workflow)
 
     def test_the_owner_build_must_not_ask_to_sell_plans(self):
-        owner = good_info()
-        owner["PhoenixFoxOwnerBuild"] = "YES"
+        owner = good_owner_info()
         for off in ("NO", "", False, "$(PHOENIX_FOX_STORE)"):
             owner["PhoenixFoxStoreEnabled"] = off
             self.assertEqual(check.problems(owner, good_entitlements(), TEAM, BUNDLE, "1.0.0", "42.1", True), [], repr(off))
