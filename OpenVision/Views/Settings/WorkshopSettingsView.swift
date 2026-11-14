@@ -75,7 +75,7 @@ struct WorkshopSettingsView: View {
             } header: {
                 Text("Your team")
             } footer: {
-                Text("Council: \"ask the council, should I take this job\". Every assistant votes yes, no, or unsure with one reason, and you hear the count and who disagreed first. \"Ask the council about this\" sends what you are looking at.\n\nRelay race: \"ask Indy to find three venues, then Driver to price the travel, then Rally to draft the invitation\". Each assistant gets the work of the ones before.\n\nClose the day: \"close the day\" sends today's walk-throughs, tallies, notes, votes, and skills to your main assistant for a summary and tomorrow's list. Health records are never part of it. Each of these costs one message per assistant asked.")
+                Text("Council: \"ask the council, should I take this job\". Every assistant votes yes, no, or unsure with one reason, and you hear the count and who disagreed first. A question that points at something, like \"ask the council, should I buy this\", sends what you are looking at, with the capture light on.\n\nRelay race: \"ask Indy to find three venues, then Driver to price the travel, then Rally to draft the invitation\". Each assistant gets the work of the ones before.\n\nClose the day: \"close the day\" sends today's walk-throughs, tallies, notes, votes, and skills to your main assistant for a summary and tomorrow's list. Health records are never part of it. Each of these costs one message per assistant asked.")
             }
 
             Section {
@@ -423,11 +423,15 @@ private struct SkillView: View {
             } header: {
                 Text("What it does")
             } footer: {
-                Text("This is everything the skill can do. A skill cannot run code, open a web address, or use anything that is not listed here.")
+                Text("This is everything the skill can capture. A skill cannot run code, name a web address, or capture anything that is not listed here.")
             }
-            Section("What it asks") {
+            Section {
                 Text(skill.ask)
                     .font(.callout)
+            } header: {
+                Text("What it asks \(skill.bot ?? "your assistant")")
+            } footer: {
+                Text("This is sent to your assistant as if you had said it, and your assistant can do whatever you have let it do.")
             }
             Section {
                 if installed {
@@ -515,11 +519,23 @@ private struct SkillPasteView: View {
                     } header: {
                         Text("What it does")
                     } footer: {
-                        Text("This is everything the skill can do.")
+                        Text("This is everything the skill can capture.")
                     }
                     Section {
-                        Button("Add \(checked.name)") {
+                        Text(checked.ask)
+                            .font(.callout)
+                    } header: {
+                        Text("What it asks \(checked.bot ?? "your assistant")")
+                    } footer: {
+                        Text("Read this. It is sent to your assistant as if you had said it, and your assistant can do whatever you have let it do.")
+                    }
+                    Section {
+                        Button(replaces(checked) ? "Replace \(checked.name)" : "Add \(checked.name)") {
                             add(checked)
+                        }
+                    } footer: {
+                        if replaces(checked) {
+                            Text("You already have a skill with this id. Adding this one replaces it.")
                         }
                     }
                 }
@@ -532,6 +548,10 @@ private struct SkillPasteView: View {
                 }
             }
         }
+    }
+
+    private func replaces(_ skill: Skill) -> Bool {
+        workshop.skills.contains { $0.id == skill.id }
     }
 
     private func check() {

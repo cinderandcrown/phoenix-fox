@@ -174,10 +174,20 @@ final class WorkshopCommandTests: XCTestCase {
     // MARK: - The team
 
     func testCouncil() {
-        XCTAssertEqual(parse("ask the council should I buy this drill"), .council("Should I buy this drill", photo: true))
+        XCTAssertEqual(parse("ask the council should I buy this"), .council("Should I buy this", photo: true))
+        XCTAssertEqual(parse("ask the council is the one I'm holding worth forty dollars"), .council("Is the one I'm holding worth forty dollars", photo: true))
         XCTAssertEqual(parse("take a vote on whether we move the launch to Friday"), .council("Whether we move the launch to Friday", photo: false))
         XCTAssertEqual(parse("put it to the council: is Dana right about the budget?"), .council("Is Dana right about the budget", photo: false))
         XCTAssertNil(parse("ask the council"))
+    }
+
+    func testTheCouncilGetsAPictureOnlyWhenTheQuestionPointsAtSomething() {
+        // A "this" in front of a noun is not a reason to turn the camera on.
+        XCTAssertEqual(parse("ask the council, should I take this job"), .council("Should I take this job", photo: false))
+        XCTAssertEqual(parse("ask the council should I buy this drill"), .council("Should I buy this drill", photo: false))
+        XCTAssertEqual(parse("ask the council should I buy this one"), .council("Should I buy this one", photo: true))
+        XCTAssertEqual(parse("ask the council should I keep these"), .council("Should I keep these", photo: true))
+        XCTAssertEqual(parse("ask the council whether what I'm looking at is worth fixing"), .council("Whether what I'm looking at is worth fixing", photo: true))
         XCTAssertNil(parse("council tax is due when"))
     }
 

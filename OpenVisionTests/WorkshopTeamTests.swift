@@ -107,11 +107,23 @@ final class RelayRaceTests: XCTestCase {
     }
 
     func testAnOrdinaryRequestIsNotAChain() {
+        XCTAssertNil(RelayRace.plan("Indy to find caterers then Driver to book one", bots: team))
         XCTAssertNil(RelayRace.plan("ask Indy to find three caterers", bots: team))
         XCTAssertNil(RelayRace.plan("ask Indy what happened and then what to do", bots: team))
         XCTAssertNil(RelayRace.plan("find a caterer then have Driver book it", bots: team))
         XCTAssertNil(RelayRace.plan("ask Sam to find it, then have Alex book it", bots: team))
         XCTAssertNil(RelayRace.plan("", bots: team))
+    }
+
+    func testAfterTheFirstAssistantTheShortFormIsEnough() {
+        let plan = RelayRace.plan(
+            "ask Indy to find three venues, then Driver to price the travel, then Rally to draft the invitation", bots: team
+        )
+        XCTAssertEqual(plan?.steps, [
+            RelayRace.Step(bot: "Indy", task: "Find three venues"),
+            RelayRace.Step(bot: "Driver", task: "Price the travel"),
+            RelayRace.Step(bot: "Rally", task: "Draft the invitation"),
+        ])
     }
 
     func testAPieceWithNoNameStaysWithTheAssistantBeforeIt() {

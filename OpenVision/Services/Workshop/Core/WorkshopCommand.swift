@@ -381,9 +381,19 @@ enum WorkshopCommand: Equatable, Sendable {
         var words = rest.split(separator: " ").map(String.init)
         while let first = words.first?.lowercased(), ["on", "about", "to", "vote"].contains(first) { words.removeFirst() }
         guard words.count >= 2 else { return nil }
-        let lower = " " + words.joined(separator: " ").lowercased() + " "
-        let photo = [" this ", " these ", " those ", " looking at ", " in front of me "].contains(where: lower.contains)
-        return .council(WorkshopText.sentence(words.joined(separator: " ")), photo: photo)
+        return .council(WorkshopText.sentence(words.joined(separator: " ")), photo: pointsAtSomething(words))
+    }
+
+    /// True when a question is about what the wearer is looking at, so a picture goes
+    /// with it. "Should I buy this" is. "Should I take this job" is not: a "this" in
+    /// front of a noun points at a word, not at the room, and the camera stays off.
+    private static func pointsAtSomething(_ words: [String]) -> Bool {
+        let lower = words.map { $0.lowercased().trimmingCharacters(in: .punctuationCharacters) }
+        if let last = lower.last, ["this", "these", "those"].contains(last) { return true }
+        if lower.suffix(2) == ["this", "one"] || lower.suffix(2) == ["that", "one"] { return true }
+        let sentence = " " + lower.joined(separator: " ") + " "
+        return [" looking at ", " look at this ", " in front of me ", " in my hand ", " what i see ", " i'm holding ", " i am holding "]
+            .contains(where: sentence.contains)
     }
 
     private static func day(_ said: Said, _ context: Context) -> WorkshopCommand? {

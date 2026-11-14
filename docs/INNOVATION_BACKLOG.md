@@ -231,16 +231,16 @@ All ten are in the owner build only, under **Settings → Owner build → Worksh
 
 | Idea | Status | What is not done |
 | --- | --- | --- |
-| Walk-through | Written | Not run on glasses. Photos are sent to the assistant within the relay's size limit, so a long walk sends smaller pictures. No PDF: the report is text. |
+| Walk-through | Written | Not run on glasses. At most 12 photos go to the assistant with a report, flags first, and they share the relay's size limit, so more photos means smaller pictures. The rest stay on the phone. No PDF: the report is text. |
 | Tally | Written | Not run on glasses. Numbers above 9,999 and fractions are not understood. |
 | Ingredient watch | Written | Not run on glasses. English labels only. Whether the whole-sensor photo reads small print in a shop aisle is unknown. |
-| Dose guard | Written | Not run on glasses. No schedule or reminders: it logs and warns. |
-| Council | Written | Not run against the live relay. |
+| Dose guard | Written | Not run on glasses. No schedule or reminders: it logs and warns. It does not check one medicine against another. |
+| Council | Written | Not run against the live relay. Each assistant is asked separately, so the wait is as long as the slowest one, up to the relay's time limit. |
 | Relay race | Written | Not run against the live relay. Four steps at most. |
 | Standing orders | Written | Not run on glasses. Orders fire only while the app is running. |
 | Place notes | Written | Not run on glasses. The offer when the glasses are put on needs location allowed. |
 | Close the day | Written | Not run against the live relay. |
-| Skills | Written | Not run against the live relay. Skills are added by pasting the file. No sharing, signing, or lens cards. See [SKILLS.md](SKILLS.md). |
+| Skills | Written | Not run against the live relay. Skills are added by pasting the file and shared as text. No signing, catalogue, or lens cards. See [SKILLS.md](SKILLS.md). |
 
 "Written" means what it means in [FEATURE_PARITY.md](FEATURE_PARITY.md): the decisions are covered by unit tests that run on Linux, the code that joins them to the phone was type-checked against stand-ins, and no Xcode build or pair of glasses has seen it.
 

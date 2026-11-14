@@ -56,7 +56,7 @@ enum RelayRace {
 
         var steps: [Step] = []
         for piece in pieces {
-            if let step = step(piece, bots: bots) {
+            if let step = step(piece, bots: bots, first: steps.isEmpty) {
                 steps.append(step)
             } else if let last = steps.indices.last {
                 // "…find caterers, then pick the cheapest" is still the same assistant's work.
@@ -80,16 +80,19 @@ enum RelayRace {
         return pieces.map { $0.trimmingCharacters(in: .whitespaces) }.filter { !$0.isEmpty }
     }
 
-    private static func step(_ piece: String, bots: [String]) -> Step? {
+    /// - Parameter first: False once an assistant has been named. After that the short
+    ///   form "then Driver to price it" is enough.
+    private static func step(_ piece: String, bots: [String], first: Bool) -> Step? {
         let trimmed = piece.trimmingCharacters(in: CharacterSet(charactersIn: " .!?"))
         let lower = trimmed.lowercased()
         for bot in bots.sorted(by: { $0.count > $1.count }) {
             let name = bot.lowercased()
-            let leads = [
+            var leads = [
                 "ask \(name) to ", "tell \(name) to ", "have \(name) ", "get \(name) to ", "let \(name) ",
                 "\(name) should ", "\(name) can ", "pass it to \(name) to ", "give it to \(name) to ",
                 "send it to \(name) to ", "hand it to \(name) to ", "ask \(name) ",
             ]
+            if !first { leads.append("\(name) to ") }
             for lead in leads where lower.hasPrefix(lead) {
                 let task = String(trimmed.dropFirst(lead.count)).trimmingCharacters(in: .whitespaces)
                 guard !task.isEmpty else { return nil }

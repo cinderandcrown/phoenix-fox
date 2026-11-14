@@ -491,22 +491,28 @@ final class WorkshopCoordinator: ObservableObject {
         guard names.count >= 2 else {
             return "The council needs at least two assistants. Add them in Settings, under My Assistant."
         }
+        guard SettingsManager.shared.settings.relayEndpoint != nil else {
+            return RelayError.notConfigured.localizedDescription
+        }
         let jpeg = photo ? await snapshot() : nil
         let request = Council.prompt(question, withPhoto: jpeg != nil)
-        do {
-            let replies = try await OwnAssistantService.shared.ask(
-                transcript: request, cleaned: request, images: jpeg.map { [$0] } ?? [], intent: "council", targetBot: AssistantBot.allBots
-            )
-            let verdict = Council.verdict(replies: replies.map { ($0.fromBot, $0.text) }, asked: names)
-            note(.council, "\(question)? \(verdict.tally)")
-            for ballot in verdict.ballots {
-                TaskLog.append(bot: ballot.bot, request: "Council: \(question)", result: "\(ballot.choice.rawValue). \(ballot.reason)")
-            }
-            let spoken = Council.spoken(verdict)
-            return photo && jpeg == nil ? "I couldn't get a picture, so they voted without one. \(spoken)" : spoken
-        } catch {
-            return Self.failure(error)
+        // Each assistant is asked on its own, so one that never answers costs the others nothing.
+        var replies: [(bot: String, text: String)] = []
+        await OwnAssistantService.shared.askEach(
+            transcript: request, cleaned: request, intent: "council", bots: names, images: jpeg.map { [$0] } ?? []
+        ) { bot, text in
+            replies.append((bot, text))
         }
+        // The wearer said stop while they were voting.
+        guard !Task.isCancelled else { return "" }
+        let verdict = Council.verdict(replies: replies.filter { !$0.text.isEmpty }, asked: names)
+        guard !verdict.ballots.isEmpty else { return "Nobody on the council answered." }
+        note(.council, "\(question)? \(verdict.tally)")
+        for ballot in verdict.ballots {
+            TaskLog.append(bot: ballot.bot, request: "Council: \(question)", result: "\(ballot.choice.rawValue). \(ballot.reason)")
+        }
+        let spoken = Council.spoken(verdict)
+        return photo && jpeg == nil ? "I couldn't get a picture, so they voted without one. \(spoken)" : spoken
     }
 
     // MARK: - Relay race
