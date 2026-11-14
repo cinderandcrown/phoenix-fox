@@ -3,36 +3,58 @@
 
 // The rules for recognizing saved contacts by face.
 //
-// A face is saved only after the wearer confirms that the person agreed, and the date of
-// that confirmation is stored with it. Recognition answers with a name only when one saved
-// person is clearly the closest match. Naming the wrong person is worse than naming no
-// one, so a close call is reported as "not sure".
+// A face is saved only after that person says yes (spoken consent, timestamped). Strangers
+// are never stored. Prints expire after N days without a match (default 30, min 1).
+// See docs/legal/FACE_RETENTION.md.
 
 import Foundation
 
 struct FaceRecord: Codable, Equatable, Sendable, Identifiable {
     var id: UUID
     var name: String
-    /// When the wearer confirmed this person agreed to be remembered.
+    /// When the person said yes to enrollment (spoken biometric consent).
     var consentAt: Date
-    /// Face prints from the vision system. Several, taken at different times, match better
-    /// than one. They are opaque here and never leave the phone.
+    /// How consent was captured (always spoken yes for new enrollments).
+    var consentSource: String
+    /// Face prints from the vision system. Opaque; never leave the phone.
     var prints: [Data]
+    /// Last successful match. Retention is measured from this (or consentAt if never matched).
     var lastSeen: Date?
 
-    init(name: String, consentAt: Date, prints: [Data]) {
+    init(
+        name: String,
+        consentAt: Date,
+        prints: [Data],
+        consentSource: String = "spoken_yes",
+        lastSeen: Date? = nil
+    ) {
         id = UUID()
         self.name = name
         self.consentAt = consentAt
+        self.consentSource = consentSource
         self.prints = prints
+        self.lastSeen = lastSeen
     }
+
+    init(from decoder: Decoder) throws {
+        let values = try decoder.container(keyedBy: CodingKeys.self)
+        id = try values.decode(UUID.self, forKey: .id)
+        name = try values.decode(String.self, forKey: .name)
+        consentAt = try values.decode(Date.self, forKey: .consentAt)
+        consentSource = try values.decodeIfPresent(String.self, forKey: .consentSource) ?? "spoken_yes"
+        prints = try values.decode([Data].self, forKey: .prints)
+        lastSeen = try values.decodeIfPresent(Date.self, forKey: .lastSeen)
+    }
+
+    /// Anchor for auto-delete: last match, else enrollment consent.
+    var retentionAnchor: Date { lastSeen ?? consentAt }
 }
 
 enum FaceLedger {
     /// The most prints kept for one person. The oldest is dropped when another is added.
     static let printsPerPerson = 5
 
-    /// Automatic expiry for face prints (legal review). Default 30 days from consent or last seen.
+    /// Default days without a match before auto-delete (Nicholas / FACE_RETENTION.md).
     static let defaultRetentionDays = 30
 
     enum Match: Equatable, Sendable {
@@ -43,12 +65,6 @@ enum FaceLedger {
     }
 
     /// Picks the person for one face in view.
-    ///
-    /// - Parameters:
-    ///   - distances: For each saved person, the smallest distance between the face in view
-    ///     and any of that person's prints. Smaller is more alike.
-    ///   - limit: A distance above this is not a match at all.
-    ///   - margin: The best match must beat the runner-up by at least this much.
     static func match(distances: [(name: String, distance: Float)], limit: Float = 0.5, margin: Float = 0.04) -> Match {
         let ranked = distances.sorted { $0.distance < $1.distance }
         guard let best = ranked.first, best.distance <= limit else { return .stranger }
@@ -56,7 +72,7 @@ enum FaceLedger {
         return .known(name: best.name)
     }
 
-    /// What to say for the faces in one photo.
+    /// What to say for the faces in one photo. Strangers are named as unknown — never enrolled here.
     static func spoken(_ matches: [Match]) -> String {
         guard !matches.isEmpty else { return "I don't see a face. Ask them to look toward you and try again." }
         let names = matches.compactMap { match -> String? in
@@ -77,21 +93,30 @@ enum FaceLedger {
         return line
     }
 
-    /// Drops records whose consent / last-seen is older than `retention`. Pure for unit tests.
+    /// Drops records with no match (or consent) within `retentionDays`. Pure for unit tests.
     static func pruningExpired(
         _ records: [FaceRecord],
         asOf now: Date = Date(),
         retentionDays: Int = defaultRetentionDays
     ) -> [FaceRecord] {
-        let limit = TimeInterval(retentionDays) * 24 * 60 * 60
-        return records.filter { record in
-            let anchor = record.lastSeen ?? record.consentAt
-            return now.timeIntervalSince(anchor) < limit
-        }
+        let days = FaceRecognitionConsent.clampedRetentionDays(retentionDays)
+        let limit = TimeInterval(days) * 24 * 60 * 60
+        return records.filter { now.timeIntervalSince($0.retentionAnchor) < limit }
     }
 
-    /// Adds a print to a person, creating the record on first use. Returns the new list.
-    static func saving(print: Data, for name: String, consentAt: Date, in records: [FaceRecord]) -> [FaceRecord] {
+    /// Removes one person by name (case-insensitive). Returns the new list.
+    static func forgetting(name: String, in records: [FaceRecord]) -> [FaceRecord] {
+        records.filter { $0.name.lowercased() != name.lowercased() }
+    }
+
+    /// Adds a print after spoken consent. Never called for strangers / passive sightings.
+    static func saving(
+        print: Data,
+        for name: String,
+        consentAt: Date,
+        consentSource: String = "spoken_yes",
+        in records: [FaceRecord]
+    ) -> [FaceRecord] {
         var records = records
         if let index = records.firstIndex(where: { $0.name.lowercased() == name.lowercased() }) {
             records[index].prints.append(print)
@@ -99,8 +124,14 @@ enum FaceLedger {
                 records[index].prints.removeFirst(records[index].prints.count - printsPerPerson)
             }
             records[index].consentAt = consentAt
+            records[index].consentSource = consentSource
         } else {
-            records.append(FaceRecord(name: name, consentAt: consentAt, prints: [print]))
+            records.append(FaceRecord(
+                name: name,
+                consentAt: consentAt,
+                prints: [print],
+                consentSource: consentSource
+            ))
         }
         return records
     }

@@ -11,6 +11,7 @@ enum DataDeletion {
     /// Erases local user data. Secrets in the Keychain are cleared via SettingsManager.
     static func eraseAllOnThisPhone() {
         CloudAIConsent.withdraw()
+        FaceRecognitionConsent.withdrawWearerNotice()
         ConversationManager.shared.deleteAllConversations()
         AccessFaces.shared.forgetAll()
         AccessStore.remove("faces")

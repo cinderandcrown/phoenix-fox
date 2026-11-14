@@ -78,18 +78,26 @@ struct PrivacyAndDataView: View {
                 Text("Wipes conversation history, memories, face prints, workshop data, API keys, OAuth tokens, and model caches on this iPhone. There is no Phoenix Fox cloud account.")
             }
 
+            Section {
+                Text("Publisher: \(PublisherIdentity.legalName)")
+                Link(PublisherIdentity.privacyEmail, destination: PublisherIdentity.privacyMailto)
+            } header: {
+                Text("Publisher")
+            }
+
             if BuildFlavor.current == .owner {
                 Section {
-                    ForEach(PrivacyFeatureFlag.allCases, id: \.rawValue) { flag in
+                    ForEach(PrivacyFeatureFlag.ownerToggleable, id: \.rawValue) { flag in
                         Toggle(flag.displayName, isOn: Binding(
                             get: { flag.isEnabled() },
                             set: { flag.setEnabled($0); flagRefresh = UUID() }
                         ))
                     }
+                    LabeledContent("Meta DAT telemetry", value: "Off (locked)")
                 } header: {
                     Text("Feature flags (owner)")
                 } footer: {
-                    Text("Conservative defaults for store builds. Meta DAT telemetry also needs Info.plist OptOut flipped when enabled.")
+                    Text("ChatGPT/SuperGrok OAuth are removed from store builds. Meta telemetry OptOut is locked in Info.plist for all builds.")
                         .id(flagRefresh)
                 }
             }
@@ -182,11 +190,11 @@ struct LegalDocumentView: View {
 
 enum LegalCopy {
     static let privacySummary = """
-    Phoenix Fox keeps most data on this iPhone. Cloud AI providers you choose receive what you say, recent conversation, memories, and photos you ask Jarvis to look at — only after you Allow that provider in Privacy & Data. Face prints and the medication log never leave the phone. There is no Phoenix Fox account. Delete all my data clears local stores. Full policy: the web link below (hosting pending attorney review).
+    Phoenix Fox is published by \(PublisherIdentity.legalName). Most data stays on this iPhone. Cloud AI providers you choose receive what you say, recent conversation, memories, and photos you ask Jarvis to look at — only after you Allow that provider in Privacy & Data. Face prints (biometric) and the medication log never leave the phone. There is no Phoenix Fox account. Delete all my data clears local stores. Contact \(PublisherIdentity.privacyEmail). Full policy: the web link below (hosting pending attorney review).
     """
 
     static let termsSummary = """
-    Phoenix Fox is an independent app. It is not affiliated with Meta, Ray-Ban, Oakley, OpenAI, xAI, Google, or Marvel. You must be 18 or older. Cloud AI answers can be wrong. Do not use the app for covert recording or surveillance. Full terms: the web link below (hosting pending attorney review).
+    \(PublisherIdentity.independentAppLine) You must be 18 or older. Cloud AI answers can be wrong. Do not use the app for covert recording or surveillance. Full terms: the web link below (hosting pending attorney review).
     """
 }
 

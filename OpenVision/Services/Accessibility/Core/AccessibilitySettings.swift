@@ -19,7 +19,10 @@ struct AccessibilitySettings: Codable, Equatable, Sendable {
     /// can detect by itself until the wearer opts in.
     var guideCloudDescriptions = false
     var guideAudioCues = true
+    /// Face recognition feature switch. Default OFF until wearer CUBI/BIPA opt-in.
     var faceRecognition = false
+    /// Days without a match before face prints auto-delete (1…30). Default 30.
+    var faceRetentionDays = FaceLedger.defaultRetentionDays
 
     // Getting help
     var emergencyContactName = ""
@@ -57,6 +60,9 @@ struct AccessibilitySettings: Codable, Equatable, Sendable {
         guideCloudDescriptions = value(.guideCloudDescriptions, base.guideCloudDescriptions)
         guideAudioCues = value(.guideAudioCues, base.guideAudioCues)
         faceRecognition = value(.faceRecognition, base.faceRecognition)
+        faceRetentionDays = FaceRecognitionConsent.clampedRetentionDays(
+            value(.faceRetentionDays, base.faceRetentionDays)
+        )
         emergencyContactName = value(.emergencyContactName, base.emergencyContactName)
         emergencyContactNumber = value(.emergencyContactNumber, base.emergencyContactNumber)
         soundAlerts = value(.soundAlerts, base.soundAlerts)

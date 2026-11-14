@@ -17,6 +17,7 @@ struct AccessibilitySettingsView: View {
     @ObservedObject private var coordinator = AccessibilityCoordinator.shared
 
     @State private var showingSafetyNotice = false
+    @State private var showingFaceNotice = false
     @State private var status = ""
     @State private var namesText = ""
 
@@ -61,6 +62,16 @@ struct AccessibilitySettingsView: View {
         } message: {
             Text(GuideMode.safetyNotice)
         }
+        .sheet(isPresented: $showingFaceNotice) {
+            FaceRecognitionNoticeSheet {
+                FaceRecognitionConsent.acceptWearerNotice()
+                settingsManager.settings.accessibility.faceRecognition = true
+                showingFaceNotice = false
+            } onDecline: {
+                settingsManager.settings.accessibility.faceRecognition = false
+                showingFaceNotice = false
+            }
+        }
     }
 
     // MARK: - Seeing
@@ -85,8 +96,34 @@ struct AccessibilitySettingsView: View {
             Toggle("Direction tones", isOn: settings.guideAudioCues)
                 .accessibilityHint("A falling tone means left, a rising tone means right, and a level tone means ahead.")
             if PrivacyFeatureFlags.faceRecognition {
-                Toggle("Face recognition", isOn: settings.faceRecognition)
-                    .accessibilityHint("Recognizes only people you have saved with their permission. Prints expire after 30 days.")
+                Toggle("Face recognition", isOn: Binding(
+                    get: { settingsManager.settings.accessibility.faceRecognition },
+                    set: { on in
+                        if on {
+                            if FaceRecognitionConsent.isWearerNoticeAccepted() {
+                                settingsManager.settings.accessibility.faceRecognition = true
+                            } else {
+                                showingFaceNotice = true
+                            }
+                        } else {
+                            settingsManager.settings.accessibility.faceRecognition = false
+                        }
+                    }
+                ))
+                .accessibilityHint("Requires a biometric notice (Texas CUBI / Illinois BIPA). Only people who say yes are enrolled.")
+                Stepper(
+                    value: Binding(
+                        get: { settingsManager.settings.accessibility.faceRetentionDays },
+                        set: {
+                            settingsManager.settings.accessibility.faceRetentionDays =
+                                FaceRecognitionConsent.clampedRetentionDays($0)
+                        }
+                    ),
+                    in: 1...30
+                ) {
+                    Text("Delete prints after \(settingsManager.settings.accessibility.faceRetentionDays) days without a match")
+                }
+                .accessibilityHint("Auto-delete face prints. Minimum 1 day, default 30.")
                 NavigationLink {
                     SavedFacesView()
                 } label: {
@@ -96,7 +133,7 @@ struct AccessibilitySettingsView: View {
         } header: {
             Text("Seeing")
         } footer: {
-            Text("Guide mode is an aid. It misses things, especially curbs, drop-offs, glass, and fast traffic. It does not replace a cane, a guide dog, or your own judgment. Reading, colors, money, labels, and faces are worked out on this phone. Face data never leaves it. See Privacy Policy section on biometrics.")
+            Text("Guide mode is an aid. It misses things, especially curbs, drop-offs, glass, and fast traffic. It does not replace a cane, a guide dog, or your own judgment. Reading, colors, money, labels, and faces are worked out on this phone. Face data never leaves it. Retention: docs/legal/FACE_RETENTION.md. Contact \(PublisherIdentity.privacyEmail).")
         }
     }
 
@@ -204,6 +241,50 @@ struct AccessibilitySettingsView: View {
     }
 }
 
+// MARK: - Face recognition notice (CUBI / BIPA)
+
+private struct FaceRecognitionNoticeSheet: View {
+    var onAccept: () -> Void
+    var onDecline: () -> Void
+
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 16) {
+                    Text(FaceRecognitionConsent.noticeTitle)
+                        .font(.title2.weight(.semibold))
+                        .accessibilityAddTraits(.isHeader)
+                    Text(FaceRecognitionConsent.noticeBody)
+                        .font(.body)
+                    Link("Email \(PublisherIdentity.privacyEmail)", destination: PublisherIdentity.privacyMailto)
+                }
+                .padding()
+            }
+            .safeAreaInset(edge: .bottom) {
+                VStack(spacing: 12) {
+                    Button {
+                        onAccept()
+                    } label: {
+                        Text("Allow face recognition")
+                            .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .accessibilityLabel("Allow face recognition")
+                    Button("Not now", role: .cancel) {
+                        onDecline()
+                    }
+                    .frame(maxWidth: .infinity)
+                }
+                .padding()
+                .background(.bar)
+            }
+            .navigationTitle("Consent")
+            .navigationBarTitleDisplayMode(.inline)
+        }
+        .presentationDetents([.large])
+    }
+}
+
 // MARK: - Saved faces
 
 private struct SavedFacesView: View {
@@ -213,36 +294,46 @@ private struct SavedFacesView: View {
     var body: some View {
         List {
             if faces.records.isEmpty {
-                Text("No one is saved. With the person's permission, say \"Jarvis, remember this person as\" and their name while you face them.")
+                Text("No one is saved. Say \"Jarvis, remember this person as\" and their name. That person must say yes to the biometric prompt — strangers are never stored.")
             }
             ForEach(faces.records) { record in
                 VStack(alignment: .leading, spacing: 6) {
                     Text(record.name)
                         .font(.headline)
-                    Text("Agreed on \(record.consentAt.formatted(date: .abbreviated, time: .shortened))")
+                    Text("Said yes \(record.consentAt.formatted(date: .abbreviated, time: .shortened)) (\(record.consentSource))")
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
-                    Button("Delete \(record.name)", role: .destructive) {
+                    if let last = record.lastSeen {
+                        Text("Last match \(last.formatted(date: .abbreviated, time: .shortened))")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    } else {
+                        Text("No match yet — deletes from enrollment date")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                    Button("Forget \(record.name)", role: .destructive) {
                         _ = AccessFaces.shared.forget(name: record.name)
                     }
                     .buttonStyle(.borderless)
+                    .accessibilityLabel("Forget \(record.name)")
                 }
                 .padding(.vertical, 4)
             }
             if !faces.records.isEmpty {
                 Section {
-                    Button("Delete all saved faces", role: .destructive) {
+                    Button("Forget everyone", role: .destructive) {
                         confirmingDeleteAll = true
                     }
                 } footer: {
-                    Text("Face data is a set of numbers made from a picture. No picture is kept. It is sealed on this phone, is not in backups, and is never sent anywhere.")
+                    Text("Face data is a set of numbers made from a picture. No picture is kept. Sealed on this phone, not in backups, never sent. Auto-deletes after days without a match. Publisher: \(PublisherIdentity.legalName).")
                 }
             }
         }
         .navigationTitle("Saved faces")
         .navigationBarTitleDisplayMode(.inline)
-        .confirmationDialog("Delete every saved face?", isPresented: $confirmingDeleteAll, titleVisibility: .visible) {
-            Button("Delete all", role: .destructive) { _ = AccessFaces.shared.forgetAll() }
+        .confirmationDialog("Forget every saved face?", isPresented: $confirmingDeleteAll, titleVisibility: .visible) {
+            Button("Forget everyone", role: .destructive) { _ = AccessFaces.shared.forgetAll() }
             Button("Cancel", role: .cancel) {}
         }
     }

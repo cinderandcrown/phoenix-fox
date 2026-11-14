@@ -296,6 +296,8 @@
 		9504688A5A3CD4CDB184C794 /* AboutView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55396EF43837A6D481C8A3C1 /* AboutView.swift */; };
 		7AFAC26977620684EB9078C1 /* PrivacyAndDataView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F0E6C19BF9C3E8A3568B8D8 /* PrivacyAndDataView.swift */; };
 		F46ABBDFDE8ACB8D5FFBBAC3 /* CloudAIConsentTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1DD126B78DF82255450B27BE /* CloudAIConsentTests.swift */; };
+		B32E33DD57FCE34A56883A2E /* FaceRecognitionConsent.swift in Sources */ = {isa = PBXBuildFile; fileRef = A066238418782BF68472B7B4 /* FaceRecognitionConsent.swift */; };
+		9024684153F6DE330C42FD2D /* PublisherIdentity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 215F5B2941055D2504D77954 /* PublisherIdentity.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -592,6 +594,8 @@
 		55396EF43837A6D481C8A3C1 /* AboutView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AboutView.swift; sourceTree = "<group>"; };
 		0F0E6C19BF9C3E8A3568B8D8 /* PrivacyAndDataView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrivacyAndDataView.swift; sourceTree = "<group>"; };
 		1DD126B78DF82255450B27BE /* CloudAIConsentTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudAIConsentTests.swift; sourceTree = "<group>"; };
+		A066238418782BF68472B7B4 /* FaceRecognitionConsent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FaceRecognitionConsent.swift; sourceTree = "<group>"; };
+		215F5B2941055D2504D77954 /* PublisherIdentity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PublisherIdentity.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -1387,6 +1391,8 @@
 				43888648E0FD49CFF7793308 /* CloudAIConsent.swift */,
 				29BD1587C41D6E0E0F9E420C /* DataDeletion.swift */,
 				BAC76B71B641B75472B9294A /* PrivacyFeatureFlags.swift */,
+				A066238418782BF68472B7B4 /* FaceRecognitionConsent.swift */,
+				215F5B2941055D2504D77954 /* PublisherIdentity.swift */,
 			);
 			path = Privacy;
 			sourceTree = "<group>";
@@ -1814,6 +1820,8 @@
 				764A636FCFF6C0F88C545DE0 /* PrivacyFeatureFlags.swift in Sources */,
 				9504688A5A3CD4CDB184C794 /* AboutView.swift in Sources */,
 				7AFAC26977620684EB9078C1 /* PrivacyAndDataView.swift in Sources */,
+				B32E33DD57FCE34A56883A2E /* FaceRecognitionConsent.swift in Sources */,
+				9024684153F6DE330C42FD2D /* PublisherIdentity.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

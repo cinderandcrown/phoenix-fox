@@ -13,7 +13,10 @@ struct AboutView: View {
                     Text("\(Config.appVersion) (\(Config.buildNumber))")
                         .foregroundStyle(.secondary)
                 }
-                Text("Phoenix Fox is an independent app. It is not made by Meta, Ray-Ban, Oakley, OpenAI, xAI, Google, or Marvel.")
+                Text(PublisherIdentity.independentAppLine)
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+                Text("Publisher: \(PublisherIdentity.legalName)")
                     .font(.footnote)
                     .foregroundStyle(.secondary)
             }
@@ -29,9 +32,9 @@ struct AboutView: View {
             }
 
             Section {
-                Link("Contact", destination: URL(string: "mailto:privacy@cinderandcrown.com")!)
+                Link("Privacy contact", destination: PublisherIdentity.privacyMailto)
             } footer: {
-                Text("Say Jarvis to wake the glasses assistant.")
+                Text("\(PublisherIdentity.privacyEmail). Say Jarvis to wake the glasses assistant.")
             }
         }
         .navigationTitle("About")
@@ -63,28 +66,12 @@ struct LicensesView: View {
                 return text
             }
         }
-        // Repo-root copies used when not yet copied into the app bundle.
-        let roots = [
-            URL(fileURLWithPath: #filePath)
-                .deletingLastPathComponent()
-                .deletingLastPathComponent()
-                .deletingLastPathComponent()
-                .deletingLastPathComponent(),
-        ]
-        for root in roots {
-            for candidate in ["\(name).md", name, "NOTICE"] {
-                let url = root.appendingPathComponent(candidate)
-                if let text = try? String(contentsOf: url, encoding: .utf8), !text.isEmpty {
-                    return text
-                }
-            }
-        }
         return nil
     }
 
     private static let noticeFallback = """
     Phoenix Fox
-    Copyright 2026 Cinder and Crown LLC
+    Copyright 2026 \(PublisherIdentity.legalName)
 
     Licensed under the Apache License, Version 2.0.
     """
