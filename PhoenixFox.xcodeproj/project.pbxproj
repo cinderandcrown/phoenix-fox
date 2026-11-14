@@ -154,6 +154,11 @@
 		C21AA100000000000000000A /* WhisperTranscriber.swift in Sources */ = {isa = PBXBuildFile; fileRef = C21AA200000000000000000A /* WhisperTranscriber.swift */; };
 		C21AA100000000000000000B /* OwnAssistantSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C21AA200000000000000000B /* OwnAssistantSettingsView.swift */; };
 		E21AA3000000000000000001 /* WhisperKit in Frameworks */ = {isa = PBXBuildFile; productRef = E21AA2000000000000000001 /* WhisperKit */; };
+		9DD6F1F0D3656875244E01C4 /* PCMConversion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7F04F7FDE8E33F931110B0CF /* PCMConversion.swift */; };
+		CAB72119CBBE5DAE10ECB1B9 /* JSONValue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21B9586BAD796C456BA89265 /* JSONValue.swift */; };
+		8BF888E85180E71C520D45D0 /* ResumeOnce.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07CBBA601F8B713B0B004752 /* ResumeOnce.swift */; };
+		1E2FD51A71E410A32EDE2E74 /* JSONValueTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B1BCE95BFCBFB8E8855E0F8 /* JSONValueTests.swift */; };
+		339637E3354B17658B60A4DA /* SpeechPipelineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DE8BB8877F17EC12EE63410A /* SpeechPipelineTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -308,6 +313,11 @@
 		C21AA2000000000000000009 /* UtterancePCMBuffer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UtterancePCMBuffer.swift; sourceTree = "<group>"; };
 		C21AA200000000000000000A /* WhisperTranscriber.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WhisperTranscriber.swift; sourceTree = "<group>"; };
 		C21AA200000000000000000B /* OwnAssistantSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OwnAssistantSettingsView.swift; sourceTree = "<group>"; };
+		7F04F7FDE8E33F931110B0CF /* PCMConversion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PCMConversion.swift; sourceTree = "<group>"; };
+		21B9586BAD796C456BA89265 /* JSONValue.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JSONValue.swift; sourceTree = "<group>"; };
+		07CBBA601F8B713B0B004752 /* ResumeOnce.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResumeOnce.swift; sourceTree = "<group>"; };
+		9B1BCE95BFCBFB8E8855E0F8 /* JSONValueTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JSONValueTests.swift; sourceTree = "<group>"; };
+		DE8BB8877F17EC12EE63410A /* SpeechPipelineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpeechPipelineTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -514,6 +524,8 @@
 				CAD745CF110FC8C25A5B34D8 /* HapticFeedback.swift */,
 				C1BF0DC63344C51A046E37E0 /* OVExceptionCatcher.h */,
 				09CF2D46A856380011EEC513 /* OVExceptionCatcher.m */,
+				21B9586BAD796C456BA89265 /* JSONValue.swift */,
+				07CBBA601F8B713B0B004752 /* ResumeOnce.swift */,
 			);
 			path = Helpers;
 			sourceTree = "<group>";
@@ -617,6 +629,7 @@
 				529F4C0838CFE7F8F55E28E4 /* AudioPlaybackService.swift */,
 				3DA55F18F98C8B110680989C /* AudioSessionManager.swift */,
 				CE2B8AE1E195B62D980BEA66 /* SoundService.swift */,
+				7F04F7FDE8E33F931110B0CF /* PCMConversion.swift */,
 			);
 			path = Audio;
 			sourceTree = "<group>";
@@ -737,6 +750,8 @@
 				E7752EDE12666E6361064A9F /* SubscriptionAuthTests.swift */,
 				C05A9A6876CC108B7CEDFDFC /* TextChunkingTests.swift */,
 				D31AA2000000000000000004 /* MindMeldTests.swift */,
+				9B1BCE95BFCBFB8E8855E0F8 /* JSONValueTests.swift */,
+				DE8BB8877F17EC12EE63410A /* SpeechPipelineTests.swift */,
 			);
 			path = OpenVisionTests;
 			sourceTree = "<group>";
@@ -969,6 +984,11 @@
 				5A0CE2F7458D3C9E63627724 /* SubscriptionAuthTests.swift in Sources */,
 				361AD2F1AB7C557D47CD125D /* TextChunkingTests.swift in Sources */,
 				D31AA1000000000000000004 /* MindMeldTests.swift in Sources */,
+				9DD6F1F0D3656875244E01C4 /* PCMConversion.swift in Sources */,
+				CAB72119CBBE5DAE10ECB1B9 /* JSONValue.swift in Sources */,
+				8BF888E85180E71C520D45D0 /* ResumeOnce.swift in Sources */,
+				1E2FD51A71E410A32EDE2E74 /* JSONValueTests.swift in Sources */,
+				339637E3354B17658B60A4DA /* SpeechPipelineTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
