@@ -88,15 +88,23 @@ A bot learns about an ask in one of two ways. With a webhook, the relay posts th
 
 ### Webhooks
 
-Set the secret `BOT_WEBHOOKS` to a JSON object from bot name to URL:
+Set the secret `BOT_WEBHOOKS` to a JSON object from bot name to a URL, or to an object with `url` and optional `secret` and `headers`:
 
 ```json
 {
-  "Fire Fox": "https://firefox.example.com/relay",
+  "Fire Fox": {
+    "url": "https://firefox.example.com/relay",
+    "headers": {
+      "Authorization": "Bearer YOUR_GROK_SENDER_KEY",
+      "X-Webhook-Key": "optional-alternate-key"
+    }
+  },
   "Indy": "https://indy.example.com/relay",
   "Driver": { "url": "https://driver.example.com/relay", "secret": "a key only Driver holds" }
 }
 ```
+
+A bare string is still a URL. An object may set `secret` (HMAC signing key for that bot only) and/or `headers` (extra request headers on every delivery POST). Use `headers` for platforms that require a sender key — for example Grok Bot routine webhooks with `Authorization: Bearer …` or `X-Webhook-Key`. Header names must be valid HTTP tokens; values and names must not contain CR, LF, or NUL. `Host`, `Content-Length`, `Content-Type`, `User-Agent`, hop-by-hop headers, and the relay's own `X-Relay-*` headers cannot be overridden. `GET /health` and logs never echo header values, URLs, or secrets — only bot names and configuration problem messages.
 
 A URL must be `https` and must not contain a user name or password. Plain `http` is accepted only for `localhost`, for trying a bot under `wrangler dev`. A bot that is not listed keeps polling. `GET /health` shows which bots have a webhook and what, if anything, is wrong with the configuration.
 
@@ -157,12 +165,12 @@ function verified(headers, rawBody, secret) {
 }
 ```
 
-**Answer within ten seconds.** The bot has two ways to reply:
+**Answer within ten seconds.** Any HTTP `2xx` (including `202 Accepted` with a non-JSON body) counts as delivered. The bot has two ways to reply:
 
-- Return `2xx` straight away and post the answer to `reply_url` when it is ready, exactly as a polling bot does with `POST /reply/{id}`. Use this for anything that takes thought.
-- Return `200` with `Content-Type: application/json` and `{ "text": "Booked for seven." }`. The relay records that as the bot's reply and the bot makes no second call. The reply is credited to the bot the webhook belongs to.
+- Return any `2xx` straight away and post the answer to `reply_url` when it is ready, exactly as a polling bot does with `POST /reply/{id}`. Use this for anything that takes thought — including Grok Bot routines that acknowledge with `202` and answer later.
+- Return `200` with `Content-Type: application/json` and `{ "text": "Booked for seven." }`. The relay records that as the bot's reply and the bot makes no second call. The reply is credited to the bot the webhook belongs to. A `2xx` without a JSON `text` field is still a successful delivery; the relay simply waits for `POST /reply`.
 
-**Failures fall back to the poll.** The relay tries a delivery three times over about five seconds when the bot is unreachable, times out, or answers `408`, `425`, `429`, or `5xx`. Any other status ends the delivery at once, and a redirect is not followed. Each attempt carries the same `X-Relay-Delivery` value and a fresh timestamp and signature, so a bot that receives one delivery twice can ignore the repeat. An ask whose delivery failed appears in `/pending`. A bot with a webhook should still poll now and then, for example once a minute and when it starts, to pick up anything a webhook missed.
+**Failures fall back to the poll.** The relay tries a delivery three times over about five seconds when the bot is unreachable, times out, or answers `408`, `425`, `429`, or `5xx`. Any other non-`2xx` status ends the delivery at once, and a redirect is not followed. Each attempt carries the same `X-Relay-Delivery` value and a fresh timestamp and signature, so a bot that receives one delivery twice can ignore the repeat. An ask whose delivery failed appears in `/pending`. A bot with a webhook should still poll now and then, for example once a minute and when it starts, to pick up anything a webhook missed.
 
 ### `GET /pending?target_bot=Fire%20Fox&wait=20`
 
@@ -224,7 +232,7 @@ An ask that is unknown or older than 15 minutes gets `404`.
 { "ok": true, "apns": true, "devices": 1, "webhooks": ["Fire Fox", "Indy"], "webhook_problems": [] }
 ```
 
-`apns` says whether the three APNs secrets are set. `webhooks` lists the bots that have a usable webhook. `webhook_problems` names each entry in `BOT_WEBHOOKS` that was rejected and why. The response never contains a URL or a secret. Like every route, it needs the bearer.
+`apns` says whether the three APNs secrets are set. `webhooks` lists the bots that have a usable webhook. `webhook_problems` names each entry in `BOT_WEBHOOKS` that was rejected and why. The response never contains a URL, a secret, or a custom header value. Like every route, it needs the bearer.
 
 ## APNs
 

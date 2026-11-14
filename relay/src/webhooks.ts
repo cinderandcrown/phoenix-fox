@@ -7,6 +7,9 @@
  * A bot that has a webhook does not need to poll `/pending`. The relay posts each ask to
  * the bot's URL, signed so the bot can tell the request came from this relay and was not
  * replayed. A delivery that fails leaves the ask in `/pending`, where a poll still finds it.
+ *
+ * Optional per-bot `headers` (e.g. Authorization or X-Webhook-Key) ride on every POST for
+ * platforms that require a sender key. Header values are never echoed in `/health` or logs.
  */
 
 export interface WebhookTarget {
@@ -15,11 +18,16 @@ export interface WebhookTarget {
   url: string;
   /** HMAC key for this bot. */
   secret: string;
+  /**
+   * Extra request headers for this bot (Authorization, X-Webhook-Key, …).
+   * Never logged. Empty when the entry was a bare URL.
+   */
+  headers: Record<string, string>;
 }
 
 export interface WebhookConfig {
   targets: WebhookTarget[];
-  /** What is wrong with the configuration. Never contains a URL or a secret. */
+  /** What is wrong with the configuration. Never contains a URL, a secret, or a header value. */
   problems: string[];
 }
 
@@ -50,6 +58,27 @@ const ATTEMPT_TIMEOUT_MS = 10_000;
 const BACKOFF_MS = [0, 1_000, 4_000];
 const MAX_REPLY_BYTES = 64_000;
 
+/** Hop-by-hop / identity headers a bot entry must not override. */
+const BLOCKED_HEADER_NAMES = new Set([
+  "host",
+  "content-length",
+  "content-type",
+  "user-agent",
+  "transfer-encoding",
+  "connection",
+  "keep-alive",
+  "upgrade",
+  "te",
+  "trailer",
+  EVENT_HEADER,
+  DELIVERY_HEADER,
+  TIMESTAMP_HEADER,
+  SIGNATURE_HEADER,
+]);
+
+/** RFC 7230 token characters for a header name. */
+const HEADER_NAME = /^[!#$%&'*+\-.^_`|~0-9A-Za-z]+$/;
+
 export const NO_WEBHOOKS: WebhookConfig = { targets: [], problems: [] };
 
 /** Bot names are matched without regard to case or surrounding space. */
@@ -58,8 +87,10 @@ export function botKey(name: string): string {
 }
 
 /**
- * Reads `BOT_WEBHOOKS`: a JSON object from bot name to a URL, or to `{ "url", "secret" }`
- * when that bot signs with its own key. `sharedSecret` signs for every bot without one.
+ * Reads `BOT_WEBHOOKS`: a JSON object from bot name to a URL, or to
+ * `{ "url", "secret"?, "headers"? }` when that bot signs with its own key and/or needs
+ * custom request headers (Authorization, X-Webhook-Key, …). `sharedSecret` signs for
+ * every bot without its own `secret`.
  */
 export function parseWebhooks(raw: string | undefined, sharedSecret: string): WebhookConfig {
   if (!raw || !raw.trim()) return NO_WEBHOOKS;
@@ -88,7 +119,7 @@ export function parseWebhooks(raw: string | undefined, sharedSecret: string): We
     }
     const entry = entryOf(value);
     if (!entry) {
-      problems.push(`${bot}: expected a URL or { "url", "secret" }`);
+      problems.push(`${bot}: expected a URL or { "url", "secret"?, "headers"? }`);
       continue;
     }
     const fault = urlFault(entry.url);
@@ -101,8 +132,14 @@ export function parseWebhooks(raw: string | undefined, sharedSecret: string): We
       problems.push(`${bot}: no signing secret`);
       continue;
     }
+    const headerResult = parseHeaders(entry.headers);
+    if (headerResult.problem) {
+      // Problems name the bot and the field, never the header value.
+      problems.push(`${bot}: ${headerResult.problem}`);
+      continue;
+    }
     seen.add(key);
-    targets.push({ bot, url: entry.url, secret });
+    targets.push({ bot, url: entry.url, secret, headers: headerResult.headers });
   }
   return { targets, problems };
 }
@@ -127,6 +164,9 @@ export async function sign(secret: string, timestamp: number, body: string): Pro
 /**
  * Posts one event to one bot, retrying a failure that could be temporary.
  * Every attempt carries the same delivery id, so a bot that sees it twice can ignore the repeat.
+ *
+ * Any HTTP 2xx (including 202 with a non-JSON body) counts as delivered. An inline JSON
+ * `{ "text": "…" }` reply is recorded when present; otherwise the bot posts to `/reply` later.
  */
 export async function deliver(
   target: WebhookTarget,
@@ -148,6 +188,7 @@ export async function deliver(
       response = await deps.send(new Request(target.url, {
         method: "POST",
         headers: {
+          ...target.headers,
           "content-type": "application/json",
           "user-agent": USER_AGENT,
           [EVENT_HEADER]: event,
@@ -165,6 +206,7 @@ export async function deliver(
       continue;
     }
     status = response.status;
+    // response.ok is true for every 2xx, including 202 Accepted.
     if (response.ok) {
       const reply = await inlineReply(response);
       return reply ? { bot: target.bot, delivered: true, attempts, status, reply } : { bot: target.bot, delivered: true, attempts, status };
@@ -175,13 +217,64 @@ export async function deliver(
   return { bot: target.bot, delivered: false, attempts, status };
 }
 
-function entryOf(value: unknown): { url: string; secret: string } | null {
-  if (typeof value === "string") return { url: value.trim(), secret: "" };
+function entryOf(value: unknown): { url: string; secret: string; headers: unknown } | null {
+  if (typeof value === "string") return { url: value.trim(), secret: "", headers: undefined };
   if (!value || typeof value !== "object" || Array.isArray(value)) return null;
   const record = value as Record<string, unknown>;
   if (typeof record.url !== "string") return null;
   if (record.secret !== undefined && typeof record.secret !== "string") return null;
-  return { url: record.url.trim(), secret: (record.secret ?? "").trim() };
+  if (record.headers !== undefined && (typeof record.headers !== "object" || record.headers === null || Array.isArray(record.headers))) {
+    return null;
+  }
+  return { url: record.url.trim(), secret: (record.secret ?? "").trim(), headers: record.headers };
+}
+
+/**
+ * Validates optional custom headers. Returns a problem string that never includes values.
+ */
+export function parseHeaders(raw: unknown): { headers: Record<string, string>; problem: string | null } {
+  if (raw === undefined || raw === null) return { headers: {}, problem: null };
+  if (typeof raw !== "object" || Array.isArray(raw)) {
+    return { headers: {}, problem: 'headers must be an object of name to string' };
+  }
+  const headers: Record<string, string> = {};
+  const seen = new Set<string>();
+  for (const [name, value] of Object.entries(raw as Record<string, unknown>)) {
+    if (typeof value !== "string") {
+      return { headers: {}, problem: `header "${sanitizeName(name)}" must be a string` };
+    }
+    const fault = headerFault(name, value);
+    if (fault) return { headers: {}, problem: fault };
+    const lower = name.toLowerCase();
+    if (seen.has(lower)) {
+      return { headers: {}, problem: `header "${sanitizeName(name)}" listed more than once` };
+    }
+    seen.add(lower);
+    headers[name] = value;
+  }
+  return { headers, problem: null };
+}
+
+function headerFault(name: string, value: string): string | null {
+  if (!name || !HEADER_NAME.test(name)) {
+    return `header name "${sanitizeName(name)}" is not valid`;
+  }
+  if (hasCRLF(name) || hasCRLF(value)) {
+    return `header "${sanitizeName(name)}" contains a forbidden character`;
+  }
+  if (BLOCKED_HEADER_NAMES.has(name.toLowerCase())) {
+    return `header "${sanitizeName(name)}" cannot be set on a webhook`;
+  }
+  return null;
+}
+
+function hasCRLF(text: string): boolean {
+  return /[\r\n\0]/.test(text);
+}
+
+/** Safe fragment for problem strings — never the secret value. */
+function sanitizeName(name: string): string {
+  return name.replace(/[\r\n\0]/g, "").slice(0, 64) || "(empty)";
 }
 
 function urlFault(text: string): string | null {
@@ -202,7 +295,10 @@ function temporary(status: number): boolean {
   return status === 408 || status === 425 || status === 429 || status >= 500;
 }
 
-/** A bot may answer in the webhook response with `{ "text": "..." }` instead of calling `/reply`. */
+/**
+ * A bot may answer in the webhook response with `{ "text": "..." }` instead of calling `/reply`.
+ * Non-JSON bodies (including a bare 202 Accepted) are fine: delivery still succeeded.
+ */
 async function inlineReply(response: Response): Promise<string> {
   const type = response.headers.get("content-type") ?? "";
   if (!type.toLowerCase().includes("json")) {
