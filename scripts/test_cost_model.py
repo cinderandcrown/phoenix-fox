@@ -191,13 +191,19 @@ class Repository(unittest.TestCase):
         self.assertEqual([plan.name for plan in model.PLANS], named)
 
     def test_the_fast_models_are_the_ones_the_app_asks_for(self):
-        swift = read("OpenVision", "Services", "Brain", "BrainCatalog.swift")
+        # Model ids live in model_catalog.json; InstantModels reads them at runtime.
+        import json
+        catalog = json.loads(read("OpenVision", "Resources", "model_catalog.json"))
+        by_id = {row["id"]: row for row in catalog["providers"]}
+        self.assertEqual(catalog["defaultProvider"], "grok")
+        self.assertEqual(by_id["grok"]["models"]["instant"], "grok-4.20-non-reasoning")
+        self.assertEqual(by_id["grok"]["models"]["vision"], "grok-4")
+        self.assertEqual(by_id["anthropic"]["models"]["instant"], "claude-haiku-4-5")
+        self.assertEqual(by_id["openai"]["models"]["instant"], "gpt-4o-mini")
         # xAI lists grok-4.20-non-reasoning at grok-4.3's price, and answers the retired
         # fallback name with grok-4.3 itself, so one row prices both.
         self.assertIn('static let defaultModel = "grok-4.20-non-reasoning"', read("OpenVision", "Services", "AIBackend", "GrokService.swift"))
-        self.assertIn('static let grok = "grok-4-fast-non-reasoning"', swift)
-        self.assertIn('static let claude = "claude-haiku-4-5"', swift)
-        self.assertIn('static let openAI = "gpt-4o-mini"', swift)
+        self.assertIn("ProviderModelCatalogStore", read("OpenVision", "Services", "Brain", "BrainCatalog.swift"))
         for name in ("grok-4.3", "claude-haiku-4-5", "gpt-4o-mini"):
             self.assertIn(name, model.MODELS)
 
