@@ -173,8 +173,9 @@ final class SessionRecorder: ObservableObject, @unchecked Sendable {
             self.playbackInput?.markAsFinished()
             // Snapshot on the writer queue — the finishWriting completion runs elsewhere.
             let intervals = self.didCapturePlayback ? self.speechIntervals : []
-            writer.finishWriting {
-                if writer.status == .completed, let url = self.outputURL {
+            let finishedWriter = UncheckedSendable(writer)
+            finishedWriter.value.finishWriting {
+                if finishedWriter.value.status == .completed, let url = self.outputURL {
                     if intervals.isEmpty {
                         // No assistant speech captured — nothing to merge, ship the raw file.
                         self.saveToPhotos(url)
@@ -182,7 +183,7 @@ final class SessionRecorder: ObservableObject, @unchecked Sendable {
                         Task { await self.mergeAndSave(rawURL: url, speechIntervals: intervals) }
                     }
                 } else {
-                    NSLog("[Recorder] finishWriting failed: %@", String(describing: writer.error))
+                    NSLog("[Recorder] finishWriting failed: %@", String(describing: finishedWriter.value.error))
                     self.finish(url: nil)
                 }
             }
@@ -272,8 +273,9 @@ final class SessionRecorder: ObservableObject, @unchecked Sendable {
         guard isRecording else { return }
         guard let pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else { return }
         let now = CMClockGetTime(hostClock)
+        let frame = UncheckedSendable(pixelBuffer)
         writerQueue.async {
-            self.handleVideo(pixelBuffer: pixelBuffer, now: now)
+            self.handleVideo(pixelBuffer: frame.value, now: now)
         }
     }
 
@@ -693,4 +695,10 @@ final class SessionRecorder: ObservableObject, @unchecked Sendable {
 /// One-shot flag the audio converter callback can mutate. The callback is Sendable.
 private final class OneShotFlag: @unchecked Sendable {
     var done = false
+}
+
+/// AVFoundation media objects are not Sendable. The writer queue is the only user.
+private final class UncheckedSendable<T>: @unchecked Sendable {
+    let value: T
+    init(_ value: T) { self.value = value }
 }

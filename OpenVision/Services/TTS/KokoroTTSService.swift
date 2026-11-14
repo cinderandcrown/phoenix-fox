@@ -128,7 +128,7 @@ final class KokoroTTSService: ObservableObject {
                 nonisolated(unsafe) let voice = voiceArray
                 let lang = language
                 let line = sentence
-                let samples: [Float] = try await Task.detached(priority: .userInitiated) {
+                let samples: [Float] = try await Task.detached(priority: .userInitiated) { @Sendable in
                     let (audio, _) = try engine.generateAudio(voice: voice, language: lang, text: line)
                     return audio
                 }.value
@@ -232,7 +232,7 @@ final class KokoroTTSService: ObservableObject {
             nonisolated(unsafe) let voice = voiceArray
             let lang = language
             let line = text
-            let samples: [Float] = try await Task.detached(priority: .userInitiated) {
+            let samples: [Float] = try await Task.detached(priority: .userInitiated) { @Sendable in
                 let (audio, _) = try engine.generateAudio(voice: voice, language: lang, text: line)
                 return audio
             }.value
@@ -287,7 +287,7 @@ final class KokoroTTSService: ObservableObject {
             nonisolated(unsafe) let voice = voiceArray
             let lang = language
             let line = clean
-            let samples: [Float] = try await Task.detached(priority: .utility) {
+            let samples: [Float] = try await Task.detached(priority: .utility) { @Sendable in
                 let (audio, _) = try engine.generateAudio(voice: voice, language: lang, text: line)
                 return audio
             }.value
