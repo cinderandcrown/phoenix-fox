@@ -585,49 +585,75 @@ final class WorkshopSettingsTests: XCTestCase {
     func testEverythingIsOffUntilTurnedOn() {
         let settings = WorkshopSettings()
         XCTAssertFalse(settings.anyOn)
-        XCTAssertEqual(settings.allergens, [])
         XCTAssertEqual(settings.doseGapHours, 4)
     }
 
-    func testTheOwnerProfileTurnsEveryFeatureOnAndLeavesTheListsAlone() {
+    func testTheOwnerProfileTurnsEveryFeatureOn() {
         var settings = WorkshopSettings()
-        settings.allergens = ["milk"]
+        settings.doseGapHours = 8
         OwnerProfile.apply(to: &settings)
         XCTAssertTrue(settings.walkThrough && settings.tally && settings.ingredientWatch && settings.doseGuard && settings.council
             && settings.relayRace && settings.standingOrders && settings.placeNotes && settings.closeTheDay && settings.skills)
-        XCTAssertEqual(settings.allergens, ["milk"])
+        XCTAssertEqual(settings.doseGapHours, 8)
     }
 
     func testNothingRunsOutsideTheOwnerBuild() {
         var settings = WorkshopSettings()
         OwnerProfile.apply(to: &settings)
-        settings.allergens = ["milk"]
+        settings.doseGapHours = 8
         XCTAssertEqual(settings.allowed(in: .owner), settings)
         let standard = settings.allowed(in: .standard)
         XCTAssertFalse(standard.anyOn)
-        XCTAssertEqual(standard.allergens, ["milk"])
+        XCTAssertEqual(standard.doseGapHours, 8)
     }
 
     func testASettingsFileFromAnEarlierBuildStillLoads() throws {
-        let old = #"{"tally": true, "doseGapHours": 99, "allergens": ["milk"], "futureSwitch": true}"#
+        let old = #"{"tally": true, "doseGapHours": 99, "futureSwitch": true}"#
         let settings = try JSONDecoder().decode(WorkshopSettings.self, from: Data(old.utf8))
         XCTAssertTrue(settings.tally)
         XCTAssertFalse(settings.council)
         XCTAssertEqual(settings.doseGapHours, 4)
-        XCTAssertEqual(settings.allergens, ["milk"])
         XCTAssertEqual(try JSONDecoder().decode(WorkshopSettings.self, from: JSONEncoder().encode(settings)), settings)
     }
 
-    func testTheWatchListTakesCatalogNamesAndTheWearersOwnWords() {
-        var settings = WorkshopSettings()
-        XCTAssertEqual(settings.watch("nuts"), "tree nuts")
-        XCTAssertNil(settings.watch("tree nuts"))
-        XCTAssertEqual(settings.watch("Palm Oil"), "palm oil")
-        XCTAssertNil(settings.watch("palm oil"))
-        XCTAssertEqual(settings.watchedNames, ["tree nuts", "palm oil"])
-        XCTAssertEqual(settings.unwatch("nuts"), "tree nuts")
-        XCTAssertEqual(settings.unwatch("palm oil"), "palm oil")
-        XCTAssertNil(settings.unwatch("kiwi"))
-        XCTAssertEqual(settings.watchedNames, [])
+    func testWhatIsLookedForIsNotASetting() throws {
+        // The list says something about the wearer's health, so the settings file,
+        // which is not sealed, has no place for it.
+        let saved = try XCTUnwrap(String(data: JSONEncoder().encode(WorkshopSettings()), encoding: .utf8))
+        XCTAssertFalse(saved.contains("allergen"))
+        XCTAssertFalse(saved.contains("ngredient\":["))
+    }
+}
+
+final class WatchListTests: XCTestCase {
+    func testItTakesCatalogNamesAndTheWearersOwnWords() {
+        var list = WatchList()
+        XCTAssertTrue(list.isEmpty)
+        XCTAssertEqual(list.watch("nuts"), "tree nuts")
+        XCTAssertNil(list.watch("tree nuts"))
+        XCTAssertEqual(list.watch("Palm Oil"), "palm oil")
+        XCTAssertNil(list.watch("palm oil"))
+        XCTAssertEqual(list.names, ["tree nuts", "palm oil"])
+        XCTAssertEqual(list.unwatch("nuts"), "tree nuts")
+        XCTAssertEqual(list.unwatch("palm oil"), "palm oil")
+        XCTAssertNil(list.unwatch("kiwi"))
+        XCTAssertTrue(list.isEmpty)
+    }
+
+    func testACatalogEntryIsSwitchedOnOnceAndOff() {
+        var list = WatchList()
+        list.set("milk", on: true)
+        list.set("milk", on: true)
+        list.set("not-in-the-catalog", on: true)
+        XCTAssertEqual(list.allergens, ["milk"])
+        list.set("milk", on: false)
+        XCTAssertTrue(list.isEmpty)
+    }
+
+    func testItIsSavedAndReadBack() throws {
+        var list = WatchList()
+        _ = list.watch("peanuts")
+        _ = list.watch("coconut")
+        XCTAssertEqual(try JSONDecoder().decode(WatchList.self, from: JSONEncoder().encode(list)), list)
     }
 }

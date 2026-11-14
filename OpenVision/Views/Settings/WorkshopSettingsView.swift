@@ -46,7 +46,7 @@ struct WorkshopSettingsView: View {
                 NavigationLink {
                     IngredientListView()
                 } label: {
-                    row("What to look for", count: settingsManager.settings.workshop.watchedNames.count)
+                    row("What to look for", count: workshop.watchList.names.count)
                 }
                 Toggle("Dose guard", isOn: settings.doseGuard)
                     .accessibilityHint("Say I'm taking this while you look at a medicine label.")
@@ -133,7 +133,7 @@ struct WorkshopSettingsView: View {
                     confirmingEraseAll = true
                 }
             } footer: {
-                Text("Walk-throughs and their photos, the tally, the medicine log, standing orders, place notes, skills, and today's notes. Everything here is sealed on this phone. Nothing is sent to an assistant unless you ask for it.")
+                Text("Walk-throughs and their photos, the tally, the medicine log, what Ingredient watch looks for, standing orders, place notes, skills, and today's notes. Everything here is sealed on this phone. Nothing is sent to an assistant unless you ask for it.")
             }
         }
         .navigationTitle("Workshop")
@@ -146,7 +146,7 @@ struct WorkshopSettingsView: View {
         .confirmationDialog("Erase everything the workshop keeps?", isPresented: $confirmingEraseAll, titleVisibility: .visible) {
             Button("Erase everything", role: .destructive) { workshop.eraseEverything() }
         } message: {
-            Text("This cannot be undone. Your switches and your ingredient list stay as they are.")
+            Text("This cannot be undone. That includes what Ingredient watch looks for. Your switches stay as they are.")
         }
     }
 
@@ -164,7 +164,7 @@ struct WorkshopSettingsView: View {
 // MARK: - Ingredients
 
 private struct IngredientListView: View {
-    @EnvironmentObject var settingsManager: SettingsManager
+    @ObservedObject private var workshop = WorkshopCoordinator.shared
     @State private var word = ""
     @State private var note: String?
 
@@ -173,12 +173,8 @@ private struct IngredientListView: View {
             Section {
                 ForEach(Allergen.catalog) { allergen in
                     Toggle(allergen.name.capitalized, isOn: Binding(
-                        get: { settingsManager.settings.workshop.allergens.contains(allergen.id) },
-                        set: { on in
-                            var list = settingsManager.settings.workshop.allergens.filter { $0 != allergen.id }
-                            if on { list.append(allergen.id) }
-                            settingsManager.settings.workshop.allergens = list
-                        }
+                        get: { workshop.watchList.allergens.contains(allergen.id) },
+                        set: { workshop.setAllergen(allergen.id, on: $0) }
                     ))
                 }
             } footer: {
@@ -186,11 +182,11 @@ private struct IngredientListView: View {
             }
 
             Section {
-                ForEach(settingsManager.settings.workshop.customIngredients, id: \.self) { item in
+                ForEach(workshop.watchList.custom, id: \.self) { item in
                     Text(item)
                 }
                 .onDelete { offsets in
-                    settingsManager.settings.workshop.customIngredients.remove(atOffsets: offsets)
+                    for item in offsets.map({ workshop.watchList.custom[$0] }) { workshop.removeIngredient(item) }
                 }
                 HStack {
                     TextField("Another word to look for", text: $word)
@@ -208,7 +204,7 @@ private struct IngredientListView: View {
             } header: {
                 Text("Your own words")
             } footer: {
-                Text("A word you add is matched exactly as you wrote it, and its plural. Phoenix Fox does not know its other names. You can also say \"add coconut to my allergies\".")
+                Text("A word you add is matched exactly as you wrote it, and its plural. Phoenix Fox does not know its other names. You can also say \"add coconut to my allergies\". This list is sealed on this phone and never sent anywhere.")
             }
         }
         .navigationTitle("What to look for")
@@ -218,9 +214,7 @@ private struct IngredientListView: View {
     private func add() {
         let wanted = word.trimmingCharacters(in: .whitespaces)
         guard !wanted.isEmpty else { return }
-        var workshop = settingsManager.settings.workshop
-        if let name = workshop.watch(wanted) {
-            settingsManager.settings.workshop = workshop
+        if let name = workshop.addIngredient(wanted) {
             note = "Added \(name)."
             word = ""
         } else {

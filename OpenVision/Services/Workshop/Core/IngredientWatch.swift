@@ -100,6 +100,56 @@ struct Allergen: Equatable, Identifiable, Sendable {
     }
 }
 
+/// What the wearer asked Ingredient watch to look for. It says something about their
+/// health, so it is kept sealed with the workshop's records and not with the settings.
+struct WatchList: Codable, Equatable, Sendable {
+    /// Ids from `Allergen.catalog`.
+    var allergens: [String] = []
+    /// The wearer's own words, matched as written.
+    var custom: [String] = []
+
+    static let customLimit = 40
+
+    var isEmpty: Bool { allergens.isEmpty && custom.isEmpty }
+
+    /// The names of what is looked for, as they are said.
+    var names: [String] {
+        Allergen.catalog.filter { allergens.contains($0.id) }.map(\.name) + custom
+    }
+
+    /// Adds something to look for. Returns its name as it will be said, or nil when it
+    /// was already on the list or the list is full.
+    mutating func watch(_ spoken: String) -> String? {
+        if let allergen = Allergen.named(spoken) {
+            guard !allergens.contains(allergen.id) else { return nil }
+            allergens.append(allergen.id)
+            return allergen.name
+        }
+        let word = WorkshopText.words(spoken).joined(separator: " ")
+        guard !word.isEmpty, word.count <= 40, !custom.contains(word), custom.count < Self.customLimit else { return nil }
+        custom.append(word)
+        return word
+    }
+
+    /// Stops looking for something. Returns its name, or nil when it was not on the list.
+    mutating func unwatch(_ spoken: String) -> String? {
+        if let allergen = Allergen.named(spoken), let index = allergens.firstIndex(of: allergen.id) {
+            allergens.remove(at: index)
+            return allergen.name
+        }
+        let word = WorkshopText.words(spoken).joined(separator: " ")
+        guard let index = custom.firstIndex(of: word) else { return nil }
+        custom.remove(at: index)
+        return word
+    }
+
+    /// Switches one catalog entry on or off.
+    mutating func set(_ id: String, on: Bool) {
+        allergens.removeAll { $0 == id }
+        if on, Allergen.catalog.contains(where: { $0.id == id }) { allergens.append(id) }
+    }
+}
+
 enum IngredientWatch {
     enum Certainty: Equatable, Sendable {
         /// In the ingredient list or a "contains" statement.

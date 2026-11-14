@@ -31,6 +31,8 @@ final class WorkshopCoordinator: ObservableObject {
     @Published private(set) var skills: [Skill]
     @Published private(set) var doses: DoseLog
     @Published private(set) var notes: PlaceNotes
+    /// What Ingredient watch looks for.
+    @Published private(set) var watchList: WatchList
     private var journal: WorkshopJournal
 
     private enum Undoable { case walk, tally, dose }
@@ -50,6 +52,7 @@ final class WorkshopCoordinator: ObservableObject {
         doses = AccessStore.load(DoseLog.self, from: Self.dosesFile) ?? DoseLog()
         notes = AccessStore.load(PlaceNotes.self, from: Self.notesFile) ?? PlaceNotes()
         journal = AccessStore.load(WorkshopJournal.self, from: Self.journalFile) ?? WorkshopJournal()
+        watchList = AccessStore.load(WatchList.self, from: Self.watchFile) ?? WatchList()
     }
 
     private static let walksFile = "workshop-walks"
@@ -59,6 +62,7 @@ final class WorkshopCoordinator: ObservableObject {
     private static let dosesFile = "workshop-doses"
     private static let notesFile = "workshop-notes"
     private static let journalFile = "workshop-journal"
+    private static let watchFile = "workshop-ingredients"
 
     private var settings: WorkshopSettings { SettingsManager.shared.workshop }
     private var bots: [AssistantBot] { AssistantRoster.normalized(SettingsManager.shared.settings.assistantBots) }
@@ -133,7 +137,7 @@ final class WorkshopCoordinator: ObservableObject {
         case .allergyAdd(let item): return watch(item)
         case .allergyRemove(let item): return unwatch(item)
         case .allergyList:
-            let watching = settings.watchedNames
+            let watching = watchList.names
             return watching.isEmpty
                 ? "Your ingredient list is empty. Say, for example, \"add peanuts to my allergies\"."
                 : "I look for: \(WorkshopText.list(watching))."
@@ -386,20 +390,20 @@ final class WorkshopCoordinator: ObservableObject {
     // MARK: - Ingredient watch
 
     private func checkIngredients(snapshot: Snapshot, progress: Progress) async -> String {
-        let settings = self.settings
-        let watching = settings.watchedNames
+        let list = watchList
+        let watching = list.names
         // No picture is taken when there is nothing to look for.
         guard !watching.isEmpty else {
             return IngredientWatch.spoken(IngredientWatch.Report(findings: [], claims: [], sawIngredients: false, wordCount: 0), watching: [])
         }
         guard let first = await labelText(snapshot) else { return Self.noPicture }
-        var report = IngredientWatch.scan(first, watched: settings.allergens, custom: settings.customIngredients)
+        var report = IngredientWatch.scan(first, watched: list.allergens, custom: list.custom)
         if report.findings.isEmpty, report.sawIngredients {
             // "Nothing found" is the answer that can hurt someone, so it is never given
             // on one look.
             progress("Looking again to be sure.")
             if let second = await labelText(snapshot) {
-                report = IngredientWatch.merged(report, IngredientWatch.scan(second, watched: settings.allergens, custom: settings.customIngredients))
+                report = IngredientWatch.merged(report, IngredientWatch.scan(second, watched: list.allergens, custom: list.custom))
             } else {
                 return "I could only read the label once, and found none of your words that time. Ask me again so I can check twice."
             }
@@ -408,20 +412,45 @@ final class WorkshopCoordinator: ObservableObject {
     }
 
     private func watch(_ item: String) -> String {
-        var workshop = SettingsManager.shared.settings.workshop
-        guard let name = workshop.watch(item) else { return "\(WorkshopText.sentence(item)) is already on your list, or the list is full." }
-        SettingsManager.shared.settings.workshop = workshop
-        let known = Allergen.named(item) != nil
-        return known
-            ? "Added \(name). I look for: \(WorkshopText.list(workshop.watchedNames))."
+        guard let name = addIngredient(item) else {
+            return "\(WorkshopText.sentence(item)) is already on your list, or the list is full."
+        }
+        return Allergen.named(item) != nil
+            ? "Added \(name). I look for: \(WorkshopText.list(watchList.names))."
             : "Added \(name). I will look for those exact words. I do not know the other names it goes by."
     }
 
     private func unwatch(_ item: String) -> String {
-        var workshop = SettingsManager.shared.settings.workshop
-        guard let name = workshop.unwatch(item) else { return "\(WorkshopText.sentence(item)) is not on your list." }
-        SettingsManager.shared.settings.workshop = workshop
+        guard let name = watchList.unwatch(item) else { return "\(WorkshopText.sentence(item)) is not on your list." }
+        saveWatchList()
         return "Removed \(name)."
+    }
+
+    /// Adds something to look for. Returns its name, or nil when it was already there or
+    /// the list is full.
+    @discardableResult
+    func addIngredient(_ item: String) -> String? {
+        guard let name = watchList.watch(item) else { return nil }
+        saveWatchList()
+        return name
+    }
+
+    func setAllergen(_ id: String, on: Bool) {
+        watchList.set(id, on: on)
+        saveWatchList()
+    }
+
+    func removeIngredient(_ word: String) {
+        watchList.custom.removeAll { $0 == word }
+        saveWatchList()
+    }
+
+    private func saveWatchList() {
+        if watchList.isEmpty {
+            AccessStore.remove(Self.watchFile)
+        } else {
+            AccessStore.save(watchList, to: Self.watchFile)
+        }
     }
 
     // MARK: - Dose guard
@@ -812,10 +841,11 @@ final class WorkshopCoordinator: ObservableObject {
         skills = []
         notes = PlaceNotes()
         journal.removeAll()
+        watchList = WatchList()
         lastAdded = nil
         lastReadNote = nil
         eraseDoses()
-        for file in [Self.walksFile, Self.tallyFile, Self.ordersFile, Self.skillsFile, Self.notesFile, Self.journalFile] {
+        for file in [Self.walksFile, Self.tallyFile, Self.ordersFile, Self.skillsFile, Self.notesFile, Self.journalFile, Self.watchFile] {
             AccessStore.remove(file)
         }
     }
