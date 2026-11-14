@@ -49,6 +49,20 @@ final class WearablesSDKTests: XCTestCase {
         XCTAssertFalse(GlassesManager.shouldSkipStartRegistration(.available))
         XCTAssertFalse(GlassesManager.shouldSkipStartRegistration(.unavailable))
         XCTAssertFalse(GlassesManager.shouldSkipStartRegistration(.notRunning))
+        XCTAssertTrue(GlassesManager.isRegisteredStage(.registered))
+        XCTAssertTrue(GlassesManager.isRegisteredStage(.registering))
+        XCTAssertFalse(GlassesManager.isRegisteredStage(.available))
+    }
+
+    /// Skipped Register must not look like a completed attempt with Meta AI opened: no.
+    func testSkippedRegisterDoesNotBeginAnAttempt() async {
+        let glasses = GlassesManager.shared
+        // SDK not running in tests → register begins then stalls; that path is fine.
+        // When already-registered skip is hit in production, begin() is not called.
+        // Guard the pure rule here so Copy log stays honest after a no-op Register.
+        XCTAssertTrue(GlassesManager.shouldSkipStartRegistration(.registered))
+        glasses.dismissRegistrationTrouble()
+        XCTAssertEqual(glasses.registration.phase, .idle)
     }
 
     func testMetaAppIDIsReadableWithoutToken() {

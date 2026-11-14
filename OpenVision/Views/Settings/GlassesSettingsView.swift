@@ -260,7 +260,7 @@ struct GlassesSettingsView: View {
             }
             Button("Cancel", role: .cancel) {}
         } message: {
-            Text("This disconnects your glasses from Phoenix Fox. You will need to pair them again to use them.")
+            Text("Opens Meta AI to disconnect Phoenix Fox. Stay until Meta AI finishes; Phoenix Fox waits until the toolkit leaves Registered before clearing the status.")
         }
         .confirmationDialog(
             "Disconnect & re-register?",
@@ -272,7 +272,7 @@ struct GlassesSettingsView: View {
             }
             Button("Cancel", role: .cancel) {}
         } message: {
-            Text("Use this when Developer Mode was turned on after you first registered. Meta AI will disconnect Phoenix Fox, then open again to register fresh so the app can appear under Developer mode apps. Do not do this on every launch.")
+            Text("Opens Meta AI to unregister, waits until the toolkit is no longer Registered, then opens Meta AI again to register. Use this after enabling Developer Mode or installing a MetaAppID 0 build — not Register alone (that skips when already Registered). Do not do this on every launch.")
         }
         .alert("Error", isPresented: .constant(glassesManager.errorMessage != nil)) {
             Button("OK") {
