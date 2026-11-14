@@ -250,6 +250,20 @@ struct AppSettings: Codable, Equatable {
     var jarvisLookClip: Bool = false
     var assistantBots: [AssistantBot] = AssistantRoster.seed
 
+    /// Smart Capture session length. The glasses light stays on until this ends.
+    var smartCaptureMinutes: Int = 30
+    /// Scene-change threshold. Higher keeps fewer frames.
+    var smartCaptureSensitivity: Double = 0.12
+    var smartCaptureMax: Int = 20
+    /// Grok vision calls allowed in one session.
+    var smartCaptureCostCap: Int = 12
+    var smartCaptureReceipts: Bool = true
+    var smartCaptureCards: Bool = true
+    var smartCaptureBoards: Bool = true
+    var smartCaptureHighlights: Bool = true
+    /// When on, a kept receipt, card, or note is handed to the relay or Contacts.
+    var smartCaptureAutoRoute: Bool = false
+
     // MARK: - Hermes Configuration
 
     /// API key (API server) or the web UI's username and password.

@@ -17,6 +17,10 @@ DerivedData/
 # Config files with secrets (use .example versions)
 Config.xcconfig
 OpenVision/Config/Config.swift
+*.p8
+relay/.dev.vars
+relay/.wrangler/
+relay/node_modules/
 
 # CocoaPods
 Pods/

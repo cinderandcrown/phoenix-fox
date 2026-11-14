@@ -20,6 +20,11 @@ struct SettingsView: View {
                     } label: {
                         Label("Task history and notes", systemImage: "list.bullet.rectangle")
                     }
+                    NavigationLink {
+                        SmartCaptureSettingsView()
+                    } label: {
+                        Label("Smart Capture", systemImage: "camera.viewfinder")
+                    }
                 } header: {
                     Text("Phoenix Fox")
                 }

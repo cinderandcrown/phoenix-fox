@@ -146,6 +146,7 @@
 		C21AA1000000000000000008 /* PhoenixFoxTurn.swift in Sources */ = {isa = PBXBuildFile; fileRef = C21AA2000000000000000008 /* PhoenixFoxTurn.swift */; };
 		C21AA100000000000000000C /* PhoenixFoxFeatures.swift in Sources */ = {isa = PBXBuildFile; fileRef = C21AA200000000000000000C /* PhoenixFoxFeatures.swift */; };
 		C21AA100000000000000000D /* Companion.swift in Sources */ = {isa = PBXBuildFile; fileRef = C21AA200000000000000000D /* Companion.swift */; };
+		C21AA100000000000000000E /* SmartCapture.swift in Sources */ = {isa = PBXBuildFile; fileRef = C21AA200000000000000000E /* SmartCapture.swift */; };
 		C21AA1000000000000000009 /* UtterancePCMBuffer.swift in Sources */ = {isa = PBXBuildFile; fileRef = C21AA2000000000000000009 /* UtterancePCMBuffer.swift */; };
 		C21AA100000000000000000A /* WhisperTranscriber.swift in Sources */ = {isa = PBXBuildFile; fileRef = C21AA200000000000000000A /* WhisperTranscriber.swift */; };
 		C21AA100000000000000000B /* OwnAssistantSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C21AA200000000000000000B /* OwnAssistantSettingsView.swift */; };
@@ -296,6 +297,7 @@
 		C21AA2000000000000000008 /* PhoenixFoxTurn.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhoenixFoxTurn.swift; sourceTree = "<group>"; };
 		C21AA200000000000000000C /* PhoenixFoxFeatures.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhoenixFoxFeatures.swift; sourceTree = "<group>"; };
 		C21AA200000000000000000D /* Companion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Companion.swift; sourceTree = "<group>"; };
+		C21AA200000000000000000E /* SmartCapture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmartCapture.swift; sourceTree = "<group>"; };
 		C21AA2000000000000000009 /* UtterancePCMBuffer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UtterancePCMBuffer.swift; sourceTree = "<group>"; };
 		C21AA200000000000000000A /* WhisperTranscriber.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WhisperTranscriber.swift; sourceTree = "<group>"; };
 		C21AA200000000000000000B /* OwnAssistantSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OwnAssistantSettingsView.swift; sourceTree = "<group>"; };
@@ -787,6 +789,7 @@
 				C21AA2000000000000000008 /* PhoenixFoxTurn.swift */,
 				C21AA200000000000000000C /* PhoenixFoxFeatures.swift */,
 				C21AA200000000000000000D /* Companion.swift */,
+				C21AA200000000000000000E /* SmartCapture.swift */,
 			);
 			path = Brain;
 			sourceTree = "<group>";
@@ -1019,6 +1022,7 @@
 				C21AA1000000000000000008 /* PhoenixFoxTurn.swift in Sources */,
 				C21AA100000000000000000C /* PhoenixFoxFeatures.swift in Sources */,
 				C21AA100000000000000000D /* Companion.swift in Sources */,
+				C21AA100000000000000000E /* SmartCapture.swift in Sources */,
 				C21AA1000000000000000009 /* UtterancePCMBuffer.swift in Sources */,
 				C21AA100000000000000000A /* WhisperTranscriber.swift in Sources */,
 				C21AA100000000000000000B /* OwnAssistantSettingsView.swift in Sources */,

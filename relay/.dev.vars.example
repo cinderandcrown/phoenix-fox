@@ -1,0 +1,5 @@
+# Copy to .dev.vars for `wrangler dev`. Never commit .dev.vars.
+RELAY_TOKEN=
+APNS_KEY_P8=
+APNS_KEY_ID=
+APPLE_TEAM_ID=

@@ -125,6 +125,13 @@ final class CompanionRuntime: ObservableObject {
 
     /// True while watch-this or translation should keep the conversation open.
     var holdsConversation: Bool { cameraOn || translating }
+    var isWatching: Bool { watchTask != nil }
+
+    func showCamera(on: Bool, line: String) {
+        cameraOn = on
+        statusLine = line
+        refreshIsland()
+    }
 
     private var watchTask: Task<Void, Never>?
     private var lastThumb: [UInt8] = []
@@ -137,6 +144,9 @@ final class CompanionRuntime: ObservableObject {
     /// Returns a spoken line when this command is handled here.
     func consume(_ text: String, snapshot: () async -> Data?) async -> String? {
         let lower = text.lowercased()
+        if let capture = await SmartCapture.shared.command(text) {
+            return capture
+        }
         if lower.hasPrefix("reply ") || lower.hasPrefix("answer that ") {
             let body = lower.hasPrefix("reply ") ? String(text.dropFirst(6)) : String(text.dropFirst(12))
             return await replyToInbox(body)
@@ -149,8 +159,11 @@ final class CompanionRuntime: ObservableObject {
             return "Watching. The glasses camera light is on. I only send a frame when the scene changes. Say stop watching."
         }
         if lower.contains("stop watching") {
+            let capture = SmartCapture.shared.isRunning
             stopWatch()
-            return "Stopped watching. The camera is off."
+            return capture
+                ? "Stopped watching. Smart capture is still on, so the glasses light stays on."
+                : "Stopped watching. The camera is off."
         }
         if lower.contains("record a clip") || lower.contains("start recording")
             || lower.contains("take a video") || lower.contains("record a video") || lower.contains("start a video") {
@@ -216,11 +229,16 @@ final class CompanionRuntime: ObservableObject {
         let hour = Calendar.current.component(.hour, from: Date())
         guard (5..<11).contains(hour) else { return }
         let key = "phoenix.morning.\(Calendar.current.startOfDay(for: Date()).timeIntervalSince1970)"
-        guard SettingsManager.shared.settings.isOwnAssistantConfigured else { return }
         guard !UserDefaults.standard.bool(forKey: key) else { return }
+        let reel = SmartCaptureIndex.reel()
+        guard SettingsManager.shared.settings.isOwnAssistantConfigured || !reel.isEmpty else { return }
         UserDefaults.standard.set(true, forKey: key)
-        let line = await morningBrief(force: true)
-        TTSService.shared.speak(line)
+        if SettingsManager.shared.settings.isOwnAssistantConfigured {
+            let line = await morningBrief(force: true)
+            TTSService.shared.speak(line)
+        } else {
+            TTSService.shared.speak(reel)
+        }
         statusLine = "Morning brief."
     }
 
@@ -334,9 +352,15 @@ final class CompanionRuntime: ObservableObject {
     private func stopWatch() {
         watchTask?.cancel()
         watchTask = nil
+        if SmartCapture.shared.isRunning {
+            cameraOn = true
+            statusLine = "Smart capture on. The glasses light is on."
+            refreshIsland()
+            return
+        }
         cameraOn = false
         Task { await GlassesManager.shared.stopStreaming() }
-        statusLine = "Listening for Jarvis. The mic dot stays visible."
+        statusLine = "Listening for Jarvis. The mic indicator stays visible."
         refreshIsland()
     }
 
@@ -385,18 +409,22 @@ final class CompanionRuntime: ObservableObject {
     }
 
     private func morningBrief(force: Bool) async -> String {
-        guard SettingsManager.shared.settings.isOwnAssistantConfigured else {
-            return "Morning brief needs the relay. Fire Fox, Indy, Driver, and Rally aren't connected yet."
-        }
         _ = force
+        let reel = SmartCaptureIndex.reel()
+        guard SettingsManager.shared.settings.isOwnAssistantConfigured else {
+            return reel.isEmpty
+                ? "Morning brief needs the relay. Fire Fox, Indy, Driver, and Rally aren't connected yet."
+                : reel
+        }
         do {
             let replies = try await OwnAssistantService.shared.ask(
                 transcript: "morning brief", cleaned: "Give a short morning brief.",
                 images: [], intent: "briefing", targetBot: "all"
             )
-            return replies.map { "\($0.fromBot): \($0.text)" }.joined(separator: " ")
+            let body = replies.map { "\($0.fromBot): \($0.text)" }.joined(separator: " ")
+            return reel.isEmpty ? body : "\(reel) \(body)"
         } catch {
-            return "The morning brief didn't come back."
+            return reel.isEmpty ? "The morning brief didn't come back." : reel
         }
     }
 }
