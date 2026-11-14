@@ -13,4 +13,4 @@
 | [REVIEW_CHECKLIST.md](REVIEW_CHECKLIST.md) | Apple and Google review checklist, code gaps, consent copy, hosting, review notes |
 | [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) | License audit of every dependency and model |
 
-Publisher: Nicholas Will (individual Apple Developer account). Contact: cinderandcrown@gmail.com. Governing law: Texas. These files are drafts and are **not published**.
+Publisher: Cinder and Crown LLC (Texas). Privacy contact: privacy@cinderandcrown.com (being set up). The Apple Developer account must be converted from Individual to Organization, see REVIEW_CHECKLIST.md A29. Governing law: Texas. These files are drafts and are **not published**.

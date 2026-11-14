@@ -105,6 +105,6 @@ Downloading ML weights at runtime is allowed under App Store guideline 2.5.2, be
 | L3 | Remove Qwen2.5-3B-Instruct from store builds | Code | Needs code change |
 | L4 | Gemma 2 terms: show them in Licenses and pass on the prohibited-use restrictions (Terms of Use section 6 covers misuse generally), or drop the model | Code / Nicholas | Needs decision |
 | L5 | Commit `Package.resolved` and pin mlx-swift to a revision | Code | Done on the conformance branch, not yet on main |
-| L6 | Accept the Meta Wearables Developer Terms under the right legal entity (individual vs. LLC), and plan Integration Review | Nicholas | Needs Nicholas |
+| L6 | Accept the Meta Wearables Developer Terms as **Cinder and Crown LLC** (decided), and plan Integration Review | Nicholas | Needs Nicholas |
 | L7 | `relay/package.json` license field and SPDX headers | This PR | **Done** |
 | L8 | NOTICE lists vendored packages and the swift-crypto notice | This PR | **Done** |

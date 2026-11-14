@@ -5,10 +5,18 @@
 ## Summary
 
 - **Status key:** **Done** = in place now. **Code** = needs a code change. **Nicholas** = needs a decision or an account action from Nicholas.
-- **Biggest blockers, in order:** (1) Meta still blocks App Store distribution of glasses apps (MFi), (2) no consent screen before data goes to a third-party AI, (3) face recognition creates biometric data, (4) the privacy policy isn't hosted and isn't linked in the app, (5) FluidAudio pulls GPL-derived data into the app.
+- **Biggest blockers, in order:** (1) Meta still blocks App Store distribution of glasses apps (MFi), (2) the Apple Developer account must move from Individual to **Organization (Cinder and Crown LLC)**, (3) no consent screen before data goes to a third-party AI, (4) the face-recognition consent and auto-delete changes aren't built yet, (5) the privacy policy isn't hosted or linked in the app, (6) FluidAudio pulls GPL-derived data into the app.
 - TestFlight beta testing isn't blocked by any of these.
 
 ---
+
+## Decisions recorded (14 Nov 2026)
+
+1. **Publisher:** Cinder and Crown LLC, a Texas limited liability company, Dallas, TX. Mailing address: [LLC MAILING ADDRESS — TO PROVIDE]. Apple account conversion: A29.
+2. **Privacy contact:** privacy@cinderandcrown.com (**being set up**: confirm it receives mail before anything is published).
+3. **Face recognition:** kept, with strict consent and auto-delete, default off in release builds until attorney sign-off (A8, C2).
+4. **Meta DAT telemetry:** off (C4, G12).
+5. **ChatGPT-subscription and SuperGrok sign-ins:** removed from store builds. API keys only (A21, C12).
 
 ## A. Host the policy at a public URL
 
@@ -54,6 +62,8 @@ Variants:
 - **Cloud voice:** "• Jarvis's replies, to turn them into speech".
 - **Guide mode cloud descriptions:** "Guide mode can send pictures of what's in front of you to [provider] when this iPhone can't describe them. [Allow] [Keep descriptions on this iPhone]".
 - **Your own assistant (relay):** "Phoenix Fox sends what you say, recent conversation, and pictures you include to the relay at [host], and from there to the assistants it's set up for. Whoever runs that relay is responsible for it."
+- **Face recognition, wearer opt-in (on screen):** "Face recognition helps you know who's in front of you. It only recognizes people who agree, in their own voice, to be saved. Face data stays encrypted on this iPhone, is never sent anywhere, and is deleted after 30 days without a match. You're responsible for getting each person's consent. [Turn on] [Not now]"
+- **Face recognition, enrolled person's consent (spoken to that person, through the glasses speaker or phone):** "Hi, I'm Jarvis, an assistant on [wearer]'s glasses. May I save your face on this phone so [wearer] can recognize you? It stays on this phone only, is never uploaded, and is deleted after 30 days if you're not seen, or any time you ask [wearer]. Please say 'yes, I agree' or 'no'." Save only on a clear yes in a voice other than the wearer's (or with the wearer confirming the other person answered). Store the time of that yes.
 - **Spoken fallback** (glasses only, phone in pocket; use only to *re-confirm* a consent already given on screen): "To answer that, I'd send what you said, and the picture, to Grok. Say allow, or say no to stay on the phone."
 
 **Accessibility:** the screen must work with VoiceOver, with the buttons labeled exactly as shown.
@@ -68,8 +78,8 @@ Variants:
 | A4 | 5.1.1(ii) / 5.1.2(i) | **Explicit consent before sending personal data to a third-party AI** | **Code** (section C) |
 | A5 | 5.1.1(iii) | Data minimization: Guide mode cloud descriptions are **on by default** (`Services/Accessibility/Core/AccessibilitySettings.swift`, line 19). Make it off by default, or ask the first time | Code |
 | A6 | 5.1.1(iv) | Features still work, with fallbacks, if a permission is refused. Code paths give spoken fallbacks | Done (verify in the demo) |
-| A7 | 5.1.1(v) | No account required. Account deletion doesn't apply. ChatGPT, SuperGrok, and Hermes sign-ins are the provider's accounts | Done |
-| A8 | 5.1.1(viii) | **Face recognition** stores biometric data about third parties, based on the wearer's word that they agreed. Apple may treat this as compiling personal data without that person's consent. **Recommendation: leave face recognition out of the public App Store build for v1** (it's already off by default in standard builds, but the owner profile turns it on: `Services/Glasses/Core/GlassesCapabilitySettings.swift`, line 112). Or keep it with a stronger consent flow plus automatic expiry, after attorney review | **Nicholas** + Code |
+| A7 | 5.1.1(v) | No account required. Account deletion doesn't apply. Store builds use pasted API keys only (decision 5) | Done (after C12) |
+| A8 | 5.1.1(viii) / 5.1.2 | **Face recognition: decided to keep it**, with: wearer opt-in; a **separate, timestamped spoken consent from each enrolled person**; on-device only; encrypted and excluded from backup; **auto-delete after 30 days without a match (configurable down to 1 day)** and immediately on request; strangers never stored; forget by voice and in Settings. **Default off in release builds until an attorney signs off.** Policy section 5 and Terms section 6A are written to match. Explain the consent flow in the review notes | **Code (C2)** + attorney sign-off |
 | A9 | 5.1.2(ii)-(iii) | No repurposing, profiling, or ads | Done |
 | A10 | 5.1.3 | Medication log isn't HealthKit and makes no health claims. Disclaimer shown | Done + Code (B7) |
 | A11 | 5.1.4 | Not a kids app. Set the age rating to **18+** in App Store Connect (AI chat, user-generated content, camera) | Nicholas |
@@ -82,15 +92,15 @@ Variants:
 | A18 | 3.1.1 / 3.1.2 | StoreKit subscriptions, restore button, auto-renew disclosure, Terms and Privacy links on the paywall | Done except P4 |
 | A19 | 3.1.2 | A custom EULA in App Store Connect, or keep Apple's standard EULA. **We chose custom** (TERMS_OF_USE.md) | Nicholas (P3) |
 | A20 | 4.8 | Sign in with Apple isn't required (no app account. Provider sign-ins are only for that provider's service) | Done |
-| A21 | **5.2.2** | **Third-party service authorization.** "ChatGPT subscription" sign-in reuses another app's OAuth client and calls `chatgpt.com/backend-api` (`Services/AIBackend/ChatGPTSubscription.swift`, `Services/OAuth/*`). The SuperGrok sign-in (`Services/AIBackend/GrokService.swift`) works similarly. Unless OpenAI and xAI expressly permit this, **remove both from store builds** and keep API-key auth | **Code** |
+| A21 | **5.2.2** | Third-party service authorization: **decided to remove ChatGPT-subscription and SuperGrok sign-ins from store builds.** Users paste API keys. Gate the sign-in UI and OAuth code behind the owner/TestFlight flavor, or delete it (`Services/AIBackend/ChatGPTSubscription.swift`, `Services/AIBackend/GrokService.swift`, `Services/OAuth/*`, `Views/Settings/OpenAISettingsView.swift`, `Views/Settings/GrokSettingsView.swift`) | **Code (C12)** |
 | A22 | 5.2.1 | No "Meta", "Ray-Ban", or "Oakley" in the name, subtitle, or icon. No Marvel, "Iron Man", or "J.A.R.V.I.S." in marketing | Nicholas |
 | A23 | 5.2.3 / Meta terms | Meta Integration Review, and **Meta lifting the App Store / MFi block** (`docs/APP_STORE_PLAN.md`) | Nicholas / Meta |
 | A24 | Privacy label | Answer as in APPLE_PRIVACY_LABEL.md (set A after the Meta opt-out) | Nicholas + Code |
 | A25 | Privacy manifest | Add the System Boot Time reason `35F9.1`, fill in the collected types, and generate Xcode's Privacy Report | Code |
 | A26 | ATS | Remove `NSAllowsArbitraryLoads`, or justify it in the review notes (`Resources/Info.plist`) | Code |
 | A27 | Export compliance | `ITSAppUsesNonExemptEncryption = false` | Done |
-| A28 | EU Digital Services Act | If the app is offered in the EU, App Store Connect requires a **trader status** declaration. As a trader, Nicholas's **address and phone number are shown publicly** on the EU store page. Consider moving to the LLC first, or leaving out EU storefronts | **Nicholas** |
-| A29 | Legal entity | The Apple account is an **individual** (Nicholas Will). Every document names him. If it moves to Cinder and Crown LLC, update all documents and the Meta app ownership | **Nicholas** |
+| A28 | EU Digital Services Act | If the app is offered in the EU, App Store Connect needs a **trader status** declaration. As a trader, the **LLC's** address, phone, and email are shown publicly on the EU store page ([LLC MAILING ADDRESS — TO PROVIDE]). Decide whether EU storefronts are included at launch | **Nicholas** |
+| A29 | Legal entity | **Publisher is Cinder and Crown LLC** (decided). The Apple Developer account is currently enrolled as an **Individual** (Nicholas Will) and **must be converted to an Organization account** in the LLC's legal name. That needs a **D-U-N-S number for Cinder and Crown LLC** (free from Dun & Bradstreet through Apple's D-U-N-S lookup), legal binding authority, and a website on the LLC's domain. The App Store seller name changes to the LLC after conversion. **The Meta Wearables Developer Terms should also be accepted by the LLC**, and the Meta app (ID in `Info.plist`) owned by the LLC's Meta developer organization. Google Play: register an **organization** developer account (also needs the D-U-N-S) | **Nicholas** |
 
 ## E. Google Play checklist (future Android)
 
@@ -107,17 +117,17 @@ Variants:
 | G9 | Account deletion | Not required (no accounts). Add it if accounts are introduced | Done |
 | G10 | Health apps declaration | Complete it accurately (the medication log is health-adjacent) | Nicholas |
 | G11 | Target audience | 18+ only. IARC questionnaire | Nicholas |
-| G12 | Meta telemetry | `ANALYTICS_OPT_OUT` meta-data in the manifest | Code (Android) |
-| G13 | Developer account | Play developer account type (personal vs. organization). Organization accounts need a D-U-N-S number for the LLC | Nicholas |
+| G12 | Meta telemetry | **Off (decided).** `ANALYTICS_OPT_OUT` meta-data in the manifest | Code (Android) |
+| G13 | Developer account | Register an **organization** account for Cinder and Crown LLC (needs the D-U-N-S number, see A29) | Nicholas |
 
 ## F. Code-side gaps found (file paths)
 
 | # | Gap | File(s) | Severity |
 |---|---|---|---|
 | C1 | No consent before sending prompts, images, audio, or memories to cloud AI providers | `Services/Brain/Providers/ProviderRouter.swift`, `Services/Brain/Providers/*`, `Services/AIBackend/*`, `Views/Onboarding/Core/OnboardingFlow.swift` (no consent step) | **Blocker** |
-| C2 | **Face recognition exists** (it was assumed not to). It's on device and consent-gated, but it creates biometric identifiers, has no automatic expiry or published retention schedule, and relies on the wearer's spoken "yes" for the other person's consent. The owner profile turns it on | `Services/Accessibility/AccessFaces.swift`, `Core/FaceLedger.swift`, `AccessVision.swift` (~128-155), `AccessibilityCoordinator.swift` (~146-160), `Services/Glasses/Core/GlassesCapabilitySettings.swift:112` | **Blocker (legal)** |
+| C2 | **Face recognition: build the decided safeguards.** Today the code (a) takes the *wearer's* yes as the other person's consent (`AccessibilityCoordinator.swift`, line ~150), so it must instead ask the enrolled person directly and keep a timestamp of *their* spoken yes (store a consent record per person; `FaceRecord.consentAt` exists). It also (b) has no auto-delete: add a 30-day default, a 1-30 day setting, and a sweep at launch and on each match (`AccessFaces.swift`, `FaceLedger.swift`). (c) The owner profile turns it on (`GlassesCapabilitySettings.swift:112`): keep it **off in release builds** until attorney sign-off. (d) Add a per-person Delete in Settings (`AccessibilitySettingsView.swift`). Confirm (e) templates of unmatched faces are never written (true today: `identify` only compares) | **Blocker (legal)** |
 | C3 | Guide mode cloud descriptions on by default | `Services/Accessibility/Core/AccessibilitySettings.swift:19` | High |
-| C4 | Meta DAT telemetry not opted out (the privacy manifest says "collects nothing") | `Resources/Info.plist` (`MWDAT` dict), `Resources/PrivacyInfo.xcprivacy` | High |
+| C4 | **Turn Meta DAT telemetry off (decided):** add `MWDAT > Analytics > OptOut = YES` | `Resources/Info.plist` (`MWDAT` dict), then keep `PrivacyInfo.xcprivacy` consistent | High |
 | C5 | Privacy manifest is missing the System Boot Time API (`systemUptime`), and collected types are empty | `Resources/PrivacyInfo.xcprivacy`, plus uses in `Managers/GlassesManager.swift`, `Services/Accessibility/SoundAlertService.swift`, `Services/Glasses/GlassesControlSession.swift` | High |
 | C6 | No privacy policy URL, and Terms points to Apple's standard EULA | `Services/Store/Core/StoreCatalog.swift:48-51` | High |
 | C7 | No About / Privacy / Licenses screen in Settings | `Views/Settings/SettingsView.swift` | High |
@@ -125,7 +135,7 @@ Variants:
 | C9 | User speech and prompts written to the device log | `Services/Voice/VoiceCommandService.swift:575, 721`; `Services/AIBackend/CloudChat.swift:140`; `Services/GeminiLive/GeminiLiveService.swift:384`; `Services/OpenClaw/OpenClawService.swift:415, 580, 629`; `Services/GemmaLocal/GemmaLocalService.swift:745`. Use `Logger` with `privacy: .private`, or the `LogRedactor` on the beta-feedback branch | Medium |
 | C10 | Conversation history stored as plain JSON in `Documents/` (backed up), unlike the sealed accessibility data | `Managers/ConversationManager.swift:36-190` | Medium |
 | C11 | `NSAllowsArbitraryLoads = true` | `Resources/Info.plist` | Medium |
-| C12 | ChatGPT-subscription and SuperGrok OAuth (guideline 5.2.2 risk) | `Services/AIBackend/ChatGPTSubscription.swift`, `Services/AIBackend/GrokService.swift`, `Services/OAuth/*` | High |
+| C12 | **Remove ChatGPT-subscription and SuperGrok sign-ins from store builds (decided)**; API keys only | `Services/AIBackend/ChatGPTSubscription.swift`, `Services/AIBackend/GrokService.swift`, `Services/OAuth/*`, `Models/AppSettings.swift` (`openAIAuthMode`, `grokAuthMode`), `Views/Settings/OpenAISettingsView.swift`, `GrokSettingsView.swift` | High |
 | C13 | FluidAudio floats to 0.18.3, which bundles GPL-3.0-derived and CC-BY-SA data | `project.yml` (`FluidAudio: from: "0.15.5"`) | **Blocker (license)** |
 | C14 | A non-commercial model (Qwen2.5-3B, Qwen Research License) is offered | `Services/GemmaLocal/GemmaLocalService.swift:59` | High (paid app) |
 | C15 | The owner's relay address is compiled into every build as the default | `Services/Relay/RelayClient.swift:183` (`defaultAddress`). `docs/APP_STORE_PLAN.md` says not to put it in the binary | Low (needs the owner's token anyway) |
@@ -153,4 +163,4 @@ Variants:
 >
 > Background modes: **audio**, to keep listening for the wake word and to play spoken replies through the glasses while the phone is locked. **bluetooth-central, bluetooth-peripheral, external-accessory**, required by Meta's toolkit to keep the glasses connected. **location**, for spoken turn-by-turn walking directions while the phone is locked, started only by the user. **remote-notification**, to tell the user when a task they asked their own assistant to do is finished. "Always" location is used only for arrival reminders the user creates, and walking directions. iOS shows the location arrow.
 >
-> The glasses' capture light is on whenever the camera is in use, and the app can't turn it off. No data is collected by the developer. There's no account, and no ads or tracking.
+> The glasses' capture light is on whenever the camera is in use, and the app can't turn it off. No data is collected by the developer (Cinder and Crown LLC). There's no account, and no ads or tracking. Meta's toolkit telemetry is switched off. Cloud AI uses API keys the user pastes. Face recognition is off by default. If enabled, it asks each person for their own spoken consent, stays on the device, and auto-deletes after 30 days without a match.

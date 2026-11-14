@@ -14,7 +14,7 @@ These disclaimers are part of the [Terms of Use](TERMS_OF_USE.md). Show the shor
 
 ## 1. No affiliation or endorsement
 
-Phoenix Fox is developed by Nicholas Will, an independent developer. It **isn't affiliated with, endorsed by, sponsored by, or approved by** Meta Platforms, Inc., Ray-Ban, Oakley, EssilorLuxottica, Apple Inc., Google LLC, X.AI Corp. (xAI), OpenAI, Anthropic PBC, Cloudflare, Inc., or Marvel / The Walt Disney Company.
+Phoenix Fox is developed by Cinder and Crown LLC, an independent Texas company. It **isn't affiliated with, endorsed by, sponsored by, or approved by** Meta Platforms, Inc., Ray-Ban, Oakley, EssilorLuxottica, Apple Inc., Google LLC, X.AI Corp. (xAI), OpenAI, Anthropic PBC, Cloudflare, Inc., or Marvel / The Walt Disney Company.
 
 Phoenix Fox **works with** compatible AI glasses through Meta's Wearables Device Access Toolkit. Mentions of those products are **only to describe compatibility**. Phoenix Fox isn't "the official" app for any glasses.
 
@@ -24,7 +24,7 @@ Phoenix Fox **works with** compatible AI glasses through Meta's Wearables Device
 
 Meta and Meta AI are trademarks of Meta Platforms, Inc. Ray-Ban and Oakley are trademarks of their respective owners in the EssilorLuxottica group. Apple, iPhone, Siri, App Store, Apple Music, TestFlight, and Apple Intelligence are trademarks of Apple Inc., registered in the U.S. and other countries. Google, Android, Google Play, and Gemini are trademarks of Google LLC. Grok and xAI are trademarks of X.AI Corp. or its affiliates. OpenAI, ChatGPT, and GPT are trademarks of OpenAI. Claude and Anthropic are trademarks of Anthropic PBC. Cloudflare is a trademark of Cloudflare, Inc. DuckDuckGo, Tavily, and Hugging Face are trademarks of their respective owners. Other names belong to their owners. They're used only to identify compatible products and services, and their use doesn't imply endorsement.
 
-"Phoenix Fox" and the Phoenix Fox logo are trademarks of the developer. They aren't licensed under the Apache License 2.0 or any other open-source license.
+"Phoenix Fox" and the Phoenix Fox logo are trademarks of Cinder and Crown LLC. They aren't licensed under the Apache License 2.0 or any other open-source license.
 
 **About "Jarvis".** "Jarvis" is only the spoken wake word and the assistant's nickname inside the app. It isn't the product name. J.A.R.V.I.S. is a fictional character owned by Marvel. Phoenix Fox isn't associated with Marvel or Disney. **Store listings, screenshots, ads, and marketing must not use "Jarvis", "Iron Man", "Stark", or Marvel imagery** as a product claim.
 
@@ -64,7 +64,7 @@ Phoenix Fox uses artificial intelligence, both on your phone and from providers 
 
 ### 3.6 Face recognition
 
-Face recognition matches only people you saved, after you confirmed they agreed. It can still be wrong. Never use it to make decisions about someone (for example, letting someone in or confronting someone). Never use it on people who haven't agreed. See the Privacy Policy, section 5.
+Face recognition matches only people you saved, each of whom gave their own spoken consent, and it deletes them automatically after 30 days without a match. It can still be wrong. Never use it to make decisions about someone (for example, letting someone in or confronting someone). Never use it on people who haven't agreed. See the Privacy Policy, section 5.
 
 ### 3.7 Your surroundings and other people
 

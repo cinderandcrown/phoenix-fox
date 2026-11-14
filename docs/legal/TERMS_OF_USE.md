@@ -8,10 +8,10 @@
 
 ## Summary
 
-- These terms are a license agreement between you and **Nicholas Will**, the developer of Phoenix Fox. **They're not with Apple, Google, Meta, or any AI provider.**
+- These terms are a license agreement between you and **Cinder and Crown LLC**, the developer of Phoenix Fox. **They're not with Apple, Google, Meta, or any AI provider.**
 - You must be **18 or older**.
 - Accessibility features are free. Paid subscriptions cover AI features. **Subscriptions renew automatically until you cancel**, which you can do in your App Store (or Google Play) account settings.
-- **Don't use Phoenix Fox to record or identify people secretly, or to spy on anyone.** Follow recording and privacy laws where you are.
+- **Don't use Phoenix Fox to record or identify people secretly, or to spy on anyone.** Follow recording and privacy laws where you are. If you use face recognition, **you're responsible for getting each person's consent** (section 6A).
 - AI can be wrong. Don't rely on Phoenix Fox for safety, medical, legal, financial, or emergency decisions. Call 911 in an emergency.
 - Texas law governs these terms.
 
@@ -29,7 +29,7 @@ To use these terms, add the published URL in App Store Connect under **App Infor
 
 By downloading or using Phoenix Fox ("the app"), you agree to these Terms of Use and to the [Privacy Policy](PRIVACY_POLICY.md) and [Disclaimers](DISCLAIMERS.md), which are part of these terms. If you don't agree, don't use the app.
 
-"We", "us", and "our" mean **Nicholas Will**, an individual residing in Texas, USA. [OPEN QUESTION: replace with "Cinder and Crown LLC, a Texas limited liability company" if the app is transferred.] "You" means the person using the app.
+"We", "us", and "our" mean **Cinder and Crown LLC**, a Texas limited liability company based in Dallas, Texas, USA. "You" means the person using the app.
 
 ## 2. Eligibility
 
@@ -45,7 +45,7 @@ You may not: (a) rent, lease, sell, or sublicense the app; (b) use the app to bu
 
 ## 4. Glasses, platforms, and services you connect
 
-The app works with compatible AI glasses through Meta's Wearables Device Access Toolkit and the Meta AI app. It connects to AI providers (such as xAI, OpenAI, Anthropic, and Google), relays, gateways, and search services **that you choose and set up with your own keys or sign-ins**.
+The app works with compatible AI glasses through Meta's Wearables Device Access Toolkit and the Meta AI app. It connects to AI providers (such as xAI, OpenAI, Anthropic, and Google), relays, gateways, and search services **that you choose and set up with your own API keys**. App store versions don't support signing in with a consumer ChatGPT or SuperGrok subscription.
 
 - Those products and services belong to other companies. **Their terms and privacy policies apply** to your use of them, and you're responsible for following them, including their usage policies, age limits, and fees. Any charges from an AI provider for your own key are between you and that provider.
 - We don't control those services. We aren't responsible for their availability, content, security, or how they handle your data. A provider or platform may change or stop features, and that can change what the app can do.
@@ -74,7 +74,7 @@ Phoenix Fox puts a camera and microphone on your face. You agree to use it lawfu
 1. **Record people secretly.** Don't record, stream, caption, transcribe, or photograph anyone in a way that breaks the law, including recording a private conversation without the consent the law requires. (Some states require everyone's consent. See the Privacy Policy, section 8.)
 2. **Defeat or cover the glasses' capture light**, or otherwise hide that you're capturing.
 3. **Use the app for unlawful surveillance**, stalking, harassment, doxxing, or tracking a person without their consent.
-4. **Save anyone's face without their consent**, or use face recognition where it's unlawful. Delete a saved face when the person asks.
+4. **Save anyone's face without their own consent**, or use face recognition where it's unlawful. Delete a saved face when the person asks (see section 6A).
 5. **Record in prohibited or private places**, such as restrooms, locker rooms, changing areas, medical settings, schools where recording is barred, courtrooms, or anywhere that posts a no-recording rule.
 6. Use the app to make content that's illegal, sexually exploits anyone (especially minors), infringes someone's rights, or deceives people about who made it.
 7. Use the app while driving or operating machinery, or in any way that puts you or others in danger.
@@ -85,6 +85,19 @@ Phoenix Fox puts a camera and microphone on your face. You agree to use it lawfu
 **Confirmation for actions.** Before Phoenix Fox sends a message, places a call, buys something, or posts anything for you, it asks you to **confirm by voice**. In most cases iOS then shows the message or call for you to send yourself. You're responsible for what you confirm and send.
 
 We may suspend features or end your license if you break this section (section 12).
+
+## 6A. Face recognition: your responsibility
+
+Face recognition is optional, off by default, and works only on your phone. If you turn it on, **you're responsible for how you use it**, and you agree that:
+
+1. **You'll enroll only people who personally agree.** Before you save someone, they must clearly say yes, in their own voice, to Phoenix Fox's consent question. You won't answer for them, pressure them, or enroll anyone who can't understand the request (including children).
+2. **You'll get written consent where the law requires it.** Some laws, such as the Illinois Biometric Information Privacy Act (740 ILCS 14/15(b)), require a written release. Where a law like that applies to you or to the person, you'll get that release before enrolling them.
+3. **You'll delete on request.** If a saved person asks you to delete their face, or withdraws consent, you'll delete it immediately, by voice or in Settings.
+4. **You won't misuse it.** You won't use face recognition to identify strangers, track or monitor people, make decisions about anyone (for example, access, employment, or confronting someone), or for any commercial purpose, and you won't use it where it's unlawful.
+5. **You won't defeat the safeguards.** You won't try to extract, export, copy, or share face data, or get around the consent question or automatic deletion.
+6. **You'll follow the law.** Biometric privacy laws (including Tex. Bus. & Com. Code § 503.001, 740 ILCS 14, Washington RCW 19.375, and GDPR Article 9) and recording laws may apply to you as the person who decides whom to enroll. Phoenix Fox gives you tools to comply, but it can't make your use lawful for you.
+
+Face data is kept and destroyed on the schedule in the Privacy Policy, section 5.2. You agree to indemnify us for claims arising from your enrollment or use of face data in breach of this section (section 11).
 
 ## 7. Your content
 
@@ -120,7 +133,7 @@ You agree to defend and hold us harmless from claims by others arising from your
 
 ## 12. Termination
 
-You can stop using the app at any time by deleting it (and canceling any subscription). We may suspend or end your license if you materially break these terms, or if we stop offering the app. When the license ends, you must stop using the app. Sections 6-11, 13, 14, and 15 survive termination.
+You can stop using the app at any time by deleting it (and canceling any subscription). We may suspend or end your license if you materially break these terms, or if we stop offering the app. When the license ends, you must stop using the app. Sections 6, 6A, 7-11, 13, 14, and 15 survive termination.
 
 ## 13. Changes
 
@@ -148,7 +161,7 @@ These apply when you get the app from Apple's App Store. If they conflict with a
 
 **15.7 Legal compliance.** You represent and warrant that (i) you're not located in a country that is subject to a U.S. Government embargo, or that the U.S. Government has designated as a "terrorist supporting" country; and (ii) you're not listed on any U.S. Government list of prohibited or restricted parties.
 
-**15.8 Developer name and address.** Questions, complaints, or claims about the app go to: **Nicholas Will**, [MAILING ADDRESS], email **cinderandcrown@gmail.com**, phone [PHONE NUMBER, OR STATE THAT EMAIL IS THE SUPPORT CHANNEL. ATTORNEY TO CONFIRM].
+**15.8 Developer name and address.** Questions, complaints, or claims about the app go to: **Cinder and Crown LLC**, [LLC MAILING ADDRESS — TO PROVIDE], email **privacy@cinderandcrown.com** (being set up), phone [PHONE NUMBER — TO PROVIDE, OR STATE THAT EMAIL IS THE SUPPORT CHANNEL. ATTORNEY TO CONFIRM].
 
 **15.9 Third-party terms.** You must comply with applicable third-party terms when using the app. For example, you must not violate your wireless data service agreement, or the terms of Meta, or of any AI provider you connect.
 
@@ -160,8 +173,8 @@ If you get the app from Google Play, Google isn't a party to these terms and has
 
 ## 17. General
 
-These terms, the Privacy Policy, and the Disclaimers are the whole agreement between you and us about the app. If any part is found unenforceable, the rest stays in effect. If we don't enforce a term, that isn't a waiver. You can't transfer these terms. We may transfer them to a successor, including Cinder and Crown LLC. Export laws: you won't export or use the app in violation of U.S. export laws.
+These terms, the Privacy Policy, and the Disclaimers are the whole agreement between you and us about the app. If any part is found unenforceable, the rest stays in effect. If we don't enforce a term, that isn't a waiver. You can't transfer these terms. We may transfer them to a successor, such as in a merger or sale of the business. Export laws: you won't export or use the app in violation of U.S. export laws.
 
 ## 18. Contact
 
-Nicholas Will, [MAILING ADDRESS], cinderandcrown@gmail.com
+Cinder and Crown LLC, [LLC MAILING ADDRESS — TO PROVIDE], privacy@cinderandcrown.com

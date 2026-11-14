@@ -6,7 +6,8 @@
 
 - There's **no Android app yet**. These answers assume the Android version has the same features and data flows as the iPhone app (see [DATA_INVENTORY.md](DATA_INVENTORY.md)), using Meta's Wearables Device Access Toolkit for Android.
 - Declare **voice, photos and videos, other user content, and in-app search history** as **collected** (sent to the AI or search service the user picks), **not shared**, **not used for ads**, and **optional**.
-- **Turn off Meta's toolkit telemetry** in the Android manifest. Otherwise add device IDs and diagnostics.
+- **Meta's toolkit telemetry is turned off** (decided 14 Nov 2026) with the Android manifest opt-out, so no device IDs or diagnostics are declared.
+- **Cloud AI uses pasted API keys only.** No ChatGPT-subscription or SuperGrok sign-in in Play builds.
 - The Android design should avoid **background location**, `SEND_SMS`, and `CALL_PHONE`, so it doesn't need restricted-permission declarations.
 - Play requires an **in-app way to report offensive AI output**, and a privacy policy link in the app and the listing. An account-deletion URL isn't required while there are no accounts.
 
@@ -29,7 +30,7 @@ Re-check every answer against the real Android code before submitting.
 | Do you provide a way for users to request that their data is deleted? | **Yes.** In-app delete controls, uninstalling, and email to the contact address. Data at an AI provider is deleted with that provider's controls |
 | Has your app undergone an independent security review (MASA)? | No (optional) |
 
-## 3. Data types (answer set with Meta telemetry opted out)
+## 3. Data types (Meta telemetry off, API keys only)
 
 | Play category > type | Collected | Shared | Ephemeral | Required or optional | Purposes | Source in iOS code |
 |---|---|---|---|---|---|---|
@@ -51,7 +52,7 @@ Re-check every answer against the real Android code before submitting.
 | Device or other IDs | No | | | | | No ad ID |
 | Biometric (face prints) | Not a Play category. **Not collected** (on device only). Disclose in the privacy policy | | | | | `AccessFaces.swift` |
 
-**If Meta telemetry stays on**, add: *Device or other IDs* (collected, shared with Meta: Yes, Analytics), and *App info and performance > Crash logs, Diagnostics* (collected, shared with Meta: Yes, Analytics). Opt out in `AndroidManifest.xml`, inside `<application>`:
+**Meta telemetry is off (decided).** Put this in `AndroidManifest.xml`, inside `<application>`. If it were ever removed, you'd have to add *Device or other IDs* and *App info and performance > Crash logs, Diagnostics* as collected and shared with Meta:
 
 ```xml
 <meta-data
@@ -108,7 +109,7 @@ The medication log and allergen check are health-adjacent. Complete Play Console
 
 ### 4.9 Account deletion URL
 
-Play requires an in-app and web account-deletion path **only if the app lets users create an account**. Phoenix Fox has no accounts. Signing in to ChatGPT, SuperGrok, or Hermes uses *the provider's* account, not a Phoenix Fox account. **Not required now.** If Phoenix Fox accounts are added (for example "Included AI"), add the in-app path and a web URL such as `[PRIVACY POLICY URL]#delete-your-data` in **App content > Data safety > Data deletion**.
+Play requires an in-app and web account-deletion path **only if the app lets users create an account**. Phoenix Fox has no accounts. Cloud AI uses API keys the user pastes (no ChatGPT-subscription or SuperGrok sign-in in store builds). A self-hosted Hermes sign-in is to the user's own server, not a Phoenix Fox account. **Not required now.** If Phoenix Fox accounts are added (for example "Included AI"), add the in-app path and a web URL such as `[PRIVACY POLICY URL]#delete-your-data` in **App content > Data safety > Data deletion**.
 
 ### 4.10 Target audience and content rating
 

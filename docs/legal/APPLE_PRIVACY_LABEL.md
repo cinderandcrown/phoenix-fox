@@ -5,8 +5,9 @@
 ## Summary
 
 - These are the answers for **App Store Connect > App Privacy**, derived from [DATA_INVENTORY.md](DATA_INVENTORY.md).
-- Phoenix Fox has no account, analytics, ads, or tracking SDKs. The only data that leaves the phone goes to **AI and search services the user turns on** and to **Meta's glasses SDK telemetry**, which is on by default.
-- **Recommended path:** (1) turn off Meta's telemetry with its documented opt-out key, (2) ship the AI consent screen, then (3) answer as in **Answer set A**. If Meta telemetry stays on, use **Answer set B**.
+- Phoenix Fox has no account, analytics, ads, or tracking SDKs. The only data that leaves the phone goes to **AI and search services the user turns on**, using the user's own pasted API keys.
+- **Decided (14 Nov 2026):** Meta's toolkit telemetry is **turned off**, and ChatGPT-subscription and SuperGrok sign-ins are **removed from store builds**. Use **Answer set A**. Set B is kept only for reference, in case the telemetry opt-out is ever reverted.
+- Before submitting, the code must match: the Meta opt-out key, the AI consent screen, and no subscription sign-ins in store builds (REVIEW_CHECKLIST C1, C4, C12).
 - The app already has `OpenVision/Resources/PrivacyInfo.xcprivacy`. It's missing the **System Boot Time** API reason, and its "collects nothing" claim doesn't match the code. A corrected draft is below. It hasn't been applied to the code.
 
 ---
@@ -27,7 +28,7 @@ How this applies to Phoenix Fox:
 - **Relay traffic:** in the public app, a relay is one the user runs and enters. The developer's relay needs the owner's token and isn't a service for other users. **Not declared.** If Cinder and Crown ever runs a relay or "Included AI" for subscribers, add Identifiers > Device ID (push token) and the user-content types it carries.
 - **Face prints, transcripts, the medication log, location, and contacts** never leave the phone. **Not declared.**
 
-## 2. Answer set A (recommended: Meta telemetry opted out, consent screen shipped)
+## 2. Answer set A (use this: Meta telemetry off, API keys only, consent screen shipped)
 
 **Do you or your third-party partners collect data from this app?** Yes.
 
@@ -51,14 +52,14 @@ How this applies to Phoenix Fox:
 | Surroundings / Body | No | | | | No environment mesh or hand/head tracking is sent |
 | Other Data | No | | | | |
 
-**"Linked to the user" reasoning:** the user's own provider account or API key identifies them to the provider. The developer has no account system. If counsel prefers, "Not linked" is arguable for the user's own-key traffic. "Linked" is the safer answer.
+**"Linked to the user" reasoning:** the user's own API key identifies them to the provider. The developer has no account system. If counsel prefers, "Not linked" is arguable for the user's own-key traffic. "Linked" is the safer answer.
 
 **Privacy policy URL:** [PUBLIC URL, see REVIEW_CHECKLIST.md item P1]
 **User privacy choices URL (optional):** the same URL, section 11 anchor.
 
-## 3. Answer set B (if Meta DAT telemetry stays on)
+## 3. Answer set B (reference only. Not used, because Meta telemetry is turned off)
 
-Everything in set A, plus:
+Only if the opt-out were reverted: everything in set A, plus:
 
 | Apple data type | Collected? | Purposes | Linked? | Tracking? | Why |
 |---|---|---|---|---|---|
@@ -69,7 +70,7 @@ Everything in set A, plus:
 
 Source: https://wearables.developer.meta.com/docs/develop/dat/telemetry/. The opt-out key isn't present in `OpenVision/Resources/Info.plist`.
 
-**Recommended code change** (one line in Info.plist, inside the existing `MWDAT` dict):
+**Required code change (decided)**, inside the existing `MWDAT` dict in `OpenVision/Resources/Info.plist`:
 
 ```xml
 <key>Analytics</key>
@@ -87,7 +88,7 @@ Source: https://wearables.developer.meta.com/docs/develop/dat/telemetry/. The op
 
 - `NSPrivacyTracking` = false. **OK.**
 - `NSPrivacyTrackingDomains` = empty. **OK.**
-- `NSPrivacyCollectedDataTypes` = empty. **Inaccurate:** AI and search traffic (set A), and Meta telemetry unless opted out (set B).
+- `NSPrivacyCollectedDataTypes` = empty. **Inaccurate:** AI and search traffic (set A). Meta telemetry won't need declaring once the opt-out key ships.
 - `NSPrivacyAccessedAPITypes`: UserDefaults `CA92.1` (OK) and File Timestamp `C617.1` (OK: `GemmaLocalService.swift` reads `creationDateKey` on its own temp files).
 
 ### 4.2 Gaps
@@ -99,7 +100,7 @@ Source: https://wearables.developer.meta.com/docs/develop/dat/telemetry/. The op
 | M3 | **The Meta DAT SDK ships no privacy manifest** | Its 1.0.1 xcframeworks contain no `PrivacyInfo.xcprivacy`. A strings scan of `MWDATCore` shows `NSUserDefaults`, `systemUptime`, `mach_absolute_time`, `stat`/`fstat` | The app manifest covers UserDefaults, File Timestamp, and System Boot Time, which also covers what the SDK appears to use. Ask Meta to ship a manifest |
 | M4 | Third-party SPM packages | WhisperKit, FluidAudio, swift-transformers, swift-huggingface, mlx-swift, ZIPFoundation | After an archive, run **Xcode > Product > Archive > Generate Privacy Report**, and confirm every binary with required-reason APIs has a manifest. None of these is on Apple's list of commonly used SDKs that must be signed. Check for Disk Space (`volumeAvailableCapacity`) use in model downloaders. If found, add `NSPrivacyAccessedAPICategoryDiskSpace` with `E174.1` |
 
-### 4.3 Corrected draft (set A, plus M1)
+### 4.3 Corrected draft (set A, plus M1). Use this
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -179,7 +180,7 @@ Source: https://wearables.developer.meta.com/docs/develop/dat/telemetry/. The op
 </plist>
 ```
 
-If Meta telemetry stays on, also add `NSPrivacyCollectedDataTypeDeviceID`, `NSPrivacyCollectedDataTypeCrashData`, `NSPrivacyCollectedDataTypePerformanceData`, and `NSPrivacyCollectedDataTypeOtherDiagnosticData`, each with purpose `NSPrivacyCollectedDataTypePurposeAnalytics`, linked true, and tracking false.
+Only if Meta telemetry were ever turned back on, add `NSPrivacyCollectedDataTypeDeviceID`, `NSPrivacyCollectedDataTypeCrashData`, `NSPrivacyCollectedDataTypePerformanceData`, and `NSPrivacyCollectedDataTypeOtherDiagnosticData`, each with purpose `NSPrivacyCollectedDataTypePurposeAnalytics`, linked true, and tracking false.
 
 ## 5. Purpose strings (Info.plist) review
 
