@@ -153,6 +153,8 @@ enum PhoenixFoxTurn {
                 bot: replies.count == 1 ? replies[0].fromBot : turn.targetBot,
                 saw: turn.photo ? turn.text : nil
             )
+        } catch is CancellationError {
+            // The wearer stopped it. Saying so would talk over whatever they did next.
         } catch {
             speak(error.localizedDescription, nil, false)
         }

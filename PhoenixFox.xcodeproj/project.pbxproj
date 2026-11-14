@@ -161,6 +161,9 @@
 		9DD6F1F0D3656875244E01C4 /* PCMConversion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7F04F7FDE8E33F931110B0CF /* PCMConversion.swift */; };
 		CAB72119CBBE5DAE10ECB1B9 /* JSONValue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21B9586BAD796C456BA89265 /* JSONValue.swift */; };
 		8BF888E85180E71C520D45D0 /* ResumeOnce.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07CBBA601F8B713B0B004752 /* ResumeOnce.swift */; };
+		41BA82E53DC6B71605D98EAA /* RelayClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5109BFC57B90ADE2E95DBC71 /* RelayClient.swift */; };
+		4D00FDBCB04FB2E64CDBCACA /* RelayImages.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6AA41A16B55526CB60458427 /* RelayImages.swift */; };
+		B93FA675EE3094D186653ED3 /* RelayClientTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEF251501487FBCFE35139B7 /* RelayClientTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -322,6 +325,9 @@
 		DE8BB8877F17EC12EE63410A /* SpeechPipelineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpeechPipelineTests.swift; sourceTree = "<group>"; };
 		D721D43D709E9412709ACC90 /* IncomingLink.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IncomingLink.swift; sourceTree = "<group>"; };
 		1B04CAE019F2258540EAB3B9 /* IncomingLinkTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IncomingLinkTests.swift; sourceTree = "<group>"; };
+		5109BFC57B90ADE2E95DBC71 /* RelayClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RelayClient.swift; sourceTree = "<group>"; };
+		6AA41A16B55526CB60458427 /* RelayImages.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RelayImages.swift; sourceTree = "<group>"; };
+		DEF251501487FBCFE35139B7 /* RelayClientTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RelayClientTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -569,6 +575,7 @@
 				FE408AE66B4AA82F2C43B752 /* Vision */,
 				500CF1A1CC87EC3E3E60B086 /* Voice */,
 				6B0B152C6E932E62A9D51175 /* Web */,
+				F409D2B8DB74D4D4E62E1226 /* Relay */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -758,6 +765,7 @@
 				9B1BCE95BFCBFB8E8855E0F8 /* JSONValueTests.swift */,
 				DE8BB8877F17EC12EE63410A /* SpeechPipelineTests.swift */,
 				1B04CAE019F2258540EAB3B9 /* IncomingLinkTests.swift */,
+				DEF251501487FBCFE35139B7 /* RelayClientTests.swift */,
 			);
 			path = OpenVisionTests;
 			sourceTree = "<group>";
@@ -832,6 +840,15 @@
 				C21AA200000000000000000A /* WhisperTranscriber.swift */,
 			);
 			path = Speech;
+			sourceTree = "<group>";
+		};
+		F409D2B8DB74D4D4E62E1226 /* Relay */ = {
+			isa = PBXGroup;
+			children = (
+				5109BFC57B90ADE2E95DBC71 /* RelayClient.swift */,
+				6AA41A16B55526CB60458427 /* RelayImages.swift */,
+			);
+			path = Relay;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -993,6 +1010,7 @@
 				1E2FD51A71E410A32EDE2E74 /* JSONValueTests.swift in Sources */,
 				339637E3354B17658B60A4DA /* SpeechPipelineTests.swift in Sources */,
 				2CA4771EB603F66271733563 /* IncomingLinkTests.swift in Sources */,
+				B93FA675EE3094D186653ED3 /* RelayClientTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1122,6 +1140,8 @@
 				9DD6F1F0D3656875244E01C4 /* PCMConversion.swift in Sources */,
 				CAB72119CBBE5DAE10ECB1B9 /* JSONValue.swift in Sources */,
 				8BF888E85180E71C520D45D0 /* ResumeOnce.swift in Sources */,
+				41BA82E53DC6B71605D98EAA /* RelayClient.swift in Sources */,
+				4D00FDBCB04FB2E64CDBCACA /* RelayImages.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
