@@ -1,3 +1,7 @@
+// SPDX-License-Identifier: Apache-2.0 AND MIT
+// Derived from OpenVision (https://github.com/rayl15/OpenVision), MIT License,
+// Copyright (c) 2026 OpenVision Contributors. Changes by Cinder and Crown LLC are
+// licensed under Apache-2.0. See LICENSE, NOTICE, and THIRD_PARTY_NOTICES.md.
 // OpenVision - HermesGateway.swift
 // Username-and-password mode for the Hermes backend: sign in to the Hermes web UI (dashboard)
 // and chat over its gateway WebSocket, the way the Hermes Desktop app does.

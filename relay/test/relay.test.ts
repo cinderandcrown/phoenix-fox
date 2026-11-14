@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: Apache-2.0
+// Copyright 2026 Cinder and Crown LLC
+
 import { describe, expect, it } from "vitest";
 import { handleRelay } from "../src/handle";
 import { harness, TOKEN } from "./harness";

@@ -1,3 +1,7 @@
+// SPDX-License-Identifier: Apache-2.0 AND MIT
+// Derived from OpenVision (https://github.com/rayl15/OpenVision), MIT License,
+// Copyright (c) 2026 OpenVision Contributors. Changes by Cinder and Crown LLC are
+// licensed under Apache-2.0. See LICENSE, NOTICE, and THIRD_PARTY_NOTICES.md.
 // OpenVision - MetricsCollector.swift
 // Single entry point for runtime telemetry: marks turn stages, samples device state, fans both
 // out to whatever sinks are configured, and keeps a small in-memory history for the debug panel.
