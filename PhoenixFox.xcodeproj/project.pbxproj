@@ -288,6 +288,9 @@
 		876B670BF350C504B0B276B5 /* AIProviderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C1B2E8F44C4F8E9DF4497E0 /* AIProviderTests.swift */; };
 		51DC379730E532EDC5A9FD24 /* ClaudeSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEC14BA021F1D9079985414D /* ClaudeSettingsView.swift */; };
 		53668B6AD58B7F2F8D2C4FF5 /* ProviderKeyTestButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D2890A98299C4B809AE20C7 /* ProviderKeyTestButton.swift */; };
+		1D35C0D154454E0E8CBAAFCA /* WearableSessionPhase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 601AAA16EEAB4A47A20360A1 /* WearableSessionPhase.swift */; };
+		7742755AFCCCE9AE2851B0A8 /* CapabilitiesAcceptanceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C7058517D780D4571AD7EB0 /* CapabilitiesAcceptanceTests.swift */; };
+		A3241E66676B708AC85E0E2E /* WearableSessionPhaseTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E44716DF6C439BE3B27FDE9A /* WearableSessionPhaseTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -576,6 +579,9 @@
 		0C1B2E8F44C4F8E9DF4497E0 /* AIProviderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIProviderTests.swift; sourceTree = "<group>"; };
 		CEC14BA021F1D9079985414D /* ClaudeSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClaudeSettingsView.swift; sourceTree = "<group>"; };
 		4D2890A98299C4B809AE20C7 /* ProviderKeyTestButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProviderKeyTestButton.swift; sourceTree = "<group>"; };
+		601AAA16EEAB4A47A20360A1 /* WearableSessionPhase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WearableSessionPhase.swift; sourceTree = "<group>"; };
+		7C7058517D780D4571AD7EB0 /* CapabilitiesAcceptanceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CapabilitiesAcceptanceTests.swift; sourceTree = "<group>"; };
+		E44716DF6C439BE3B27FDE9A /* WearableSessionPhaseTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WearableSessionPhaseTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -1070,6 +1076,8 @@
 				1E5E803A1AAD693F3F59E29F /* AudioRoutePolicyTests.swift */,
 				57995089192F8CA478B88A6B /* OnDeviceLookTests.swift */,
 				0C1B2E8F44C4F8E9DF4497E0 /* AIProviderTests.swift */,
+				7C7058517D780D4571AD7EB0 /* CapabilitiesAcceptanceTests.swift */,
+				E44716DF6C439BE3B27FDE9A /* WearableSessionPhaseTests.swift */,
 			);
 			path = OpenVisionTests;
 			sourceTree = "<group>";
@@ -1204,6 +1212,7 @@
 				6CAE7AB8766198A6FF246F6C /* GlassesInputCore.swift */,
 				156F8E364B12C1A9A14DBBCF /* StreamPlan.swift */,
 				90CB144ABF8562545414AEE4 /* GlassesRegistration.swift */,
+				601AAA16EEAB4A47A20360A1 /* WearableSessionPhase.swift */,
 			);
 			path = Core;
 			sourceTree = "<group>";
@@ -1556,6 +1565,8 @@
 				8BCE34AD6CBF565DB24FFBC6 /* AudioRoutePolicyTests.swift in Sources */,
 				F09B402FB088F7C971E19F3A /* OnDeviceLookTests.swift in Sources */,
 				876B670BF350C504B0B276B5 /* AIProviderTests.swift in Sources */,
+				7742755AFCCCE9AE2851B0A8 /* CapabilitiesAcceptanceTests.swift in Sources */,
+				A3241E66676B708AC85E0E2E /* WearableSessionPhaseTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1774,6 +1785,7 @@
 				FA1DC6774294E547C8DF9A2F /* ProviderRouter.swift in Sources */,
 				51DC379730E532EDC5A9FD24 /* ClaudeSettingsView.swift in Sources */,
 				53668B6AD58B7F2F8D2C4FF5 /* ProviderKeyTestButton.swift in Sources */,
+				1D35C0D154454E0E8CBAAFCA /* WearableSessionPhase.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2081,8 +2093,8 @@
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/PrismML-Eng/mlx-swift.git";
 			requirement = {
-				branch = v0.31.6_prism;
-				kind = branch;
+				kind = revision;
+				revision = 9c3a80a4ce8be105540e378c2a703bfc9de57f25;
 			};
 		};
 		ECA8A07B405261A27FD7625B /* XCRemoteSwiftPackageReference "mlx-swift-lm" */ = {
@@ -2095,7 +2107,7 @@
 		};
 		F7EEA1ED9999A23C56A77DE0 /* XCRemoteSwiftPackageReference "meta-wearables-dat-ios" */ = {
 			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/facebook/meta-wearables-dat-ios";
+			repositoryURL = "https://github.com/meta/meta-wearables-dat-ios";
 			requirement = {
 				kind = exactVersion;
 				version = 1.0.1;
