@@ -151,6 +151,11 @@ final class SettingsManager: ObservableObject {
         settings.glasses.allowed(in: .current)
     }
 
+    /// The workshop features this build may run: none, outside the owner build.
+    var workshop: WorkshopSettings {
+        settings.workshop.allowed(in: .current)
+    }
+
     /// Turns every feature on again in the owner build. Does nothing in any other build.
     func applyOwnerProfile() {
         guard BuildFlavor.current == .owner else { return }

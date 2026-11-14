@@ -50,6 +50,32 @@ final class OwnerProfileSettingsTests: XCTestCase {
         XCTAssertFalse(settings.glasses.controls)
     }
 
+    func testTheOwnerBuildTurnsTheWorkshopOnAndAStandardBuildNever() {
+        var settings = AppSettings()
+        OwnerProfile.applyIfNeeded(to: &settings, flavor: .owner)
+        XCTAssertTrue(settings.workshop.council)
+        XCTAssertTrue(settings.workshop.doseGuard)
+        XCTAssertTrue(settings.workshop.allowed(in: .owner).anyOn)
+        // Even with the switches saved as on, a standard build runs none of it.
+        XCTAssertFalse(settings.workshop.allowed(in: .standard).anyOn)
+        XCTAssertFalse(AppSettings().workshop.anyOn)
+    }
+
+    func testAnEarlierProfileGetsOnlyWhatIsNew() {
+        var settings = AppSettings()
+        OwnerProfile.applyIfNeeded(to: &settings, flavor: .owner)
+        // As an installation that had profile 1, before the workshop, and then switched memory off.
+        settings.ownerProfileVersion = 1
+        settings.workshop = WorkshopSettings()
+        settings.mindMeldEnabled = false
+
+        XCTAssertTrue(OwnerProfile.applyIfNeeded(to: &settings, flavor: .owner))
+        XCTAssertTrue(settings.workshop.walkThrough)
+        XCTAssertFalse(settings.mindMeldEnabled)
+        XCTAssertEqual(settings.ownerProfileVersion, OwnerProfile.version)
+        XCTAssertFalse(OwnerProfile.applyIfNeeded(to: &settings, flavor: .owner))
+    }
+
     func testAskingForEverythingAgainTurnsItBackOn() {
         var settings = AppSettings()
         OwnerProfile.applyIfNeeded(to: &settings, flavor: .owner)
