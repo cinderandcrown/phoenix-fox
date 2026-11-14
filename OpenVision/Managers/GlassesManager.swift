@@ -48,7 +48,8 @@ final class GlassesManager: ObservableObject {
 
     // MARK: - Private Properties
 
-    private let wearables = Wearables.shared
+    /// Nil when the glasses SDK did not start. See `WearablesSDK`.
+    private var wearables: (any WearablesInterface)? { WearablesSDK.interface }
     // 0.9.0 camera lifecycle: DeviceSession owns the device link, Camera owns the camera
     // hardware, camera.stream carries frames. Stopping the camera cascades to the stream.
     private var deviceSession: DeviceSession?
@@ -78,6 +79,7 @@ final class GlassesManager: ObservableObject {
 
     private init() {
         print("[GlassesManager] Initializing")
+        if wearables == nil { errorMessage = WearablesSDK.failure }
         setupRegistrationListener()
         setupDevicesListener()
     }
@@ -87,6 +89,7 @@ final class GlassesManager: ObservableObject {
     /// Register app with Meta AI
     func register() async throws {
         print("[GlassesManager] Starting registration")
+        guard let wearables else { throw GlassesUnavailable() }
 
         // Check if already registered
         for await state in wearables.registrationStateStream() {
@@ -112,6 +115,10 @@ final class GlassesManager: ObservableObject {
             await stopStreaming()
         }
 
+        guard let wearables else {
+            errorMessage = GlassesUnavailable().reason
+            return
+        }
         do {
             try await wearables.startUnregistration()
             isRegistered = false
@@ -125,6 +132,19 @@ final class GlassesManager: ObservableObject {
         }
     }
 
+    /// Hands off to the Meta AI app to install or update the app's component on the glasses.
+    func updateGlassesApp() async {
+        guard let wearables else {
+            errorMessage = GlassesUnavailable().reason
+            return
+        }
+        do {
+            try await wearables.openDATGlassesAppUpdate()
+        } catch {
+            errorMessage = "Could not open the Meta AI app to update the glasses. \(error.localizedDescription)"
+        }
+    }
+
     // MARK: - Meta AI callback
 
     private var lastCallback: (url: URL, at: Date)?
@@ -135,6 +155,11 @@ final class GlassesManager: ObservableObject {
         // iOS can deliver one link through two routes. The SDK must see it once.
         if let lastCallback, lastCallback.url == url, Date().timeIntervalSince(lastCallback.at) < 2 { return }
         lastCallback = (url, Date())
+        guard let wearables else {
+            errorMessage = GlassesUnavailable().reason
+            GlassesLink.shared.record("Meta AI callback ignored: the glasses SDK is not running.")
+            return
+        }
         do {
             let handled = try await wearables.handleUrl(url) { [weak self] request in
                 Task { @MainActor in self?.pendingRegistration = request }
@@ -173,6 +198,10 @@ final class GlassesManager: ObservableObject {
 
     /// Start camera streaming from glasses
     func startStreaming() async {
+        guard let wearables else {
+            errorMessage = GlassesUnavailable().reason
+            return
+        }
         guard isRegistered else {
             errorMessage = "Not registered with Meta AI"
             print("[GlassesManager] Cannot start streaming - not registered")
@@ -356,6 +385,7 @@ final class GlassesManager: ObservableObject {
     // MARK: - Private Methods
 
     private func setupRegistrationListener() {
+        guard let wearables else { return }
         registrationTask = Task {
             for await state in wearables.registrationStateStream() {
                 await MainActor.run {
@@ -374,6 +404,7 @@ final class GlassesManager: ObservableObject {
     }
 
     private func setupDevicesListener() {
+        guard let wearables else { return }
         devicesTask = Task {
             for await devices in wearables.devicesStream() {
                 await MainActor.run {

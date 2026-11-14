@@ -164,6 +164,8 @@
 		41BA82E53DC6B71605D98EAA /* RelayClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5109BFC57B90ADE2E95DBC71 /* RelayClient.swift */; };
 		4D00FDBCB04FB2E64CDBCACA /* RelayImages.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6AA41A16B55526CB60458427 /* RelayImages.swift */; };
 		B93FA675EE3094D186653ED3 /* RelayClientTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEF251501487FBCFE35139B7 /* RelayClientTests.swift */; };
+		2BE06430EBD52AD493360F94 /* WearablesSDK.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3A02A6407C18B263A7FA388 /* WearablesSDK.swift */; };
+		7A3558B2ADF81CB0CABB1EF7 /* WearablesSDKTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA4F4112907EC707F95A12AC /* WearablesSDKTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -328,6 +330,8 @@
 		5109BFC57B90ADE2E95DBC71 /* RelayClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RelayClient.swift; sourceTree = "<group>"; };
 		6AA41A16B55526CB60458427 /* RelayImages.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RelayImages.swift; sourceTree = "<group>"; };
 		DEF251501487FBCFE35139B7 /* RelayClientTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RelayClientTests.swift; sourceTree = "<group>"; };
+		D3A02A6407C18B263A7FA388 /* WearablesSDK.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WearablesSDK.swift; sourceTree = "<group>"; };
+		CA4F4112907EC707F95A12AC /* WearablesSDKTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WearablesSDKTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -766,6 +770,7 @@
 				DE8BB8877F17EC12EE63410A /* SpeechPipelineTests.swift */,
 				1B04CAE019F2258540EAB3B9 /* IncomingLinkTests.swift */,
 				DEF251501487FBCFE35139B7 /* RelayClientTests.swift */,
+				CA4F4112907EC707F95A12AC /* WearablesSDKTests.swift */,
 			);
 			path = OpenVisionTests;
 			sourceTree = "<group>";
@@ -801,6 +806,7 @@
 				A11AA2000000000000000002 /* GlassesHUD.swift */,
 				A11AA2000000000000000003 /* GlassesControlSession.swift */,
 				A11AA2000000000000000004 /* GlassesProductTarget.swift */,
+				D3A02A6407C18B263A7FA388 /* WearablesSDK.swift */,
 			);
 			path = Glasses;
 			sourceTree = "<group>";
@@ -1011,6 +1017,7 @@
 				339637E3354B17658B60A4DA /* SpeechPipelineTests.swift in Sources */,
 				2CA4771EB603F66271733563 /* IncomingLinkTests.swift in Sources */,
 				B93FA675EE3094D186653ED3 /* RelayClientTests.swift in Sources */,
+				7A3558B2ADF81CB0CABB1EF7 /* WearablesSDKTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1142,6 +1149,7 @@
 				8BF888E85180E71C520D45D0 /* ResumeOnce.swift in Sources */,
 				41BA82E53DC6B71605D98EAA /* RelayClient.swift in Sources */,
 				4D00FDBCB04FB2E64CDBCACA /* RelayImages.swift in Sources */,
+				2BE06430EBD52AD493360F94 /* WearablesSDK.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -19,7 +19,8 @@ import MWDATMotion
 final class GlassesControlSession {
     static let shared = GlassesControlSession()
 
-    private let wearables = Wearables.shared
+    /// Nil when the glasses SDK did not start. See `WearablesSDK`.
+    private var wearables: (any WearablesInterface)? { WearablesSDK.interface }
     private var session: DeviceSession?
     private var eventsTask: Task<Void, Never>?
     private var voice: VoiceInvocationsStream?
@@ -39,7 +40,7 @@ final class GlassesControlSession {
         // Adventurer (DeviceType.metaGlasses) has no display and no Neural Band.
         // An idle session here would compete with the camera session, which is the v1 path.
         // Display cards and band gestures start only when the hardware reports a display.
-        guard let device = wearables.deviceForIdentifier(id),
+        guard let device = wearables?.deviceForIdentifier(id),
               device.supportsDisplay() || device.deviceType().supportsDisplay else {
             GlassesLink.shared.record("v1 audio and camera only. No display session.")
             return
@@ -61,7 +62,7 @@ final class GlassesControlSession {
     func resumeAfterCamera() {
         suspendedForCamera = false
         guard let deviceId else { return }
-        guard let device = wearables.deviceForIdentifier(deviceId),
+        guard let device = wearables?.deviceForIdentifier(deviceId),
               device.supportsDisplay() || device.deviceType().supportsDisplay else { return }
         Task { await startControlSession(deviceId) }
     }
@@ -78,7 +79,7 @@ final class GlassesControlSession {
 
     private func bindDeviceState(_ id: DeviceIdentifier) {
         deviceStateToken = nil
-        guard let device = wearables.deviceForIdentifier(id) else { return }
+        guard let device = wearables?.deviceForIdentifier(id) else { return }
         deviceStateToken = device.addDeviceStateListener { state in
             Task { @MainActor in
                 GlassesLink.shared.apply(state)
@@ -94,6 +95,7 @@ final class GlassesControlSession {
 
     private func startVoiceInvocations(_ id: DeviceIdentifier) {
         voice?.stop()
+        guard let wearables else { return }
         do {
             let stream = try VoiceInvocationsStream(wearables: wearables)
             _ = stream.invocationsPublisher.listen { invocation in
@@ -120,6 +122,7 @@ final class GlassesControlSession {
 
     private func startControlSession(_ id: DeviceIdentifier) async {
         tearDownSession()
+        guard let wearables else { return }
         let selector = SpecificDeviceSelector(device: id)
         do {
             let session = try wearables.createSession(deviceSelector: selector)

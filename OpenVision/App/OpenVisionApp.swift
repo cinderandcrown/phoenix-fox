@@ -33,12 +33,9 @@ struct OpenVisionApp: App {
         // then re-downloaded ~GBs at "connecting…" time). Must run before any HubClient exists.
         GemmaLocalService.bootstrapModelStore()
 
-        // Initialize Meta Wearables SDK
-        do {
-            try Wearables.configure()
-            print("[OpenVisionApp] Wearables SDK configured")
-        } catch {
-            print("[OpenVisionApp] Failed to configure Wearables SDK: \(error)")
+        WearablesSDK.start()
+        if let failure = WearablesSDK.failure {
+            print("[OpenVisionApp] Glasses SDK did not start: \(failure)")
         }
         print("[OpenVisionApp] Initialized")
     }
