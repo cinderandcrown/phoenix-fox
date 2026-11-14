@@ -30,7 +30,7 @@ struct ClaudeSettingsView: View {
             } header: {
                 Text("API key")
             } footer: {
-                Text("Stored in this phone's Keychain. Never logged.")
+                Text(CloudAIConsent.keyEntryDisclosure)
             }
 
             Section {

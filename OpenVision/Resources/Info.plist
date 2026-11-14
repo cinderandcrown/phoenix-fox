@@ -79,11 +79,15 @@
     <!-- Background Modes -->
     <key>UIBackgroundModes</key>
     <array>
+        <!-- audio: wake word + spoken replies on the active route -->
         <string>audio</string>
+        <!-- bluetooth-central: Meta DAT BLE discovery and control -->
         <string>bluetooth-central</string>
-        <string>bluetooth-peripheral</string>
+        <!-- external-accessory: com.meta.ar.wearable (current DAT path; MFi — see APP_STORE_REVIEW_AUDIT.md) -->
         <string>external-accessory</string>
+        <!-- location: walking guide + place reminders the wearer enables -->
         <string>location</string>
+        <!-- remote-notification: relay APNs for the wearer's own assistants -->
         <string>remote-notification</string>
     </array>
 

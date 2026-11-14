@@ -82,10 +82,10 @@ struct OpenAISettingsView: View {
             Text("Authentication")
         } footer: {
             if apiKey.isEmpty {
-                Label("Required for OpenAI mode", systemImage: "exclamationmark.triangle.fill")
+                Label("Required for OpenAI mode. \(CloudAIConsent.keyEntryDisclosure)", systemImage: "exclamationmark.triangle.fill")
                     .foregroundColor(.orange).font(.caption)
             } else {
-                Label("API key on this phone (Keychain). Never logged.", systemImage: "checkmark.circle.fill")
+                Label(CloudAIConsent.keyEntryDisclosure, systemImage: "checkmark.circle.fill")
                     .foregroundColor(.green).font(.caption)
             }
         }

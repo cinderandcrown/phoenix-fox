@@ -173,6 +173,7 @@ struct VoiceAgentView: View {
         model.trouble = viewModel.errorMessage
         model.offline = NetworkPath.shared.status == .offline
         model.needsGlassesRegister = !glassesManager.isRegistered
+        model.reviewerDemo = ReviewerDemo.isEnabled()
         let audio = AudioSessionManager.shared
         model.speakingThrough = "Speaking through \(audio.destination.title)"
         return model

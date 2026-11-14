@@ -1173,6 +1173,26 @@ final class VoiceAgentViewModel: ObservableObject {
         // Look to Talk is last of the three, and matches nothing while its switch is off.
         if await handleLookCommand(command) { return }
 
+        // Clock answers always; App Review demo adds more scripted phone-only lines.
+        if let line = ReviewerDemo.reply(to: command, demoEnabled: ReviewerDemo.isEnabled()) {
+            CompanionSurface.present(bot: nil, text: line) { self.speakResponse($0) }
+            if !ttsService.isSpeaking && !NeuralSpeech.isAnySpeaking {
+                agentState = isSessionActive ? .listening : .idle
+            }
+            return
+        }
+
+        // Guideline 5.1.2(i): cloud brains need explicit data-sharing consent first.
+        // On-device backends and the clock answers above do not need it.
+        if !CloudAIConsent.allowsCloudSend(backend: settingsManager.settings.aiBackend) {
+            let line = "Cloud AI needs your OK first. Open Settings, Privacy and Data, and review cloud AI data sharing. On-device answers still work without it."
+            CompanionSurface.present(bot: nil, text: line) { self.speakResponse($0) }
+            if !ttsService.isSpeaking && !NeuralSpeech.isAnySpeaking {
+                agentState = isSessionActive ? .listening : .idle
+            }
+            return
+        }
+
         let lowerCommand = command.lowercased()
 
         // Check for "stop" command - stops TTS and waits for next command.
