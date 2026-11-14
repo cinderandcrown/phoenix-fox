@@ -4,6 +4,11 @@
 import XCTest
 @testable import PhoenixFox
 
+// Apple's Accessibility framework declares a C struct with this name, and a test file
+// sees both modules, so "AccessibilitySettings()" is ambiguous there. This makes the
+// name mean ours in every test file.
+typealias AccessibilitySettings = PhoenixFox.AccessibilitySettings
+
 final class AccessCommandTests: XCTestCase {
     private func parse(_ text: String, focus: AccessCommand.Focus = .none, guiding: Bool = false, walking: Bool = false) -> AccessCommand? {
         AccessCommand.parse(text, context: .init(focus: focus, guiding: guiding, walking: walking))
