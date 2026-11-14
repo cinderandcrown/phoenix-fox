@@ -263,13 +263,14 @@ final class GlassesManager: ObservableObject {
 
         // v1 target is Meta Glasses Adventurer (DeviceType.metaGlasses): displayless.
         // Camera comes up only for an explicit look or live video. Mic and speaker stay on
-        // Bluetooth HFP, not the camera audio stream. 8 fps is enough for a still and costs less.
+        // Bluetooth HFP, not the camera audio stream. The toolkit accepts 2, 7, 15, 24, or 30
+        // frames a second and nothing in between. 7 is enough for a still and costs less.
         GlassesControlSession.shared.suspendForCamera()
         let config = StreamConfiguration(
             videoCodec: .raw,
             audioCodec: nil,
             resolution: .medium,
-            frameRate: 8
+            frameRate: 7
         )
 
         do {

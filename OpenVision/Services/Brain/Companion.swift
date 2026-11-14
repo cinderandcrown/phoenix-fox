@@ -311,7 +311,7 @@ final class CompanionRuntime: ObservableObject {
         watchTask?.cancel()
         watchSends = 0
         cameraOn = true
-        statusLine = "Camera on at 8 fps. The glasses light is on. I check faster when the scene changes."
+        statusLine = "Camera on at 7 fps. The glasses light is on. I check faster when the scene changes."
         caption = ""
         refreshIsland()
         NotificationCenter.default.post(name: .phoenixKeepListening, object: nil)

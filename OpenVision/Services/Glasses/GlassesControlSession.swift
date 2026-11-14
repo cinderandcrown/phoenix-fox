@@ -24,7 +24,10 @@ final class GlassesControlSession {
     private var session: DeviceSession?
     private var eventsTask: Task<Void, Never>?
     private var voice: VoiceInvocationsStream?
+    // A listener lives only as long as its token. A token that is dropped stops the callback.
+    private var voiceTokens: [any AnyListenerToken] = []
     private var speech: Speech?
+    private var speechToken: (any AnyListenerToken)?
     private var motion: Motion?
     private var deviceStateToken: (any AnyListenerToken)?
     private var suspendedForCamera = false
@@ -70,6 +73,7 @@ final class GlassesControlSession {
     func stop() {
         voice?.stop()
         voice = nil
+        voiceTokens = []
         deviceStateToken = nil
         tearDownSession()
         GlassesHUD.shared.detach()
@@ -95,17 +99,18 @@ final class GlassesControlSession {
 
     private func startVoiceInvocations(_ id: DeviceIdentifier) {
         voice?.stop()
+        voiceTokens = []
         guard let wearables else { return }
         do {
             let stream = try VoiceInvocationsStream(wearables: wearables)
-            _ = stream.invocationsPublisher.listen { invocation in
+            let invocations = stream.invocationsPublisher.listen { invocation in
                 guard let launch = invocation as? LaunchApp else { return }
                 Task { @MainActor in
                     NotificationCenter.default.post(name: .jarvisVoiceLaunch, object: nil)
                     _ = await launch.responseHandle.sendSuccess(actionOutput: nil)
                 }
             }
-            _ = stream.errorPublisher.listen { error in
+            let errors = stream.errorPublisher.listen { error in
                 let line = error.description
                 Task { @MainActor in
                     GlassesLink.shared.record("Voice invocation: \(line)")
@@ -113,6 +118,7 @@ final class GlassesControlSession {
             }
             try stream.start(deviceIdentifier: id)
             voice = stream
+            voiceTokens = [invocations, errors]
         } catch {
             GlassesLink.shared.record("Voice invocations not started: \(error.localizedDescription)")
         }
@@ -191,7 +197,7 @@ final class GlassesControlSession {
     private func attachSpeech(_ session: DeviceSession) {
         do {
             guard let speech = try session.addSpeech() else { return }
-            _ = speech.transcriptionPublisher.listen { result in
+            speechToken = speech.transcriptionPublisher.listen { result in
                 guard result.isFinal, !result.text.isEmpty else { return }
                 NotificationCenter.default.post(name: .jarvisGlassesTranscript, object: result.text)
             }
@@ -218,6 +224,7 @@ final class GlassesControlSession {
         eventsTask = nil
         speech?.stop()
         speech = nil
+        speechToken = nil
         motion?.stop()
         motion = nil
         GlassesHUD.shared.detach()
