@@ -41,6 +41,11 @@ struct SettingsView: View {
                         } label: {
                             Label("Glasses limits", systemImage: "slider.horizontal.3")
                         }
+                        NavigationLink {
+                            WorkshopSettingsView()
+                        } label: {
+                            Label("Workshop", systemImage: "hammer")
+                        }
                         Button {
                             settingsManager.applyOwnerProfile()
                         } label: {
@@ -49,7 +54,7 @@ struct SettingsView: View {
                     } header: {
                         Text("Owner build")
                     } footer: {
-                        Text("Every feature starts switched on in this build: the accessibility suite, Guide mode, Smart Capture, memory, the bot team, and the experimental glasses features. Anything you switch off stays off until you use this button. Nothing starts the camera or a recording by itself, and Guide mode still reads its safety notice first.")
+                        Text("Every feature starts switched on in this build: the accessibility suite, Guide mode, Smart Capture, memory, the bot team, the experimental glasses features, and the workshop. Anything you switch off stays off until you use this button. Nothing starts the camera or a recording by itself, and Guide mode still reads its safety notice first.")
                     }
                 }
 

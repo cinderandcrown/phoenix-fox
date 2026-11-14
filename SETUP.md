@@ -104,7 +104,7 @@ An urgent message interrupts and is spoken at once. A normal one is spoken when 
 
 A build from the TestFlight workflow is the owner build: every feature starts switched on, and the glasses features Meta still calls beta are allowed. Nothing starts by itself. The camera, a recording, and Guide mode still wait to be asked, Guide mode still reads its safety notice first, and saving a face still asks whether the person agreed.
 
-**Settings → Owner build** has two things: **Glasses limits**, and **Turn everything on again** for after you have switched things off. What each glasses switch does, and what it costs, is in [docs/GLASSES_SDK.md](docs/GLASSES_SDK.md).
+**Settings → Owner build** has three things: **Glasses limits**, **Workshop**, and **Turn everything on again** for after you have switched things off. What each glasses switch does, and what it costs, is in [docs/GLASSES_SDK.md](docs/GLASSES_SDK.md).
 
 Do these once:
 
@@ -131,6 +131,37 @@ None of this has run on glasses yet. These are the checks, with the glasses on:
 Speech on the glasses only matters in the moments the phone is not listening, which are hard to stage, so it has no row here.
 
 If one of these fails, switch its switch off under Glasses limits and the rest keep working. With every switch off, this build uses the glasses exactly as a standard build does.
+
+## The workshop
+
+The workshop is ten features built from [docs/INNOVATION_BACKLOG.md](docs/INNOVATION_BACKLOG.md). They are in the owner build only, under **Settings → Owner build → Workshop**, and each has its own switch. In this build they start on.
+
+Two of them are about health. **Ingredient watch** and **Dose guard** are aids. They are not medical devices, they can misread a label, and they read English only. Ingredient watch never says a food is safe: when it finds none of your words it says so, and you still read the label when it matters. Dose guard knows only the doses you told it about.
+
+Before you try them:
+
+1. Open **Workshop → What to look for** and switch on what Ingredient watch should look for. Until you do, "check the ingredients" tells you the list is empty and takes no picture.
+2. Open **Workshop → Skills**, pick an example, read what it captures and asks, and add it. Three of the examples name Indy, Rally, and Fire Fox.
+3. Place notes ask for location the first time you leave one.
+
+None of this has run on glasses or against your relay. These are the checks, each after saying **Jarvis**:
+
+| Say this | What should happen |
+| --- | --- |
+| **Start a walk-through at the shop**, then **note the back door sticks**, then **photo flag water under the sink** | Each is confirmed. The capture light comes on for the photo only. |
+| **Finish the walk-through**, then **send the walk-through to Indy** | You hear the counts, then Indy's answer. Indy receives the report as text with the photo. The walk-through is under Workshop, Walk-throughs, with a Share button. |
+| **Start a tally for the storeroom**, **twelve cases of cups**, **take away two cases of cups**, **how many cases of cups**, **undo**, **finish the tally** | The running count after each: 12, 10, 10, 12, then the summary. Nothing leaves the phone. |
+| Hold a food label and say **check the ingredients** | The light comes on. You hear which of your words are on the label, with the words it read, or that none was found after two looks. It never says "safe". |
+| Hold a medicine box and say **I'm taking this**, then say it again a minute later | The first is logged with the time. The second says "Wait", how long ago the last one was, and that you can say **log it anyway**. |
+| **What have I taken today** | The doses logged today. This turn is not in History. |
+| **Ask the council, should I move the launch to Friday** | Every assistant votes. You hear the count, who disagreed, and one reason. No picture is taken. |
+| **Ask Indy to find three venues, then Driver to price the travel** | "Indy, then Driver", then a line as it is passed on, then Driver's answer. |
+| **Whenever I put my glasses on, say good morning**, then take the glasses off and put them on | "Good morning" within a few seconds of putting them on, at most once in thirty minutes. |
+| **Leave a note here: the spare key is in the blue tin**, then **any notes here** | "Note left here", then the note read back. |
+| **Price check**, looking at a price tag, after adding that skill | The light comes on and Indy's answer is spoken. |
+| **Close the day** | Your main assistant gets today's walk-throughs, tallies, notes, votes, and skills, and answers with a summary. Nothing about medicine or ingredients is in it. |
+
+If one misbehaves, switch it off under Workshop and the rest keep working. **Erase everything the workshop keeps** removes its records from the phone.
 
 ## Accessibility
 

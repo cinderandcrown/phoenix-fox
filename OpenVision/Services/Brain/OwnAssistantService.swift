@@ -87,22 +87,28 @@ final class OwnAssistantService: ObservableObject {
 
     /// Asks every bot at the same time. `onEach` runs as that bot's reply arrives, so speech
     /// can start before the slowest one finishes. A bot that fails or is stopped reports "".
+    ///
+    /// - Parameter images: Pictures every bot is sent with the question.
     func askEach(
         transcript: String,
         cleaned: String,
         intent: String,
         bots: [String],
+        images: [Data] = [],
         onEach: @MainActor (String, String) -> Void
     ) async {
         guard let endpoint = settings.relayEndpoint else { return }
         let context = recentContext()
         let client = self.client
+        let pictures = RelayImages.fitted(images, budget: RelayClient.imageBudget)
         let (answers, continuation) = AsyncStream.makeStream(of: (bot: String, text: String).self)
         let task = Task {
             await withTaskGroup(of: (bot: String, text: String).self) { group in
                 for bot in bots {
                     group.addTask {
-                        let ask = RelayAsk(text: cleaned, transcript: transcript, intent: intent, targetBot: bot, context: context)
+                        let ask = RelayAsk(
+                            text: cleaned, transcript: transcript, intent: intent, targetBot: bot, context: context, images: pictures
+                        )
                         let replies = (try? await client.ask(ask, to: endpoint)) ?? []
                         return (bot, replies.map(\.text).joined(separator: " "))
                     }

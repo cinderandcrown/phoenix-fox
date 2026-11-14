@@ -374,6 +374,10 @@ struct AppSettings: Codable, Equatable {
     /// build may not use.
     var glasses = GlassesCapabilitySettings()
 
+    /// The workshop: the features built from docs/INNOVATION_BACKLOG.md. Read it through
+    /// `SettingsManager.workshop`, which switches all of it off outside the owner build.
+    var workshop = WorkshopSettings()
+
     /// The version of `OwnerProfile` this installation has had applied. Zero means never.
     var ownerProfileVersion: Int = 0
 
@@ -471,7 +475,14 @@ extension OwnerProfile {
     @discardableResult
     static func applyIfNeeded(to settings: inout AppSettings, flavor: BuildFlavor) -> Bool {
         guard flavor == .owner, settings.ownerProfileVersion < version else { return false }
-        apply(to: &settings)
+        if settings.ownerProfileVersion == 0 {
+            apply(to: &settings)
+        } else {
+            // An installation that had an earlier profile gets only what is new since
+            // then. Re-applying the whole profile would undo what the owner switched off.
+            if settings.ownerProfileVersion < 2 { apply(to: &settings.workshop) }
+            settings.ownerProfileVersion = version
+        }
         return true
     }
 
@@ -490,6 +501,7 @@ extension OwnerProfile {
         settings.preferGlassesMic = true
         apply(to: &settings.accessibility)
         apply(to: &settings.glasses)
+        apply(to: &settings.workshop)
         settings.ownerProfileVersion = version
     }
 }

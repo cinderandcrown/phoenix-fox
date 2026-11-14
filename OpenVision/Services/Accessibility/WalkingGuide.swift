@@ -102,6 +102,21 @@ final class WalkingGuide: NSObject, ObservableObject, @preconcurrency CLLocation
         }
     }
 
+    /// Where the wearer is now, for a feature that is not walking directions. When there
+    /// is no fix, `problem` says why in words the wearer can act on.
+    func locate() async -> (fix: LocationFix?, problem: String) {
+        let fix = await currentFix()
+        return (fix, fix == nil ? noFix : "")
+    }
+
+    /// Whether a position can be had without the system asking the wearer anything.
+    var canLocateWithoutAsking: Bool {
+        switch manager.authorizationStatus {
+        case .authorizedAlways, .authorizedWhenInUse: return true
+        default: return false
+        }
+    }
+
     /// A current fix, asking for permission the first time. Nil when permission is refused
     /// or no fix arrives in time.
     private func currentFix() async -> LocationFix? {
