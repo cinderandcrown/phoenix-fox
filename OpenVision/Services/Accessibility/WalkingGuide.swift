@@ -119,8 +119,9 @@ final class WalkingGuide: NSObject, ObservableObject, @preconcurrency CLLocation
             manager.requestLocation()
         }
         let id = UUID()
+        let wait = patience
         Task { [weak self] in
-            try? await Task.sleep(for: .seconds(patience))
+            try? await Task.sleep(for: .seconds(wait))
             self?.waitingForFix.removeValue(forKey: id)?.resume(returning: nil)
         }
         return await withCheckedContinuation { waitingForFix[id] = $0 }

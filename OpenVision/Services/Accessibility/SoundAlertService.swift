@@ -113,12 +113,15 @@ final class SoundAlertService: ObservableObject {
     }
 
     private func notify(_ message: String) {
-        let content = UNMutableNotificationContent()
-        content.title = "Phoenix Fox heard"
-        content.body = message
-        content.sound = .default
-        let request = UNNotificationRequest(identifier: "sound-alert-\(UUID().uuidString)", content: content, trigger: nil)
-        Task { try? await UNUserNotificationCenter.current().add(request) }
+        Task {
+            let content = UNMutableNotificationContent()
+            content.title = "Phoenix Fox heard"
+            content.body = message
+            content.sound = .default
+            try? await UNUserNotificationCenter.current().add(
+                UNNotificationRequest(identifier: "sound-alert-\(UUID().uuidString)", content: content, trigger: nil)
+            )
+        }
     }
 }
 

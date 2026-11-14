@@ -28,7 +28,7 @@ enum AccessVision {
             let request = VNRecognizeTextRequest()
             request.recognitionLevel = fast ? .fast : .accurate
             request.usesLanguageCorrection = corrected
-            guard (try? VNImageRequestHandler(data: jpeg).perform([request])) != nil else { return [] }
+            guard (try? VNImageRequestHandler(data: jpeg, options: [:]).perform([request])) != nil else { return [] }
             return (request.results ?? []).compactMap { observation in
                 guard let candidate = observation.topCandidates(1).first else { return nil }
                 return TextFragment(candidate.string, box: box(observation.boundingBox), confidence: Double(candidate.confidence))
@@ -46,7 +46,7 @@ enum AccessVision {
             let words = VNRecognizeTextRequest()
             words.recognitionLevel = .fast
             words.usesLanguageCorrection = false
-            guard (try? VNImageRequestHandler(data: jpeg).perform([people, animals, scene, words])) != nil else { return [] }
+            guard (try? VNImageRequestHandler(data: jpeg, options: [:]).perform([people, animals, scene, words])) != nil else { return [] }
 
             var found: [Sighting] = []
             for person in people.results ?? [] where person.confidence >= 0.5 {

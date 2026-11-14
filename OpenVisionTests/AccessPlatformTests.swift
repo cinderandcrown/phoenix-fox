@@ -50,12 +50,14 @@ final class AccessPlatformTests: XCTestCase {
     // MARK: - Pixels and text
 
     func testTheCenterOfThePictureIsNamed() async throws {
-        let blue = await AccessVision.centerColors(in: try solid(UIColor(red: 0.05, green: 0.2, blue: 0.85, alpha: 1)))
+        let bluePicture = try solid(UIColor(red: 0.05, green: 0.2, blue: 0.85, alpha: 1))
+        let blue = await AccessVision.centerColors(in: bluePicture)
         XCTAssertEqual(blue.count, 24 * 24)
-        XCTAssertTrue(ColorNamer.describe(blue).spoken.lowercased().contains("blue"))
+        XCTAssertEqual(ColorNamer.describe(blue).spoken, "It looks blue.")
 
-        let red = await AccessVision.centerColors(in: try solid(UIColor(red: 0.85, green: 0.05, blue: 0.05, alpha: 1)))
-        XCTAssertTrue(ColorNamer.describe(red).spoken.lowercased().contains("red"))
+        let redPicture = try solid(UIColor(red: 0.85, green: 0.05, blue: 0.05, alpha: 1))
+        let red = await AccessVision.centerColors(in: redPicture)
+        XCTAssertEqual(ColorNamer.describe(red).spoken, "It looks red.")
 
         let nothing = await AccessVision.centerColors(in: Data("not a picture".utf8))
         XCTAssertTrue(nothing.isEmpty)
@@ -111,8 +113,9 @@ final class AccessPlatformTests: XCTestCase {
     }
 
     func testAColorQuestionIsAnsweredFromThePicture() async throws {
-        let reply = await say("what color is this", picture: try solid(UIColor(red: 0.05, green: 0.2, blue: 0.85, alpha: 1)))
-        XCTAssertEqual(reply?.lowercased().contains("blue"), true)
+        let picture = try solid(UIColor(red: 0.05, green: 0.2, blue: 0.85, alpha: 1))
+        let reply = await say("what color is this", picture: picture)
+        XCTAssertEqual(reply, "It looks blue.")
     }
 
     func testNoPictureIsSaidPlainly() async {
@@ -179,7 +182,8 @@ final class AccessPlatformTests: XCTestCase {
 
     func testAnnouncementsDoNotCountAsRepliesOnceARealReplyStarts() {
         let voice = TTSService.shared
-        voice.announce("Person ahead.", urgent: false)
+        // Urgent, so it is spoken whatever the app was saying when the test began.
+        voice.announce("Car ahead.", urgent: true)
         XCTAssertTrue(voice.announcing)
         voice.speak("Here is your answer.")
         XCTAssertFalse(voice.announcing)
