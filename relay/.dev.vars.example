@@ -3,3 +3,7 @@ RELAY_TOKEN=
 APNS_KEY_P8=
 APNS_KEY_ID=
 APPLE_TEAM_ID=
+# Optional. JSON object from bot name to webhook URL. See docs/RELAY_API.md.
+# BOT_WEBHOOKS={"Indy":"http://localhost:8788/hook"}
+# Optional. Signs webhooks. RELAY_TOKEN signs them when this is unset.
+# WEBHOOK_SECRET=
