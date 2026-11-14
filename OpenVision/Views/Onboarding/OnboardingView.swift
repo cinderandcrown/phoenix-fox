@@ -31,6 +31,7 @@ struct OnboardingView: View {
     @State private var relayToken = ""
     @State private var relayOutcome: RelayCheck.Outcome?
     @State private var grokKey = ""
+    @State private var grokTestStatus: String?
 
     private var step: OnboardingStep { OnboardingStep.restored(savedStep) }
 
