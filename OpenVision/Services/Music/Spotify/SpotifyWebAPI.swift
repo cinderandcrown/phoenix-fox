@@ -18,7 +18,8 @@ final class SpotifyWebAPI {
             .init(name: "limit", value: String(limit)),
         ]
         let json = try await get(comps.url!)
-        let items = json["tracks"]?["items"] as? [[String: Any]] ?? []
+        let tracks = json["tracks"] as? [String: Any] ?? [:]
+        let items = tracks["items"] as? [[String: Any]] ?? []
         return items.compactMap { item in
             guard let uri = item["uri"] as? String, let name = item["name"] as? String else { return nil }
             let artists = (item["artists"] as? [[String: Any]])?.compactMap { $0["name"] as? String } ?? []
@@ -34,7 +35,8 @@ final class SpotifyWebAPI {
             .init(name: "limit", value: String(limit)),
         ]
         let json = try await get(comps.url!)
-        let items = json["playlists"]?["items"] as? [[String: Any]] ?? []
+        let playlists = json["playlists"] as? [String: Any] ?? [:]
+        let items = playlists["items"] as? [[String: Any]] ?? []
         return items.compactMap { item in
             guard let uri = item["uri"] as? String, let name = item["name"] as? String else { return nil }
             return (uri, name)

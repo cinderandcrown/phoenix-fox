@@ -98,7 +98,7 @@ final class AppleMusicProvider: MusicProvider {
 
     func nowPlaying() async throws -> NowPlayingInfo {
         if let entry = player.queue.currentEntry {
-            let title = entry.title ?? "Unknown"
+            let title = entry.title.isEmpty ? "Unknown" : entry.title
             return NowPlayingInfo(title: title, artist: "", album: nil, uri: nil)
         }
         // Fall back to system Now Playing (works when another app is playing too).
