@@ -116,7 +116,7 @@ struct WorkshopSettings: Codable, Equatable, Sendable {
 extension OwnerProfile {
     /// The owner build turns each of the ten workshop features on. What Ingredient watch
     /// looks for is not a setting, and starts empty: only the wearer knows what belongs on
-    /// it. Look to Talk is turned on with them.
+    /// it. Look to Talk stays off until its own switch — it starts the camera stream.
     static func apply(to workshop: inout WorkshopSettings) {
         workshop.walkThrough = true
         workshop.tally = true
@@ -128,11 +128,14 @@ extension OwnerProfile {
         workshop.placeNotes = true
         workshop.closeTheDay = true
         workshop.skills = true
-        applyLookToTalk(to: &workshop)
+        // lookToTalk deliberately not set — see applyLookToTalk / LOOK_TO_TALK.md.
     }
 
-    /// Look to Talk alone, for installations that already had the ten.
+    /// Reserved for a future profile bump that opts Look to Talk on by default.
+    /// Today it leaves the switch alone so "turn everything on" still matches the docs:
+    /// Look to Talk waits for its own switch.
     static func applyLookToTalk(to workshop: inout WorkshopSettings) {
-        workshop.lookToTalk = true
+        // Intentionally empty until the first Look to Talk release is stable.
+        _ = workshop
     }
 }

@@ -116,7 +116,7 @@ struct OnboardingView: View {
                     OutcomeLabel(text: relayOutcome.line, good: relayOutcome.isGood)
                 }
                 VStack(alignment: .leading, spacing: Theme.Space.tight) {
-                    Text("Grok API key — default brain")
+                    Text("Grok key — default brain")
                         .font(.subheadline.weight(.semibold))
                     Text("Paste your xAI key. Grok is the default cloud brain; you can switch to Claude or ChatGPT later in Settings.")
                         .font(.footnote)

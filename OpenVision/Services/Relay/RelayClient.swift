@@ -31,21 +31,9 @@ struct RelayClient: Sendable {
     /// create a second one. Once the relay has the ask, a failed poll is retried until the
     /// deadline, because the bot may already be working on it.
     func ask(_ ask: RelayAsk, to endpoint: RelayEndpoint) async throws -> [RelayReply] {
-        // Fail fast when a real /health says no bot can answer — a 90s poll with nobody
-        // listening feels like a hang. Legacy relays without /health (or a 404) still proceed.
-        if let health = try? await knownHealth(of: endpoint) {
-            let wanted = ask.targetBot.trimmingCharacters(in: .whitespacesAndNewlines)
-            if health.webhooks.isEmpty {
-                throw RelayError.noBotConnected(wanted: wanted.isEmpty ? nil : wanted)
-            }
-            if !wanted.isEmpty {
-                let names = health.webhooks.map { $0.lowercased() }
-                if !names.contains(wanted.lowercased()) {
-                    throw RelayError.noBotConnected(wanted: wanted)
-                }
-            }
-        }
-
+        // Do not gate on GET /health webhooks: that list is only bots with push URLs.
+        // Polling bots (and tests) still answer without appearing there. Callers that want
+        // a soft hint can read health themselves; an empty webhook list is not "nobody home".
         let deadline = now().addingTimeInterval(Self.replyDeadline)
         let body = try JSONEncoder().encode(ask)
 
