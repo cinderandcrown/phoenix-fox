@@ -550,7 +550,7 @@ final class GlassesManager: ObservableObject {
             deviceSession = nil
             borrowedSession = false
             await GlassesControlSession.shared.suspendForCamera()
-            if let own = await startOwnSession(on: deviceId, wearables: wearables) {
+            if let own = await startOwnSession(preferring: deviceId, wearables: wearables) {
                 deviceSession = own
                 watchOwnSession(own)
                 do {
