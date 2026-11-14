@@ -68,10 +68,13 @@ enum PhoenixFoxFeatures {
             return .spoken(spoken)
         }
         if lower.hasPrefix("remember ") || lower.hasPrefix("remember this") {
-            GlassesMemory.remember(text)
-            return .spoken("Remembered. Ask me what I remember when you want it back.")
+            let photo = await snapshot()
+            GlassesMemory.remember(text, photo: photo)
+            return .spoken(photo == nil
+                ? "Remembered on this phone, encrypted."
+                : "Remembered, with a photo. The camera light was on for that shot.")
         }
-        if contains(lower, ["what do you remember", "what did i ask you to remember", "search my memory", "what did i tell you to remember"]) {
+        if contains(lower, ["what do you remember", "what did i ask you to remember", "search my memory", "what did i tell you to remember", "where did i park", "where did i leave"]) {
             return .spoken(GlassesMemory.recall(matching: text))
         }
         let command = lower.trimmingCharacters(in: .punctuationCharacters)
@@ -96,7 +99,7 @@ enum PhoenixFoxFeatures {
             return .spoken("Volume is about \(value) percent. The glasses rocker still changes it. iOS does not let an app set the volume.")
         }
         if lower.contains("take a video") || lower.contains("start a video") || lower.contains("record a video") {
-            return .spoken("Meta's own camera records 3K video. The toolkit only gives other apps a preview stream, so I won't pretend to save a glasses video. I can take a still if you say take a picture.")
+            return .spoken("Say record a clip. I record the preview while the glasses light is on, and I won't pretend it's Meta's 3K file.")
         }
         if contains(lower, ["take a picture", "take a photo", "take photo"]) {
             guard let data = await snapshot() else { return .spoken("I couldn't get a photo from the glasses.") }
@@ -213,16 +216,7 @@ enum PhoenixFoxFeatures {
     }
 
     private static func message(_ text: String) async -> String {
-        let lower = text.lowercased()
-        if lower.contains("whatsapp") || lower.contains("messenger") || lower.contains("instagram") {
-            return "I can't send WhatsApp, Messenger, or Instagram messages from the glasses. Those apps don't give other apps that. I can text a phone number."
-        }
-        let body = text.replacingOccurrences(of: "text ", with: "", options: .caseInsensitive)
-        if let number = phoneDigits(in: body), let url = URL(string: "sms:\(number)") {
-            await UIApplication.shared.open(url)
-            return "Opened Messages for \(number). You'll finish the send on the phone."
-        }
-        return "Say the phone number to text. I can't pick a WhatsApp or Messenger chat the way the Meta AI app can."
+        await MessageHandoff.send(text)
     }
 
     private static func contactNumber(matching name: String) async -> String? {
@@ -258,37 +252,32 @@ enum PhoenixFoxFeatures {
 }
 
 enum GlassesMemory {
-    private struct Item: Codable { var text: String; var at: Date }
-
-    static func remember(_ text: String) {
-        var items = load()
-        items.append(Item(text: text, at: Date()))
-        if items.count > 50 { items.removeFirst(items.count - 50) }
-        save(items)
+    static func remember(_ text: String, photo: Data? = nil) {
+        if let legacy = legacyItems() {
+            for item in legacy { SecureNotes.remember(item) }
+            try? FileManager.default.removeItem(at: legacyFile())
+        }
+        SecureNotes.remember(text, photo: photo)
     }
 
     static func recall(matching query: String) -> String {
-        let items = load()
-        guard !items.isEmpty else { return "I haven't remembered anything yet." }
-        let words = query.lowercased().split(separator: " ").map(String.init)
-        let hit = items.reversed().first { item in
-            words.contains { item.text.lowercased().contains($0) && $0.count > 3 }
+        if let legacy = legacyItems() {
+            for item in legacy { SecureNotes.remember(item) }
+            try? FileManager.default.removeItem(at: legacyFile())
         }
-        return hit?.text ?? items.last!.text
+        return SecureNotes.search(query)
     }
 
-    private static func file() -> URL {
-        let folder = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
-        return folder.appendingPathComponent("phoenix-memory.json")
+    private static func legacyFile() -> URL {
+        FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+            .appendingPathComponent("phoenix-memory.json")
     }
 
-    private static func load() -> [Item] {
-        guard let data = try? Data(contentsOf: file()) else { return [] }
-        return (try? JSONDecoder().decode([Item].self, from: data)) ?? []
+    private static func legacyItems() -> [String]? {
+        guard let data = try? Data(contentsOf: legacyFile()),
+              let rows = try? JSONDecoder().decode([Legacy].self, from: data) else { return nil }
+        return rows.map(\.text)
     }
 
-    private static func save(_ items: [Item]) {
-        guard let data = try? JSONEncoder().encode(items) else { return }
-        try? data.write(to: file())
-    }
+    private struct Legacy: Codable { var text: String; var at: Date }
 }

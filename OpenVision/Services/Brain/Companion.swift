@@ -9,9 +9,12 @@ import ActivityKit
 import AppIntents
 import AVFoundation
 import Contacts
+import CoreLocation
 import CryptoKit
 import Foundation
+import MapKit
 import NaturalLanguage
+import SwiftUI
 import UIKit
 import UserNotifications
 
@@ -66,7 +69,13 @@ enum MessageHandoff {
         let lower = utterance.lowercased()
         for prefix in ["to ", "message ", "text ", "email "] {
             if let range = lower.range(of: prefix) {
-                let rest = String(utterance[range.upperBound...])
+                var rest = String(utterance[range.upperBound...])
+                for stop in [" saying ", " that ", " on whatsapp", " on messenger", " via ", " to say "] {
+                    if let cut = rest.lowercased().range(of: stop) {
+                        rest = String(rest[..<cut.lowerBound])
+                        break
+                    }
+                }
                 return rest.split(separator: " ").prefix(2).joined(separator: " ")
             }
         }
@@ -111,18 +120,27 @@ final class CompanionRuntime: ObservableObject {
     static let shared = CompanionRuntime()
 
     @Published var cameraOn = false
-    @Published var statusLine = "Listening for Jarvis. The mic dot stays visible."
+    @Published var statusLine = "Listening for Jarvis. The mic indicator stays visible."
+    @Published var caption = ""
+
+    /// True while watch-this or translation should keep the conversation open.
+    var holdsConversation: Bool { cameraOn || translating }
 
     private var watchTask: Task<Void, Never>?
     private var lastThumb: [UInt8] = []
     private var watchSends = 0
     private var translating = false
+    private var translationTarget = "English"
 
     private init() {}
 
     /// Returns a spoken line when this command is handled here.
     func consume(_ text: String, snapshot: () async -> Data?) async -> String? {
         let lower = text.lowercased()
+        if lower.hasPrefix("reply ") || lower.hasPrefix("answer that ") {
+            let body = lower.hasPrefix("reply ") ? String(text.dropFirst(6)) : String(text.dropFirst(12))
+            return await replyToInbox(body)
+        }
         if lower.contains("take over") || lower.hasPrefix("grok, take over") || lower.hasPrefix("grok take over") {
             return await takeOver(text)
         }
@@ -134,11 +152,12 @@ final class CompanionRuntime: ObservableObject {
             stopWatch()
             return "Stopped watching. The camera is off."
         }
-        if lower.contains("record a clip") || lower.contains("start recording") {
+        if lower.contains("record a clip") || lower.contains("start recording")
+            || lower.contains("take a video") || lower.contains("record a video") || lower.contains("start a video") {
             NotificationCenter.default.post(name: .phoenixRecord, object: nil)
             cameraOn = true
             statusLine = "Recording. The glasses camera light is on."
-            return "Recording. The glasses light stays on while the camera is open. Say stop recording."
+            return "Recording the preview. The glasses light stays on. This is not Meta's 3K camera file. Say stop recording."
         }
         if lower.contains("stop recording") {
             NotificationCenter.default.post(name: .phoenixStopRecord, object: nil)
@@ -146,14 +165,24 @@ final class CompanionRuntime: ObservableObject {
             statusLine = "Listening for Jarvis. The mic dot stays visible."
             return "Stopped. The clip saves to Photos if the recorder finished."
         }
-        if lower.contains("translate to ") || lower == "start translating" {
+        if lower.contains("translate to ") || lower.contains("start translating")
+            || lower.contains("live translation") || lower.contains("translate this conversation") {
+            if let range = lower.range(of: "translate to ") {
+                let word = String(text[range.upperBound...]).split(separator: " ").first.map(String.init) ?? "English"
+                translationTarget = word
+            } else {
+                translationTarget = "English"
+            }
             translating = true
+            NotificationCenter.default.post(name: .phoenixKeepListening, object: nil)
             TranscriptLog.append("Translation on: \(text)")
-            return "I'll translate the next things you say into your ear. Captions are saved on the phone. Say stop translating."
+            caption = "Translating into \(translationTarget). Captions stay on the phone."
+            return "I'll translate the next things you say into \(translationTarget) and show the words on the phone. These glasses have no lens captions. Say stop translating."
         }
         if lower.contains("stop translating") {
             translating = false
-            return "Translation off."
+            caption = ""
+            return "Translation off. Say meeting notes if you want a summary."
         }
         if translating {
             let line = await translate(text)
@@ -167,18 +196,50 @@ final class CompanionRuntime: ObservableObject {
             return await morningBrief(force: true)
         }
         if lower.contains("when i arrive") || lower.contains("when i get to") {
-            return "Geofenced reminders need Always location, which shows the system location arrow. Say the place again after you allow it in Settings. I will not watch location in the background until you do."
+            return await PlaceReminders.shared.arm(text)
+        }
+        if lower.contains("task history") || lower.contains("what did they do") {
+            let lines = TaskLog.lines()
+            return lines.isEmpty ? "No take-over tasks yet." : lines.suffix(4).joined(separator: " ")
         }
         return nil
+    }
+
+    func noteListening() {
+        if !cameraOn {
+            statusLine = "Listening for Jarvis. The mic indicator stays visible."
+        }
+        refreshIsland()
     }
 
     func maybeMorningBrief() async {
         let hour = Calendar.current.component(.hour, from: Date())
         guard (5..<11).contains(hour) else { return }
         let key = "phoenix.morning.\(Calendar.current.startOfDay(for: Date()).timeIntervalSince1970)"
+        guard SettingsManager.shared.settings.isOwnAssistantConfigured else { return }
         guard !UserDefaults.standard.bool(forKey: key) else { return }
         UserDefaults.standard.set(true, forKey: key)
-        _ = await morningBrief(force: true)
+        let line = await morningBrief(force: true)
+        TTSService.shared.speak(line)
+        statusLine = "Morning brief."
+    }
+
+    private func replyToInbox(_ text: String) async -> String {
+        guard let id = InboxThread.lastId else {
+            return "Nothing is waiting in the inbox."
+        }
+        guard SettingsManager.shared.settings.isOwnAssistantConfigured else {
+            return "The relay is not configured, so I can't send that reply."
+        }
+        let bot = InboxThread.lastFrom ?? AssistantRoster.defaultBot(in: SettingsManager.shared.settings.assistantBots).name
+        do {
+            let replies = try await OwnAssistantService.shared.ask(
+                transcript: text, cleaned: text, images: [], intent: "reply", targetBot: bot, replyTo: id
+            )
+            return replies.map { "\($0.fromBot): \($0.text)" }.joined(separator: " ")
+        } catch {
+            return error.localizedDescription
+        }
     }
 
     func notePush(text: String, from: String, priority: String) {
@@ -200,46 +261,68 @@ final class CompanionRuntime: ObservableObject {
             return "The relay is not configured, so I can't hand this to Fire Fox, Indy, Driver, and Rally."
         }
         let bots = AssistantRoster.normalized(settings.assistantBots)
-        statusLine = "Asking \(bots.map(\.name).joined(separator: ", "))."
-        var pieces: [String] = []
-        for bot in bots {
-            do {
-                let replies = try await OwnAssistantService.shared.ask(
-                    transcript: request, cleaned: request, images: [], intent: "takeover", targetBot: bot.name
-                )
-                let text = replies.map(\.text).joined(separator: " ")
-                pieces.append("\(bot.name): \(text)")
-                TaskLog.append(bot: bot.name, request: request, result: text)
-            } catch {
-                pieces.append("\(bot.name) did not answer.")
-            }
-        }
-        let summary = pieces.joined(separator: " ")
-        statusLine = "Listening for Jarvis. The mic dot stays visible."
+        let names = bots.map(\.name)
+        statusLine = "Asking \(names.joined(separator: ", ")) at the same time."
         refreshIsland()
-        return summary.isEmpty ? "No one answered." : summary
+        TTSService.shared.beginStreaming()
+        TTSService.shared.speakChunk("Asking \(names.joined(separator: ", ")).")
+        let heard = HeardPieces()
+        await OwnAssistantService.shared.askEach(
+            transcript: request, cleaned: request, intent: "takeover", bots: names
+        ) { bot, text in
+            let spoken = text.isEmpty ? "\(bot) did not answer." : "\(bot). \(text)"
+            heard.lines.append(spoken)
+            TaskLog.append(bot: bot, request: request, result: text.isEmpty ? "no answer" : text)
+            self.statusLine = "\(bot) answered."
+            TTSService.shared.speakChunk(spoken)
+        }
+        TTSService.shared.endStreaming()
+        statusLine = "Listening for Jarvis. The mic indicator stays visible."
+        refreshIsland()
+        return heard.lines.isEmpty ? "No one answered." : ""
     }
 
     private func startWatch() {
         watchTask?.cancel()
         watchSends = 0
         cameraOn = true
-        statusLine = "Camera on. The glasses light is on. Sending only when the scene changes."
+        statusLine = "Camera on at 8 fps. The glasses light is on. I check faster when the scene changes."
+        caption = ""
+        refreshIsland()
+        NotificationCenter.default.post(name: .phoenixKeepListening, object: nil)
         watchTask = Task {
             await GlassesManager.shared.startStreaming()
+            var interval: UInt64 = 1_200_000_000
+            var stable = 0
             var lastSent = Date.distantPast
             while !Task.isCancelled && cameraOn {
-                try? await Task.sleep(nanoseconds: 1_500_000_000)
+                try? await Task.sleep(nanoseconds: interval)
                 guard let image = GlassesManager.shared.lastFrame,
                       let thumb = Thumbnail.bytes(image) else { continue }
                 let delta = FrameChange.difference(lastThumb, thumb)
+                let changed = !lastThumb.isEmpty && delta > FrameChange.sceneChangeThreshold && Date().timeIntervalSince(lastSent) > 4 && watchSends < 12
                 lastThumb = thumb
-                guard delta > 0.08, Date().timeIntervalSince(lastSent) > 4, watchSends < 12 else { continue }
-                lastSent = Date()
-                watchSends += 1
-                guard let jpeg = ImageBudget.jpeg(image.jpegData(compressionQuality: 0.6)) else { continue }
-                if SettingsManager.shared.settings.isGrokConfigured {
-                    try? await GrokService.shared.sendMessage("One sentence: what changed?", imageData: jpeg, system: "Answer in one short spoken sentence.")
+                if changed {
+                    stable = 0
+                    interval = 400_000_000
+                    lastSent = Date()
+                    watchSends += 1
+                    statusLine = "Scene changed. Camera light is on. Checking about twice a second."
+                    refreshIsland()
+                    guard let jpeg = ImageBudget.jpeg(image.jpegData(compressionQuality: 0.6)) else { continue }
+                    if let sentence = try? await GrokService.shared.complete(
+                        "One sentence: what changed?",
+                        imageData: jpeg,
+                        system: "Answer in one short spoken sentence."
+                    ), !sentence.isEmpty {
+                        caption = sentence
+                        TranscriptLog.append("Watch: \(sentence)")
+                        TTSService.shared.speakAmbient(sentence)
+                    }
+                } else {
+                    stable += 1
+                    if stable >= 3 { interval = 2_500_000_000 }
+                    statusLine = "Watching. Camera light is on. The scene is steady, so I'm checking every couple of seconds."
                 }
             }
             if GlassesManager.shared.isStreaming {
@@ -269,11 +352,16 @@ final class CompanionRuntime: ObservableObject {
 
     private func translate(_ text: String) async -> String {
         guard SettingsManager.shared.settings.isGrokConfigured else {
-            return "Translation needs the fast Grok key, or say take over and the relay will translate. I am not sending this to an unknown server."
+            return "Translation needs the fast Grok key. I am not sending this to an unknown server."
         }
         do {
-            try await GrokService.shared.sendMessage(text, imageData: nil, system: "Translate the user's words into clear English. Output only the translation, one or two sentences.")
-            return "Translated."
+            let line = try await GrokService.shared.complete(
+                text,
+                imageData: nil,
+                system: "Translate the user's words into \(translationTarget). Output only the translation, one or two sentences."
+            )
+            caption = line
+            return line
         } catch {
             return "The translation didn't go through."
         }
@@ -368,11 +456,15 @@ enum TaskLog {
 }
 
 enum SecureNotes {
-    private struct Item: Codable { var text: String; var vector: [Double] }
+    struct Item: Codable {
+        var text: String
+        var vector: [Double]
+        var photo: Data?
+    }
 
-    static func remember(_ text: String) {
+    static func remember(_ text: String, photo: Data? = nil) {
         var items = load()
-        items.append(Item(text: text, vector: embed(text)))
+        items.append(Item(text: text, vector: embed(text), photo: photo))
         if items.count > 80 { items.removeFirst(items.count - 80) }
         save(items)
     }
@@ -382,8 +474,11 @@ enum SecureNotes {
         guard !items.isEmpty else { return "Nothing is stored yet." }
         let queryVector = embed(query)
         let best = items.max { cosine($0.vector, queryVector) < cosine($1.vector, queryVector) }
-        return best?.text ?? items.last!.text
+        guard let best else { return items.last?.text ?? "Nothing is stored yet." }
+        return best.photo == nil ? best.text : "\(best.text) A photo is saved with that note."
     }
+
+    static func entries() -> [Item] { load() }
 
     private static func embed(_ text: String) -> [Double] {
         guard let embedding = NLEmbedding.wordEmbedding(for: .english) else { return [] }
@@ -461,12 +556,17 @@ enum Thumbnail {
     }
 }
 
+enum JarvisWake {
+    static var pending = false
+}
+
 struct JarvisWakeIntent: AppIntent {
     static var title: LocalizedStringResource = "Jarvis"
     static var description = IntentDescription("Wake Phoenix Fox. Jarvis is the spoken name, not the app name.")
     static var openAppWhenRun = true
 
     func perform() async throws -> some IntentResult {
+        JarvisWake.pending = true
         await MainActor.run {
             NotificationCenter.default.post(name: .phoenixWake, object: nil)
         }
@@ -497,4 +597,137 @@ extension Notification.Name {
     static let phoenixWake = Notification.Name("phoenix.wake")
     static let phoenixRecord = Notification.Name("phoenix.record")
     static let phoenixStopRecord = Notification.Name("phoenix.stopRecord")
+    static let phoenixKeepListening = Notification.Name("phoenix.keepListening")
+}
+
+/// Collects parallel bot replies without capturing a mutating local from an escaping closure.
+final class HeardPieces {
+    var lines: [String] = []
+}
+
+/// Arms a circular region after the wearer asks. The system location arrow stays visible.
+final class PlaceReminders: NSObject, CLLocationManagerDelegate {
+    static let shared = PlaceReminders()
+    private let manager = CLLocationManager()
+    private let defaultsKey = "phoenix.geofence.notes"
+
+    private override init() {
+        super.init()
+        manager.delegate = self
+    }
+
+    func arm(_ utterance: String) async -> String {
+        guard let parsed = Self.parse(utterance) else {
+            return "Say when I arrive at a place, then what to remember. Example: when I arrive at the office, remind me to call Sam."
+        }
+        manager.requestAlwaysAuthorization()
+        let status = manager.authorizationStatus
+        guard status == .authorizedAlways || status == .authorizedWhenInUse else {
+            return "Geofenced reminders need location permission. iOS shows the location arrow. Allow it, then say the place again. I have not started watching."
+        }
+        let request = MKLocalSearch.Request()
+        request.naturalLanguageQuery = parsed.place
+        let response = try? await MKLocalSearch(request: request).start()
+        guard let item = response?.mapItems.first else {
+            return "I couldn't find \(parsed.place), so I didn't arm a reminder."
+        }
+        let id = UUID().uuidString
+        var notes = UserDefaults.standard.dictionary(forKey: defaultsKey) as? [String: String] ?? [:]
+        notes[id] = parsed.note
+        UserDefaults.standard.set(notes, forKey: defaultsKey)
+        let region = CLCircularRegion(center: item.placemark.coordinate, radius: 150, identifier: id)
+        region.notifyOnEntry = true
+        region.notifyOnExit = false
+        manager.startMonitoring(for: region)
+        let scope = status == .authorizedAlways ? "including in the background" : "while Phoenix Fox is open. Allow Always if you want it after you leave the app"
+        return "I'll remind you to \(parsed.note) when you arrive at \(item.name ?? parsed.place), \(scope). The location arrow stays on."
+    }
+
+    func locationManager(_ manager: CLLocationManager, didEnterRegion region: CLRegion) {
+        let notes = UserDefaults.standard.dictionary(forKey: defaultsKey) as? [String: String] ?? [:]
+        let note = notes[region.identifier] ?? "You arrived."
+        DispatchQueue.main.async {
+            Task { @MainActor in
+                TTSService.shared.speak(note)
+                let content = UNMutableNotificationContent()
+                content.title = "Phoenix Fox"
+                content.body = note
+                let request = UNNotificationRequest(identifier: region.identifier, content: content, trigger: nil)
+                UNUserNotificationCenter.current().add(request)
+            }
+        }
+    }
+
+    private static func parse(_ utterance: String) -> (place: String, note: String)? {
+        let lower = utterance.lowercased()
+        let markers = ["when i arrive at ", "when i get to "]
+        guard let marker = markers.first(where: { lower.contains($0) }),
+              let range = lower.range(of: marker) else { return nil }
+        let rest = String(utterance[range.upperBound...])
+        let restLower = rest.lowercased()
+        if let cut = restLower.range(of: " remind me to ") ?? restLower.range(of: ", ") {
+            let place = String(rest[..<cut.lowerBound]).trimmingCharacters(in: .whitespacesAndNewlines)
+            var note = String(rest[cut.upperBound...]).trimmingCharacters(in: .whitespacesAndNewlines)
+            if note.lowercased().hasPrefix("remind me to ") {
+                note = String(note.dropFirst("remind me to ".count))
+            }
+            guard !place.isEmpty, !note.isEmpty else { return nil }
+            return (place, note)
+        }
+        return nil
+    }
+}
+
+/// Receives the APNs device token and a silent push. Delivery still depends on Apple's push
+/// capability and a key the owner has not added. The inbox long-poll is the path that works without it.
+final class PhoenixPushDelegate: NSObject, UIApplicationDelegate {
+    func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil) -> Bool {
+        UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) { _, _ in
+            DispatchQueue.main.async { application.registerForRemoteNotifications() }
+        }
+        return true
+    }
+
+    func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
+        let hex = deviceToken.map { String(format: "%02hhx", $0) }.joined()
+        Task { await OwnAssistantService.shared.registerDevice(hex) }
+    }
+
+    func application(_ application: UIApplication, didReceiveRemoteNotification userInfo: [AnyHashable: Any]) async -> UIBackgroundFetchResult {
+        await OwnAssistantService.shared.pullInboxOnce()
+        return .newData
+    }
+}
+
+struct PhoenixLogView: View {
+    var body: some View {
+        List {
+            Section("Take over") {
+                let lines = TaskLog.lines()
+                if lines.isEmpty {
+                    Text("Nothing yet. Say Grok, take over, and the four replies land here.")
+                } else {
+                    ForEach(Array(lines.enumerated()), id: \.offset) { _, line in
+                        Text(line).font(.callout)
+                    }
+                }
+            }
+            Section("Encrypted notes") {
+                let notes = SecureNotes.entries()
+                if notes.isEmpty {
+                    Text("Say remember this. Notes are encrypted on the phone.")
+                } else {
+                    ForEach(Array(notes.enumerated()), id: \.offset) { _, note in
+                        VStack(alignment: .leading, spacing: 6) {
+                            Text(note.text)
+                            if let photo = note.photo, let image = UIImage(data: photo) {
+                                Image(uiImage: image).resizable().scaledToFit().frame(maxHeight: 120)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        .navigationTitle("Task history")
+    }
 }

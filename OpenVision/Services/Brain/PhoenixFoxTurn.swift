@@ -17,7 +17,7 @@ enum PhoenixFoxTurn {
         speak: (String, String?, Bool) -> Void
     ) async {
         if let line = await CompanionRuntime.shared.consume(cleaned, snapshot: snapshot) {
-            speak(line, nil, false)
+            if !line.isEmpty { speak(line, nil, false) }
             return
         }
         if let outcome = await PhoenixFoxFeatures.handle(cleaned, snapshot: snapshot) {

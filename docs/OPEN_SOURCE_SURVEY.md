@@ -2,6 +2,31 @@
 
 What Phoenix Fox looked at for a daily-use glasses companion, what is worth taking, and what was left out. Only MIT, Apache-2.0, and BSD code is eligible for the app binary. GPL and AGPL are not. The Meta DAT SDK is used as Meta ships it and is not relicensed. Attributions are in THIRD_PARTY_NOTICES.md.
 
+## Integrated in this build
+
+These are compiled into the app and used on the path a wearer actually hits:
+
+- **OpenVision** (MIT). The iOS app, pairing, camera session, wake loop, and TTS routing.
+- **WhisperKit** (MIT). On-device transcription after the wake word, in `OpenVision/Services/Speech/WhisperTranscriber.swift`.
+- **FluidAudio** (Apache-2.0). Silero voice-activity detection in `OpenVision/Services/Voice/SpeechActivityDetector.swift`, so silence is not sent to Whisper.
+- **Kokoro Swift** (MIT), plus **MisakiSwift** and **MLXUtilsLibrary** (Apache-2.0). Vendored under `Vendor/`. Optional neural voice. Apple's system voice remains the default.
+- **mlx-swift**. Already linked for the optional on-device model. Not a new adoption.
+- **Meta DAT SDK**. Linked as a binary. It stays under Meta's terms and is not part of the Apache-2.0 license.
+
+## Recommended, not compiled in
+
+- **OpenJarvis** (Apache-2.0). The morning-brief and "hand this to the assistants" pattern is followed. The Python code is not ported.
+- **whisper.cpp** (MIT). Overlaps WhisperKit. Not added.
+- **Piper and sherpa-onnx** (MIT / Apache-2.0). Possible later offline speech. Not added.
+- **MentraOS and other glasses assistants.** Connection-status ideas only. No code copied.
+- **openWakeWord.** Code is Apache-2.0, but the pretrained models are CC BY-NC-SA 4.0. Not shipped.
+- **Picovoice Porcupine.** Proprietary. Not used.
+- **LibreTranslate and other AGPL servers.** Not linked. Spoken translation is one Grok call.
+
+## Survey
+
+What Phoenix Fox looked at, and the decision for each.
+
 | Project | License | Maturity | Worth adopting? | Decision |
 | --- | --- | --- | --- | --- |
 | [OpenVision](https://github.com/rayl15/OpenVision) | MIT | A working iOS app on DAT: pairing, camera, wake word, VAD, TTS, several model backends. | Yes. It is the base. | Adopted. MIT notice kept in full. |

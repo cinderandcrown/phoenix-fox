@@ -60,14 +60,20 @@ final class GrokService: ObservableObject {
     /// Send a prompt (optionally with an image) and deliver the reply via `onAgentMessage`.
     func sendMessage(_ text: String, imageData: Data? = nil, system: String? = nil) async throws {
         guard settings.isGrokConfigured else { throw GrokError.notConfigured }
-        // Record the utterance for the tool registry's relative-time guard.
         NativeToolContext.shared.set(text)
-
         onProcessingChanged?(true)
         defer { onProcessingChanged?(false) }
+        let reply = try await complete(text, imageData: imageData, system: system)
+        ConversationContext.shared.record(user: text, assistant: reply)
+        onAgentMessage?(reply)
+    }
 
+    /// One cheap completion whose text comes back to the caller. Used by watch-this and
+    /// translation so those paths can speak the sentence themselves.
+    func complete(_ text: String, imageData: Data? = nil, system: String? = nil) async throws -> String {
+        guard settings.isGrokConfigured else { throw GrokError.notConfigured }
         let model = InstantModels.id(for: .grok, settings: settings)
-        let reply = try await CloudChat.chatCompletionsReply(
+        return try await CloudChat.chatCompletionsReply(
             text: text, imageData: imageData, model: model, label: "Grok", system: system
         ) { body in
             try await Self.send { bearer in
@@ -80,8 +86,6 @@ final class GrokService: ObservableObject {
                 return request
             }
         }
-        ConversationContext.shared.record(user: text, assistant: reply)
-        onAgentMessage?(reply)
     }
 
     // MARK: - Models

@@ -14,6 +14,16 @@ struct SettingsView: View {
     var body: some View {
         NavigationStack {
             Form {
+                Section {
+                    NavigationLink {
+                        PhoenixLogView()
+                    } label: {
+                        Label("Task history and notes", systemImage: "list.bullet.rectangle")
+                    }
+                } header: {
+                    Text("Phoenix Fox")
+                }
+
                 // AI Backend Section
                 Section {
                     NavigationLink {

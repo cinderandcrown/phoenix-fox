@@ -12,6 +12,8 @@ struct OpenVisionApp: App {
     @StateObject private var glassesManager = GlassesManager.shared
     @StateObject private var conversationManager = ConversationManager.shared
 
+    @UIApplicationDelegateAdaptor(PhoenixPushDelegate.self) private var pushDelegate
+
     // MARK: - App Storage
 
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false

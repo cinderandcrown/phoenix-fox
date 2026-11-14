@@ -123,16 +123,65 @@ final class VoiceAgentViewModel: ObservableObject {
         setupVoiceCommandService()
         setupGlassesCallbacks()
         preloadLocalModelIfNeeded()
-        // Resume wake-word listening when returning to this screen. onDisappear stops it
-        // (e.g. when navigating to Settings), and the one-time .task doesn't re-run on return —
-        // so without this, the wake word stayed dead until you tapped the mic button.
+        // Keep wake-word listening armed. Leaving this screen does not stop the mic.
         if voiceCommandService.authorizationStatus == .authorized && !voiceCommandService.isListening {
             startWakeWordListening()
         }
+        installCompanionHooks()
+        if JarvisWake.pending {
+            JarvisWake.pending = false
+            startWakeWordListening()
+            voiceCommandService.enterConversationMode()
+        }
+        OwnAssistantService.shared.startInbox()
+        Task { await CompanionRuntime.shared.maybeMorningBrief() }
     }
 
     func onDisappear() {
-        voiceCommandService.stopListening()
+        // Jarvis stays armed while the app is open and while the audio session is still up.
+        // The orange mic indicator is the system's. Leaving this screen does not hide the mic.
+    }
+
+    func foregrounded() {
+        if voiceCommandService.authorizationStatus == .authorized && !voiceCommandService.isListening {
+            startWakeWordListening()
+        }
+        OwnAssistantService.shared.startInbox()
+        Task { await CompanionRuntime.shared.maybeMorningBrief() }
+    }
+
+    private var companionHooksInstalled = false
+
+    private func installCompanionHooks() {
+        guard !companionHooksInstalled else { return }
+        companionHooksInstalled = true
+        NotificationCenter.default.addObserver(forName: .phoenixWake, object: nil, queue: .main) { [weak self] _ in
+            Task { @MainActor in
+                self?.startWakeWordListening()
+                self?.voiceCommandService.enterConversationMode()
+            }
+        }
+        NotificationCenter.default.addObserver(forName: .phoenixKeepListening, object: nil, queue: .main) { [weak self] _ in
+            Task { @MainActor in
+                self?.voiceCommandService.enterConversationMode()
+            }
+        }
+        NotificationCenter.default.addObserver(forName: .phoenixRecord, object: nil, queue: .main) { [weak self] _ in
+            Task { @MainActor in
+                guard let self, !self.isRecording else { return }
+                await self.startRecording()
+                if !self.isRecording {
+                    CompanionRuntime.shared.cameraOn = false
+                    CompanionRuntime.shared.statusLine = "Couldn't start the camera, so nothing was recorded."
+                }
+            }
+        }
+        NotificationCenter.default.addObserver(forName: .phoenixStopRecord, object: nil, queue: .main) { [weak self] _ in
+            Task { @MainActor in
+                guard let self, self.isRecording else { return }
+                self.sessionRecorder.stop()
+            }
+        }
     }
 
     // MARK: - Observed state changes (forwarded from the view's onChange hooks)
@@ -731,8 +780,9 @@ final class VoiceAgentViewModel: ObservableObject {
             guard let self else { return }
             // In live video mode, silence must not end the session — the .idle state handler
             // re-arms conversation mode so the user can keep asking until they say "stop video".
-            if self.isLiveVideoMode {
-                print("[VoiceAgent] Conversation timeout during live video — staying live")
+            if self.isLiveVideoMode || CompanionRuntime.shared.holdsConversation {
+                print("[VoiceAgent] Conversation timeout during watch or translation — staying in the conversation")
+                self.voiceCommandService.enterConversationMode()
                 return
             }
             if self.pendingAnswer != nil {
@@ -889,6 +939,7 @@ final class VoiceAgentViewModel: ObservableObject {
         do {
             try voiceCommandService.startListening()
             isVoiceReady = true
+            CompanionRuntime.shared.noteListening()
             print("[VoiceAgent] Started wake word listening - READY")
         } catch {
             print("[VoiceAgent] Failed to start listening: \(error)")

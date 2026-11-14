@@ -26,6 +26,8 @@ struct VoiceAgentView: View {
     @StateObject private var grokTTS = CloudTTSService.grok
     @StateObject private var openAITTS = CloudTTSService.openAI
     @StateObject private var documentFocus = DocumentFocus.shared
+    @ObservedObject private var companion = CompanionRuntime.shared
+    @Environment(\.scenePhase) private var scenePhase
 
     // MARK: - Body
 
@@ -59,8 +61,24 @@ struct VoiceAgentView: View {
                     .onTapGesture { documentFocus.deactivate() }
                     .transition(.opacity)
                 }
-                Spacer()
-                centerContent
+            Spacer()
+            if companion.cameraOn || !companion.caption.isEmpty || companion.holdsConversation {
+                VStack(spacing: 4) {
+                    Text(companion.statusLine)
+                        .font(.caption.bold())
+                    if !companion.caption.isEmpty {
+                        Text(companion.caption)
+                            .font(.callout)
+                    }
+                }
+                .foregroundColor(.white)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 16)
+                .padding(.vertical, 8)
+                .background(Capsule().fill(companion.cameraOn ? Color.red.opacity(0.85) : Color.black.opacity(0.45)))
+                .padding(.bottom, 8)
+            }
+            centerContent
                 Spacer()
             }
 
@@ -89,6 +107,9 @@ struct VoiceAgentView: View {
         .animation(.easeInOut(duration: 0.35), value: viewModel.aiTranscript.isEmpty)
         .onAppear { viewModel.onAppear() }
         .onDisappear { viewModel.onDisappear() }
+        .onChange(of: scenePhase) { _, phase in
+            if phase == .active { viewModel.foregrounded() }
+        }
         .task {
             await viewModel.requestSpeechAuthorization()
         }
@@ -184,7 +205,7 @@ struct VoiceAgentView: View {
                 Image(systemName: "eyeglasses")
                     .foregroundColor(glassesManager.isRegistered ? .green : .gray)
 
-                if glassesManager.isStreaming {
+                if glassesManager.isStreaming || companion.cameraOn {
                     Circle()
                         .fill(.red)
                         .frame(width: 8, height: 8)
