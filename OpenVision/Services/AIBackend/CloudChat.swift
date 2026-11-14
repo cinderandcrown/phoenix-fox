@@ -134,9 +134,9 @@ enum CloudChat {
 
     /// Execute one tool call (web_search or a native tool) and return its result text.
     static func runTool(_ toolName: String, arguments: String?) async -> String {
-        let args = (try? JSONSerialization.jsonObject(with: Data((arguments ?? "{}").utf8))) as? [String: Any] ?? [:]
+        let args = ToolArguments(jsonText: arguments)
         if toolName == "web_search" {
-            let query = (args["query"] as? String) ?? ""
+            let query = args["query"]?.stringValue ?? ""
             NSLog("[CloudChat] web_search: \"%@\"", query)
             let r = await WebSearchService.search(query)
             return r.isEmpty ? "No results found for \"\(query)\"." : r

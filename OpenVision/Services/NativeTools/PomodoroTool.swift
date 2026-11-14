@@ -6,7 +6,7 @@ import UserNotifications
 struct PomodoroTool: NativeTool {
     let name = "start_pomodoro"
     let description = "Start a Pomodoro focus session: a work block then a break, each ending with an alert. Defaults: 25 min work, 5 min break."
-    let parametersSchema: [String: Any] = [
+    let parametersSchema: JSONValue = [
         "type": "object",
         "properties": [
             "work_minutes": ["type": "integer", "description": "Focus block length in minutes (default 25)"],
@@ -14,7 +14,7 @@ struct PomodoroTool: NativeTool {
         ]
     ]
 
-    func execute(args: [String: Any]) async throws -> String {
+    func execute(args: ToolArguments) async throws -> String {
         let work = max(1, min(120, NativeToolSupport.int(args["work_minutes"]) ?? 25))
         let brk = max(1, min(60, NativeToolSupport.int(args["break_minutes"]) ?? 5))
         guard await NativeToolSupport.ensureNotificationAuth() else {

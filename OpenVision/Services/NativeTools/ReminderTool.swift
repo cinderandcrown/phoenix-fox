@@ -6,7 +6,7 @@ import EventKit
 struct ReminderTool: NativeTool {
     let name = "create_reminder"
     let description = "Create a reminder in Apple Reminders, optionally with a due time. Use for 'remind me to call mom at 5pm', 'remind me to buy milk'."
-    let parametersSchema: [String: Any] = [
+    let parametersSchema: JSONValue = [
         "type": "object",
         "properties": [
             "title": ["type": "string", "description": "What to be reminded about"],
@@ -19,8 +19,8 @@ struct ReminderTool: NativeTool {
         "required": ["title"]
     ]
 
-    func execute(args: [String: Any]) async throws -> String {
-        guard let title = (args["title"] as? String)?.trimmingCharacters(in: .whitespaces), !title.isEmpty else {
+    func execute(args: ToolArguments) async throws -> String {
+        guard let title = args["title"]?.stringValue?.trimmingCharacters(in: .whitespaces), !title.isEmpty else {
             return "What should I remind you about?"
         }
         let store = EKEventStore()

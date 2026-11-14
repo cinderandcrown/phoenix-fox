@@ -19,7 +19,7 @@ enum AppleNativeTools {
     }
 
     /// Run a native tool by name with a cleaned-up arg dict (drops empty strings / zeros meaning "unset").
-    static func run(_ name: String, _ args: [String: Any]) async -> String {
+    static func run(_ name: String, _ args: ToolArguments) async -> String {
         await NativeToolRegistry.shared.execute(name: name, args: args)
     }
 }
@@ -33,8 +33,8 @@ struct AppleTimerTool: Tool {
         @Guide(description: "Optional label, e.g. 'pasta'. Empty if none.") let label: String
     }
     func call(arguments: Arguments) async throws -> String {
-        var args: [String: Any] = ["seconds": arguments.seconds]
-        if !arguments.label.isEmpty { args["label"] = arguments.label }
+        var args: ToolArguments = ["seconds": JSONValue(arguments.seconds)]
+        if !arguments.label.isEmpty { args["label"] = JSONValue(arguments.label) }
         return await AppleNativeTools.run(name, args)
     }
 }
@@ -48,9 +48,9 @@ struct ApplePomodoroTool: Tool {
         @Guide(description: "Break minutes, or 0 for default (5)") let break_minutes: Int
     }
     func call(arguments: Arguments) async throws -> String {
-        var args: [String: Any] = [:]
-        if arguments.work_minutes > 0 { args["work_minutes"] = arguments.work_minutes }
-        if arguments.break_minutes > 0 { args["break_minutes"] = arguments.break_minutes }
+        var args: ToolArguments = [:]
+        if arguments.work_minutes > 0 { args["work_minutes"] = JSONValue(arguments.work_minutes) }
+        if arguments.break_minutes > 0 { args["break_minutes"] = JSONValue(arguments.break_minutes) }
         return await AppleNativeTools.run(name, args)
     }
 }
@@ -67,13 +67,13 @@ struct AppleReminderTool: Tool {
         @Guide(description: "Due this many minutes from now, or 0. ONLY for 'in N minutes', never a clock time.") let minutes_from_now: Int
     }
     func call(arguments: Arguments) async throws -> String {
-        var args: [String: Any] = ["title": arguments.title]
+        var args: ToolArguments = ["title": JSONValue(arguments.title)]
         if (0...23).contains(arguments.hour) {
-            args["hour"] = arguments.hour
-            args["minute"] = arguments.minute
-            args["day_offset"] = arguments.day_offset
+            args["hour"] = JSONValue(arguments.hour)
+            args["minute"] = JSONValue(arguments.minute)
+            args["day_offset"] = JSONValue(arguments.day_offset)
         } else if arguments.minutes_from_now > 0 {
-            args["minutes_from_now"] = arguments.minutes_from_now
+            args["minutes_from_now"] = JSONValue(arguments.minutes_from_now)
         }
         return await AppleNativeTools.run(name, args)
     }
@@ -93,16 +93,16 @@ struct AppleCalendarTool: Tool {
         @Guide(description: "Length in minutes (for add), or 0 for default") let duration_minutes: Int
     }
     func call(arguments: Arguments) async throws -> String {
-        var args: [String: Any] = ["action": arguments.action]
-        if !arguments.title.isEmpty { args["title"] = arguments.title }
+        var args: ToolArguments = ["action": JSONValue(arguments.action)]
+        if !arguments.title.isEmpty { args["title"] = JSONValue(arguments.title) }
         if (0...23).contains(arguments.hour) {
-            args["hour"] = arguments.hour
-            args["minute"] = arguments.minute
-            args["day_offset"] = arguments.day_offset
+            args["hour"] = JSONValue(arguments.hour)
+            args["minute"] = JSONValue(arguments.minute)
+            args["day_offset"] = JSONValue(arguments.day_offset)
         } else if arguments.minutes_from_now > 0 {
-            args["minutes_from_now"] = arguments.minutes_from_now
+            args["minutes_from_now"] = JSONValue(arguments.minutes_from_now)
         }
-        if arguments.duration_minutes > 0 { args["duration_minutes"] = arguments.duration_minutes }
+        if arguments.duration_minutes > 0 { args["duration_minutes"] = JSONValue(arguments.duration_minutes) }
         return await AppleNativeTools.run(name, args)
     }
 }
@@ -118,10 +118,10 @@ struct AppleNoteTool: Tool {
         @Guide(description: "Keyword (for search/delete). Empty otherwise.") let query: String
     }
     func call(arguments: Arguments) async throws -> String {
-        var args: [String: Any] = ["action": arguments.action]
-        if !arguments.content.isEmpty { args["content"] = arguments.content }
-        if !arguments.tags.isEmpty { args["tags"] = arguments.tags }
-        if !arguments.query.isEmpty { args["query"] = arguments.query }
+        var args: ToolArguments = ["action": JSONValue(arguments.action)]
+        if !arguments.content.isEmpty { args["content"] = JSONValue(arguments.content) }
+        if !arguments.tags.isEmpty { args["tags"] = JSONValue(arguments.tags) }
+        if !arguments.query.isEmpty { args["query"] = JSONValue(arguments.query) }
         return await AppleNativeTools.run(name, args)
     }
 }
@@ -134,7 +134,7 @@ struct AppleClipboardTool: Tool {
         @Guide(description: "The text to copy") let text: String
     }
     func call(arguments: Arguments) async throws -> String {
-        await AppleNativeTools.run(name, ["text": arguments.text])
+        await AppleNativeTools.run(name, ["text": JSONValue(arguments.text)])
     }
 }
 
@@ -147,8 +147,8 @@ struct AppleDocsTool: Tool {
         @Guide(description: "What to look for (search), or the document name (focus). Empty otherwise.") let query: String
     }
     func call(arguments: Arguments) async throws -> String {
-        var args: [String: Any] = ["action": arguments.action]
-        if !arguments.query.isEmpty { args["query"] = arguments.query }
+        var args: ToolArguments = ["action": JSONValue(arguments.action)]
+        if !arguments.query.isEmpty { args["query"] = JSONValue(arguments.query) }
         return await AppleNativeTools.run(name, args)
     }
 }

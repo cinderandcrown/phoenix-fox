@@ -105,6 +105,7 @@ final class OpenClawService: ObservableObject {
 
     // MARK: - App Lifecycle
 
+    /// Kept for the life of the process: this service is a singleton and is never torn down.
     private var lifecycleObservers: [Any] = []
     private var wasConnectedBeforeSuspend: Bool = false
 
@@ -113,11 +114,6 @@ final class OpenClawService: ObservableObject {
     private init() {
         setupNetworkMonitor()
         setupLifecycleObservers()
-    }
-
-    deinit {
-        networkMonitor.cancel()
-        lifecycleObservers.forEach { NotificationCenter.default.removeObserver($0) }
     }
 
     // MARK: - State Machine
@@ -574,27 +570,28 @@ final class OpenClawService: ObservableObject {
         case "agent":
             // Agent streaming events - check the stream type
             let stream = payload["stream"]?.stringValue ?? ""
-            let data = payload["data"]?.dictionaryValue ?? [:]
+            let data = payload["data"]?.objectValue ?? [:]
 
             switch stream {
             case "assistant":
                 // Text chunk from assistant
-                if let text = data["text"] as? String, !text.isEmpty {
+                if let text = data["text"]?.stringValue, !text.isEmpty {
                     accumulatedResponse += text
                     print("[OpenClaw] Assistant chunk: \(text.prefix(50))...")
                 }
 
             case "tool":
                 // Tool events
-                if let toolName = data["name"] as? String {
+                if let toolName = data["name"]?.stringValue {
                     currentToolName = toolName
                     isToolRunning = true
                     onToolStatusChanged?(toolName, true)
                     print("[OpenClaw] Tool call: \(toolName)")
 
                     // Extract tool arguments
-                    let args = data["arguments"] as? [String: Any] ?? data["input"] as? [String: Any] ?? [:]
-                    let toolCallId = data["id"] as? String ?? data["callId"] as? String
+                    let argumentFields = data["arguments"]?.objectValue ?? data["input"]?.objectValue ?? [:]
+                    let args = argumentFields.mapValues(\.jsonObject)
+                    let toolCallId = data["id"]?.stringValue ?? data["callId"]?.stringValue
 
                     // Call the tool handler if registered
                     onToolCall?(toolName, args) { [weak self] result in
@@ -608,7 +605,7 @@ final class OpenClawService: ObservableObject {
                         }
                     }
                 }
-                if let status = data["status"] as? String, status == "complete" {
+                if data["status"]?.stringValue == "complete" {
                     isToolRunning = false
                     onToolStatusChanged?(currentToolName, false)
                 }
@@ -625,10 +622,9 @@ final class OpenClawService: ObservableObject {
             switch state {
             case "delta":
                 // Streaming delta - accumulate text
-                if let message = payload["message"]?.dictionaryValue,
-                   let content = message["content"] as? [[String: Any]] {
+                if let content = payload["message"]?["content"]?.arrayValue {
                     for block in content {
-                        if let text = block["text"] as? String, !text.isEmpty {
+                        if let text = block["text"]?.stringValue, !text.isEmpty {
                             accumulatedResponse += text
                             print("[OpenClaw] Delta: \(text.prefix(30))...")
                         }
@@ -642,10 +638,9 @@ final class OpenClawService: ObservableObject {
                 onProcessingChanged?(false)
 
                 var finalText = ""
-                if let message = payload["message"]?.dictionaryValue,
-                   let content = message["content"] as? [[String: Any]] {
+                if let content = payload["message"]?["content"]?.arrayValue {
                     for block in content {
-                        if let text = block["text"] as? String {
+                        if let text = block["text"]?.stringValue {
                             finalText += text
                         }
                     }

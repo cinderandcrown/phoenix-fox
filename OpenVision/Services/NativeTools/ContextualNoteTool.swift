@@ -4,12 +4,12 @@
 // content, tag, or location. Falls back gracefully to a plain note if location is unavailable.
 
 import Foundation
-import CoreLocation
+@preconcurrency import CoreLocation
 
 struct ContextualNoteTool: NativeTool {
     let name = "note"
     let description = "Save, search, list, or delete quick notes. Notes are auto-tagged with your current location and time. Actions: 'save' (needs content), 'search' (needs query), 'list', 'delete' (needs query)."
-    let parametersSchema: [String: Any] = [
+    let parametersSchema: JSONValue = [
         "type": "object",
         "properties": [
             "action": ["type": "string", "description": "save, search, list, or delete"],
@@ -20,27 +20,27 @@ struct ContextualNoteTool: NativeTool {
         "required": ["action"]
     ]
 
-    func execute(args: [String: Any]) async throws -> String {
-        switch (args["action"] as? String ?? "list").lowercased() {
+    func execute(args: ToolArguments) async throws -> String {
+        switch (args["action"]?.stringValue ?? "list").lowercased() {
         case "save", "note", "remember":
-            guard let content = (args["content"] as? String)?.trimmingCharacters(in: .whitespaces), !content.isEmpty else {
+            guard let content = args["content"]?.stringValue?.trimmingCharacters(in: .whitespaces), !content.isEmpty else {
                 return "What should I note down?"
             }
-            let tags = (args["tags"] as? String ?? "")
+            let tags = (args["tags"]?.stringValue ?? "")
                 .split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces).lowercased() }.filter { !$0.isEmpty }
-            let (loc, place) = await LocationHelper.shared.currentPlace()
+            let fix = await LocationHelper.shared.currentPlace()
             let note = ContextualNote(
                 id: UUID().uuidString, content: content, tags: tags,
-                latitude: loc?.coordinate.latitude, longitude: loc?.coordinate.longitude,
-                locationName: place, createdAt: Date())
+                latitude: fix?.latitude, longitude: fix?.longitude,
+                locationName: fix?.name, createdAt: Date())
             ContextualNoteStore.shared.save(note)
             var response = "Noted"
-            if let place { response += " at \(place)" }
+            if let place = fix?.name { response += " at \(place)" }
             if !tags.isEmpty { response += " (tagged: \(tags.joined(separator: ", ")))" }
             return response + "."
 
         case "search", "find":
-            let query = (args["query"] as? String ?? "").lowercased()
+            let query = (args["query"]?.stringValue ?? "").lowercased()
             guard !query.isEmpty else { return "What should I search your notes for?" }
             let results = ContextualNoteStore.shared.search(query)
             guard !results.isEmpty else { return "No notes match '\(query)'." }
@@ -56,7 +56,7 @@ struct ContextualNoteTool: NativeTool {
             return "\(notes.count) recent: " + notes.prefix(5).map(Self.describe).joined(separator: "; ")
 
         case "delete":
-            let query = (args["query"] as? String ?? args["content"] as? String ?? "").lowercased()
+            let query = (args["query"]?.stringValue ?? args["content"]?.stringValue ?? "").lowercased()
             guard !query.isEmpty else { return "Which note? Give me a keyword." }
             let n = ContextualNoteStore.shared.deleteMatching(query)
             return n > 0 ? "Deleted \(n) note\(n == 1 ? "" : "s")." : "No notes match '\(query)'."
@@ -101,7 +101,8 @@ struct ContextualNote: Codable, Identifiable {
     }
 }
 
-final class ContextualNoteStore {
+/// Stateless over UserDefaults, which is thread-safe, so any tool can call it.
+final class ContextualNoteStore: Sendable {
     static let shared = ContextualNoteStore()
     private let key = "contextualNotes"
 
@@ -128,65 +129,70 @@ final class ContextualNoteStore {
 
 // MARK: - Location + reverse geocode (never blocks a note)
 
+/// Where a note was taken. Plain values so it can leave the main actor.
+struct PlaceFix: Sendable, Equatable {
+    let latitude: Double
+    let longitude: Double
+    let name: String?
+}
+
 /// Uses the *cached* location rather than blocking on a fresh GPS fix — a note must save instantly.
 /// The delegate keeps the last fix warm; the reverse-geocode is hard-bounded to ~3s. If no recent
 /// location is available yet, the note simply saves without a place (and warms up for next time).
-final class LocationHelper: NSObject, CLLocationManagerDelegate {
+@MainActor
+final class LocationHelper: NSObject, @preconcurrency CLLocationManagerDelegate {
     static let shared = LocationHelper()
     private let manager = CLLocationManager()
     private var lastFix: CLLocation?
 
-    override init() {
+    private override init() {
         super.init()
         manager.delegate = self
         manager.desiredAccuracy = kCLLocationAccuracyHundredMeters
-        let s = manager.authorizationStatus
-        if s == .authorizedWhenInUse || s == .authorizedAlways { manager.requestLocation() }
+        let status = manager.authorizationStatus
+        if status == .authorizedWhenInUse || status == .authorizedAlways { manager.requestLocation() }
     }
 
-    /// Touch the singleton at launch (from the main thread) so CLLocationManager lives on a thread
-    /// with a run loop and its delegate callbacks fire.
+    /// Touch the singleton at launch so the manager exists before the first note.
     func prewarm() {}
 
-    func currentPlace() async -> (CLLocation?, String?) {
+    func currentPlace() async -> PlaceFix? {
         let status = manager.authorizationStatus
         if status == .notDetermined {
             manager.requestWhenInUseAuthorization()   // dialog now; this note saves without a place
-            return (nil, nil)
+            return nil
         }
-        guard status == .authorizedWhenInUse || status == .authorizedAlways else { return (nil, nil) }
-        let loc = lastFix ?? manager.location
+        guard status == .authorizedWhenInUse || status == .authorizedAlways else { return nil }
+        let location = lastFix ?? manager.location
         manager.requestLocation()   // refresh for next time (non-blocking)
-        guard let loc, Date().timeIntervalSince(loc.timestamp) < 600 else { return (nil, nil) }
-        let name = await Self.reverseGeocode(loc)
-        return (loc, name)
+        guard let location, Date().timeIntervalSince(location.timestamp) < 600 else { return nil }
+        let name = await Self.reverseGeocode(location)
+        return PlaceFix(
+            latitude: location.coordinate.latitude,
+            longitude: location.coordinate.longitude,
+            name: name
+        )
     }
 
-    func locationManager(_ m: CLLocationManager, didUpdateLocations locs: [CLLocation]) { lastFix = locs.last }
-    func locationManager(_ m: CLLocationManager, didFailWithError error: Error) {}
+    func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+        lastFix = locations.last
+    }
+
+    func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {}
 
     /// Completion-handler geocode with a hard 3s timeout (cancels the geocode) so it can never hang.
-    private static func reverseGeocode(_ loc: CLLocation) async -> String? {
-        await withCheckedContinuation { (c: CheckedContinuation<String?, Never>) in
+    private static func reverseGeocode(_ location: CLLocation) async -> String? {
+        await withCheckedContinuation { (continuation: CheckedContinuation<String?, Never>) in
             let geocoder = CLGeocoder()
-            let once = GeocodeResume(c)
-            geocoder.reverseGeocodeLocation(loc) { placemarks, _ in
-                once.resume(placemarks?.first?.name ?? placemarks?.first?.subLocality ?? placemarks?.first?.locality)
+            let once = ResumeOnce(continuation)
+            geocoder.reverseGeocodeLocation(location) { placemarks, _ in
+                let place = placemarks?.first
+                once.resume(returning: place?.name ?? place?.subLocality ?? place?.locality)
             }
             DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
-                geocoder.cancelGeocode(); once.resume(nil)
+                geocoder.cancelGeocode()
+                once.resume(returning: nil)
             }
         }
-    }
-}
-
-/// Resumes a continuation exactly once (the geocode completion and the timeout race on the main queue).
-private final class GeocodeResume {
-    private var cont: CheckedContinuation<String?, Never>?
-    init(_ c: CheckedContinuation<String?, Never>) { cont = c }
-    func resume(_ s: String?) {
-        guard let c = cont else { return }
-        cont = nil
-        c.resume(returning: s)
     }
 }

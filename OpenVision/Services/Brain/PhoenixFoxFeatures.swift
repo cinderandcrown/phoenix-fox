@@ -58,13 +58,13 @@ enum PhoenixFoxFeatures {
             return .spoken("I can't see the glasses battery yet. Connect them first.")
         }
         if let seconds = timerSeconds(in: lower) {
-            let spoken = (try? await TimerTool().execute(args: ["seconds": seconds])) ?? "I couldn't set the timer."
+            let spoken = (try? await TimerTool().execute(args: ["seconds": JSONValue(seconds)])) ?? "I couldn't set the timer."
             return .spoken(spoken)
         }
         if lower.hasPrefix("remind me") {
             let title = text.replacingOccurrences(of: "remind me to ", with: "", options: .caseInsensitive)
                 .replacingOccurrences(of: "remind me ", with: "", options: .caseInsensitive)
-            let spoken = (try? await ReminderTool().execute(args: ["title": title])) ?? "I couldn't save the reminder."
+            let spoken = (try? await ReminderTool().execute(args: ["title": JSONValue(title)])) ?? "I couldn't save the reminder."
             return .spoken(spoken)
         }
         if lower.hasPrefix("remember ") || lower.hasPrefix("remember this") {

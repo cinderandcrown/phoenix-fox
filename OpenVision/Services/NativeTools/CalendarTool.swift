@@ -6,7 +6,7 @@ import EventKit
 struct CalendarTool: NativeTool {
     let name = "calendar"
     let description = "Read or add calendar events. action 'today' lists today's events, 'upcoming' lists the next 7 days, 'add' creates an event (needs title and start_iso8601)."
-    let parametersSchema: [String: Any] = [
+    let parametersSchema: JSONValue = [
         "type": "object",
         "properties": [
             "action": ["type": "string", "description": "today, upcoming, or add"],
@@ -21,8 +21,8 @@ struct CalendarTool: NativeTool {
         "required": ["action"]
     ]
 
-    func execute(args: [String: Any]) async throws -> String {
-        let action = (args["action"] as? String ?? "today").lowercased()
+    func execute(args: ToolArguments) async throws -> String {
+        let action = (args["action"]?.stringValue ?? "today").lowercased()
         let store = EKEventStore()
         let granted: Bool
         if #available(iOS 17.0, *) {
@@ -33,7 +33,7 @@ struct CalendarTool: NativeTool {
         guard granted else { return "I need Calendar access — enable it in Settings, then ask again." }
 
         if action == "add" {
-            guard let title = (args["title"] as? String)?.trimmingCharacters(in: .whitespaces), !title.isEmpty else {
+            guard let title = args["title"]?.stringValue?.trimmingCharacters(in: .whitespaces), !title.isEmpty else {
                 return "What should I call the event?"
             }
             // The tool resolves the time (clock time / relative / ISO) so the model never does date math.

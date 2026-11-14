@@ -473,7 +473,7 @@ final class GeminiLiveService: ObservableObject {
         var responses: [[String: Any]] = []
         for call in calls {
             guard let name = call["name"] as? String else { continue }
-            let args = call["args"] as? [String: Any] ?? [:]
+            let args = ToolArguments(jsonObject: call["args"])
             let result = await NativeToolRegistry.shared.execute(name: name, args: args)
             var response: [String: Any] = ["name": name, "response": ["result": result]]
             if let id = call["id"] as? String { response["id"] = id }  // echo id so Gemini pairs the response
