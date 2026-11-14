@@ -1,7 +1,7 @@
 name: CI
 
-# Unsigned iOS Simulator build. Proves Phoenix Fox compiles. No Apple account required.
-# Signing and TestFlight are in testflight.yml and stay skipped until the secrets exist.
+# Unsigned iOS Simulator build and unit tests. No Apple account required.
+# Signing and TestFlight are in testflight.yml.
 
 on:
   pull_request:
@@ -17,11 +17,16 @@ env:
 
 jobs:
   build:
-    name: Simulator build (unsigned)
+    name: Build and test (simulator, unsigned)
     runs-on: macos-26
     timeout-minutes: 90
     steps:
       - uses: actions/checkout@v7
+
+      # The project file is maintained by scripts/xcodeproj_sync.py. A Swift file that is
+      # on disk but not in the project would silently not be compiled.
+      - name: Project lists every source file
+        run: python3 scripts/xcodeproj_sync.py --check
 
       - name: Config files for compile
         run: |
@@ -103,6 +108,22 @@ jobs:
           ours note
           if [ -n "$errors" ] || [ -n "$warnings" ]; then exit 1; fi
 
+      - name: Unit tests
+        run: |
+          set -o pipefail
+          device="$(xcrun simctl list devices available -j \
+            | python3 -c 'import json,sys; d=json.load(sys.stdin)["devices"]; print(next(x["udid"] for k in sorted(d, reverse=True) if "iOS" in k for x in d[k] if x["name"].startswith("iPhone")))')"
+          echo "Simulator: $device"
+          xcodebuild test-without-building \
+            -project PhoenixFox.xcodeproj \
+            -scheme PhoenixFox \
+            -destination "platform=iOS Simulator,id=$device" \
+            -derivedDataPath DerivedData \
+            -resultBundlePath TestResults.xcresult \
+            -parallel-testing-enabled NO \
+          | tee xcodebuild-test.log \
+          | xcbeautify --renderer github-actions
+
       - name: Save packages and package build products
         if: always() && steps.cache.outputs.cache-hit != 'true'
         uses: actions/cache/save@v6
@@ -119,5 +140,7 @@ jobs:
           name: xcodebuild-logs
           path: |
             xcodebuild.log
+            xcodebuild-test.log
+            TestResults.xcresult
             DerivedData/Logs/Build/*.xcactivitylog
           if-no-files-found: ignore
