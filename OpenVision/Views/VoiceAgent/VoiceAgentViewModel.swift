@@ -182,6 +182,75 @@ final class VoiceAgentViewModel: ObservableObject {
                 self.sessionRecorder.stop()
             }
         }
+        installGlassesInput()
+    }
+
+    // MARK: - Glasses input
+
+    /// What a press on the glasses or a band gesture asks for, as the sentence the wearer
+    /// would have said. Each one then runs through the same turn as a spoken command.
+    private enum GlassesRequest {
+        static let look = "What do you see?"
+        static let note = "Remember this"
+    }
+
+    /// The only listener for input that arrives from the glasses instead of the microphone:
+    /// "Hey Meta" launching the app, a temple or band tap, the capture button, and speech the
+    /// glasses transcribed. Adventurer opens no input session, so only the launch reaches here.
+    /// Display glasses and a Neural Band post the same names.
+    private func installGlassesInput() {
+        let center = NotificationCenter.default
+        for name in [Notification.Name.jarvisVoiceLaunch, .jarvisTalk] {
+            center.addObserver(forName: name, object: nil, queue: .main) { [weak self] _ in
+                Task { @MainActor in self?.wakeFromGlasses() }
+            }
+        }
+        center.addObserver(forName: .jarvisLook, object: nil, queue: .main) { [weak self] _ in
+            Task { @MainActor in self?.acceptGlassesCommand(GlassesRequest.look) }
+        }
+        center.addObserver(forName: .jarvisNote, object: nil, queue: .main) { [weak self] _ in
+            Task { @MainActor in self?.acceptGlassesCommand(GlassesRequest.note) }
+        }
+        center.addObserver(forName: .jarvisGlassesTranscript, object: nil, queue: .main) { [weak self] note in
+            guard let text = note.object as? String else { return }
+            Task { @MainActor in self?.acceptGlassesCommand(text) }
+        }
+    }
+
+    /// Opens the Jarvis conversation without the spoken wake word. The hardware wake word
+    /// stays Meta's. This only starts listening on the phone.
+    private func wakeFromGlasses() {
+        startWakeWordListening()
+        if !isSessionActive && settingsManager.settings.isCurrentBackendConfigured {
+            startSession()
+        }
+        voiceCommandService.enterConversationMode()
+    }
+
+    /// Runs a command that came from the glasses through the same turn as a spoken one.
+    func acceptGlassesCommand(_ text: String) {
+        let heard = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !heard.isEmpty else { return }
+        guard settingsManager.settings.isCurrentBackendConfigured else {
+            sayAssistantNeedsSetup()
+            return
+        }
+        if !isSessionActive { startSession() }
+        guard isSessionActive else { return }
+        let cleaned = DictationCleanup.clean(heard)
+        userTranscript = cleaned
+        commandTurnActive = true
+        pendingHeard = HeardTurn(transcript: heard, cleaned: cleaned)
+        ConversationManager.shared.addUserMessage(cleaned)
+        historyAwaitingReply = true
+        Task { await self.sendCommand(cleaned) }
+    }
+
+    /// A command arrived and no assistant can take it. Silence here reads as a broken app.
+    private func sayAssistantNeedsSetup() {
+        let name = settingsManager.settings.aiBackend.displayName
+        errorMessage = "Finish setting up \(name) in Settings."
+        ttsService.speak("\(name) is not set up yet. Open Settings on the phone to finish.")
     }
 
     // MARK: - Observed state changes (forwarded from the view's onChange hooks)
@@ -675,6 +744,9 @@ final class VoiceAgentViewModel: ObservableObject {
             // This prevents processing stale commands after session ends
             guard self.isSessionActive else {
                 print("[VoiceAgent] Ignoring command - session not active")
+                if !self.settingsManager.settings.isCurrentBackendConfigured {
+                    self.sayAssistantNeedsSetup()
+                }
                 return
             }
 
