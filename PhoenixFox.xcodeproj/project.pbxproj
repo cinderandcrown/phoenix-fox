@@ -498,7 +498,7 @@
 		FC3D14B5455B74F3A589C14B /* TeamBoardStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TeamBoardStore.swift; sourceTree = "<group>"; };
 		2659FF679BF8FA8D34761CA7 /* TeamBoardTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TeamBoardTests.swift; sourceTree = "<group>"; };
 		1D01A5DEAC92C5B754A5840B /* EmberOrb.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmberOrb.swift; sourceTree = "<group>"; };
-		8FF8D74DF9131A7287B2CE10 /* HapticCue+Play.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HapticCue+Play.swift; sourceTree = "<group>"; };
+		8FF8D74DF9131A7287B2CE10 /* HapticCue+Play.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HapticCue+Play.swift"; sourceTree = "<group>"; };
 		3303A54C6167FFEB2A449388 /* HomeContent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeContent.swift; sourceTree = "<group>"; };
 		D8F77F66976A4AB43D9C2CA6 /* HomeModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeModel.swift; sourceTree = "<group>"; };
 		029CDD72E5DE1AE5B9E1FD7D /* LiveStage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveStage.swift; sourceTree = "<group>"; };
