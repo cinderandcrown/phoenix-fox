@@ -145,7 +145,8 @@ jobs:
           ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
         run: |
           python3 scripts/appstore_connect.py capabilities --bundle-id "$BUNDLE_ID" \
-            --enable PUSH_NOTIFICATIONS ASSOCIATED_DOMAINS INCREASED_MEMORY_LIMIT
+            --enable PUSH_NOTIFICATIONS ASSOCIATED_DOMAINS INCREASED_MEMORY_LIMIT \
+            HOT_SPOT ACCESS_WIFI_INFORMATION
 
       # Only the package sources are cached. Build products hold the Meta client token,
       # and a cache can be read by any pull request, so they are rebuilt every time.

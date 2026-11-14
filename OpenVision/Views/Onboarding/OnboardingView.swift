@@ -26,7 +26,6 @@ struct OnboardingView: View {
 
     @State private var answers: [OnboardingPermission: PermissionAnswer] = [:]
     @State private var isBusy = false
-    @State private var glassesTrouble: String?
 
     @State private var relayAddress = ""
     @State private var relayToken = ""
@@ -64,17 +63,20 @@ struct OnboardingView: View {
         case .glasses:
             OnboardingPage(
                 step: step,
-                primaryTitle: glassesManager.isRegistered ? "Continue" : "Open Meta AI",
-                isBusy: isBusy,
+                primaryTitle: OnboardingStep.glassesButton(
+                    connected: glassesManager.isRegistered,
+                    stall: glassesManager.registration.stall
+                ),
+                isBusy: glassesManager.registration.isWorking,
                 onPrimary: { glassesManager.isRegistered ? goOn() : connectGlasses() },
                 onSkip: glassesManager.isRegistered ? nil : { goOn() },
                 onBack: { goBack() }
             ) {
-                if glassesManager.isRegistered {
-                    OutcomeLabel(text: "Your glasses are connected.", good: true)
-                } else if let glassesTrouble {
-                    OutcomeLabel(text: glassesTrouble, good: false)
-                }
+                GlassesStepDetail(
+                    connected: glassesManager.isRegistered,
+                    stall: glassesManager.registration.stall,
+                    details: glassesManager.registrationDetails
+                )
             }
 
         case .permissions:
@@ -141,17 +143,11 @@ struct OnboardingView: View {
 
     // MARK: - Glasses
 
+    /// Opens Meta AI. How it went is in `glassesManager.registration`: Meta AI can refuse
+    /// without an error reaching Phoenix Fox, so the manager judges the try when the
+    /// wearer comes back, and this step shows what it found.
     private func connectGlasses() {
-        isBusy = true
-        glassesTrouble = nil
-        Task {
-            do {
-                try await glassesManager.register()
-            } catch {
-                glassesTrouble = "Phoenix Fox could not open the Meta AI app. Check that it is installed and your glasses are set up in it. \(error.localizedDescription)"
-            }
-            isBusy = false
-        }
+        Task { await glassesManager.register() }
     }
 
     // MARK: - Permissions

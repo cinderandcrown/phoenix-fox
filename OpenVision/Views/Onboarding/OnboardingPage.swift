@@ -266,8 +266,8 @@ enum OnboardingSamples {
                 WelcomePoints()
             }
         case .glasses:
-            OnboardingPage(step: step, primaryTitle: "Open Meta AI", onPrimary: {}, onSkip: {}, onBack: {}) {
-                EmptyView()
+            OnboardingPage(step: step, primaryTitle: OnboardingStep.glassesButton(connected: false, stall: nil), onPrimary: {}, onSkip: {}, onBack: {}) {
+                GlassesStepDetail(connected: false, stall: nil, details: "")
             }
         case .permissions:
             OnboardingPage(step: step, primaryTitle: "Continue", onPrimary: {}, onBack: {}) {
@@ -284,6 +284,22 @@ enum OnboardingSamples {
             OnboardingPage(step: step, primaryTitle: "Start", onPrimary: {}, onBack: {}) {
                 ReadyChecklist(summary: summary)
             }
+        }
+    }
+
+    /// The glasses step after the wearer came back from Meta AI and nothing was connected.
+    @MainActor
+    static var glassesTrouble: some View {
+        let stall = RegistrationStall.returnedUnconnected
+        let attempt = RegistrationAttempt()
+        return OnboardingPage(
+            step: .glasses,
+            primaryTitle: OnboardingStep.glassesButton(connected: false, stall: stall),
+            onPrimary: {},
+            onSkip: {},
+            onBack: {}
+        ) {
+            GlassesStepDetail(connected: false, stall: stall, details: attempt.details(stage: .available))
         }
     }
 }

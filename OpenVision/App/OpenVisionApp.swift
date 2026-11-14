@@ -18,6 +18,8 @@ struct OpenVisionApp: App {
 
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
 
+    @Environment(\.scenePhase) private var scenePhase
+
     // MARK: - Initialization
 
     init() {
@@ -74,6 +76,16 @@ struct OpenVisionApp: App {
             // Telemetry settings persist, but the sink lives in memory — without this a
             // relaunch (or a jetsam kill during a model switch) silently stopped pushing.
             MetricsCollector.shared.restoreAtLaunch()
+        }
+        .onChange(of: scenePhase) { _, phase in
+            // Connecting the glasses sends the wearer to the Meta AI app. Meta AI can
+            // refuse without telling the glasses SDK, so leaving and coming back are
+            // what show how that went.
+            switch phase {
+            case .background: glassesManager.appEnteredBackground()
+            case .active: glassesManager.appBecameActive()
+            default: break
+            }
         }
         .onOpenURL { url in
             open(url)

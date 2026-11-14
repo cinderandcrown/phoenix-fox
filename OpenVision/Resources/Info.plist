@@ -119,6 +119,18 @@
     <key>NSBluetoothPeripheralUsageDescription</key>
     <string>Phoenix Fox connects to your AI glasses over Bluetooth.</string>
 
+    <!-- Wi-Fi for the glasses camera. The picture is too large for Bluetooth alone, so
+         the glasses host a Wi-Fi network and the phone joins it while the camera is on.
+         Meta's toolkit checks for both keys before it uses Wi-Fi, and it needs
+         _bonjour._tcp in the list. The Hotspot Configuration and Wi-Fi information
+         entitlements go with them. -->
+    <key>NSLocalNetworkUsageDescription</key>
+    <string>Phoenix Fox joins the Wi-Fi network your glasses create, so the camera picture can reach this phone when you ask Jarvis to look.</string>
+    <key>NSBonjourServices</key>
+    <array>
+        <string>_bonjour._tcp</string>
+    </array>
+
     <!-- Photo Library for saving captured images -->
     <key>NSPhotoLibraryAddUsageDescription</key>
     <string>Phoenix Fox can save a photo from the glasses to your library.</string>

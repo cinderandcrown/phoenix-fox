@@ -267,6 +267,9 @@
 		EA89069908710E4C60E545CE /* LookToTalk.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEA8512D78CF57F3182FD27A /* LookToTalk.swift */; };
 		CDB063F2FABB86AA7D845B77 /* LookBadgeImage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 60DEAF35D69BF0991A5CB1A1 /* LookBadgeImage.swift */; };
 		CD54199082FAE8F9DD6D51E4 /* LookToTalkSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AFFC3AF4EF308F62AC2F633B /* LookToTalkSettingsView.swift */; };
+		411DB3A205CCCDD255A24746 /* GlassesRegistration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 90CB144ABF8562545414AEE4 /* GlassesRegistration.swift */; };
+		059CFAF54EB77C969E61AA5D /* GlassesConnectHelp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 78C683B3191338D5825484B3 /* GlassesConnectHelp.swift */; };
+		A08DF4823C6CBC5B2E179B8F /* GlassesRegistrationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FB70B342CF34F89507FBB94 /* GlassesRegistrationTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -534,6 +537,9 @@
 		DEA8512D78CF57F3182FD27A /* LookToTalk.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LookToTalk.swift; sourceTree = "<group>"; };
 		60DEAF35D69BF0991A5CB1A1 /* LookBadgeImage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LookBadgeImage.swift; sourceTree = "<group>"; };
 		AFFC3AF4EF308F62AC2F633B /* LookToTalkSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LookToTalkSettingsView.swift; sourceTree = "<group>"; };
+		90CB144ABF8562545414AEE4 /* GlassesRegistration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlassesRegistration.swift; sourceTree = "<group>"; };
+		78C683B3191338D5825484B3 /* GlassesConnectHelp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlassesConnectHelp.swift; sourceTree = "<group>"; };
+		3FB70B342CF34F89507FBB94 /* GlassesRegistrationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlassesRegistrationTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -1019,6 +1025,7 @@
 				2C494B33F8D2C048BB62E96A /* SnapshotHarness.swift */,
 				175F0E0A6BE6D3FAC6F4E1B9 /* LookToTalkReadingTests.swift */,
 				94E55AF003BF42F1DEBE8BF3 /* LookToTalkTrackerTests.swift */,
+				3FB70B342CF34F89507FBB94 /* GlassesRegistrationTests.swift */,
 			);
 			path = OpenVisionTests;
 			sourceTree = "<group>";
@@ -1149,6 +1156,7 @@
 				F210EA3722C08930DE62A004 /* GlassesCapabilitySettings.swift */,
 				6CAE7AB8766198A6FF246F6C /* GlassesInputCore.swift */,
 				156F8E364B12C1A9A14DBBCF /* StreamPlan.swift */,
+				90CB144ABF8562545414AEE4 /* GlassesRegistration.swift */,
 			);
 			path = Core;
 			sourceTree = "<group>";
@@ -1238,6 +1246,7 @@
 				FE5587BD08282DEC7A1686ED /* Core */,
 				367321241B711A2D4989D887 /* OnboardingPage.swift */,
 				DC285318DCEE6646C22282E3 /* OnboardingView.swift */,
+				78C683B3191338D5825484B3 /* GlassesConnectHelp.swift */,
 			);
 			path = Onboarding;
 			sourceTree = "<group>";
@@ -1464,6 +1473,7 @@
 				C0E067A33D5F3936EC81240E /* SnapshotHarness.swift in Sources */,
 				084A0616D93164BE5316F87A /* LookToTalkReadingTests.swift in Sources */,
 				5D5AD4E1A05FD9AD9787D7DD /* LookToTalkTrackerTests.swift in Sources */,
+				A08DF4823C6CBC5B2E179B8F /* GlassesRegistrationTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1666,6 +1676,8 @@
 				EA89069908710E4C60E545CE /* LookToTalk.swift in Sources */,
 				CDB063F2FABB86AA7D845B77 /* LookBadgeImage.swift in Sources */,
 				CD54199082FAE8F9DD6D51E4 /* LookToTalkSettingsView.swift in Sources */,
+				411DB3A205CCCDD255A24746 /* GlassesRegistration.swift in Sources */,
+				059CFAF54EB77C969E61AA5D /* GlassesConnectHelp.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

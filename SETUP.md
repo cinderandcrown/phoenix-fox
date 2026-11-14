@@ -59,7 +59,7 @@ Pushing a tag named `v` plus the app version, such as `v1.0.0`, does the same as
 2. In Meta AI, open **Settings → App Info** (named **About** in some versions) and tap the version number five times. Turn **Developer Mode** on, and leave it on.
 3. Open Phoenix Fox. The first time, it walks you through five short steps, and each one can be skipped. On **Connect your glasses**, tap **Open Meta AI**. Meta AI opens, asks you to allow Phoenix Fox, and sends you back to Phoenix Fox. If you skipped that step, tap the glasses chip at the top of the home screen, or go to **Settings → Glasses**, and tap **Register App**.
 
-If you are not sent back, or the Glasses screen still says it is not registered, look at the message on the first-run step or under the button. A message from the glasses SDK is shown there as written. The usual causes are Developer Mode being off, or the Meta project not matching the team ID, bundle ID, or universal link above.
+If Meta AI shows “Internal error”, or you are sent back and Phoenix Fox still says the glasses are not connected, the first-run step and the Glasses screen show the same recovery card: turn Developer Mode off and on again, update Meta AI and the glasses, force-quit Meta AI, and try again. A line under the card says what the glasses toolkit reported, with no secrets. The usual causes are Developer Mode being off, Meta AI below V292, glasses firmware below V128, or the Meta project not matching the team ID, bundle ID, or universal link above.
 
 The capture light on the glasses is Meta's hardware. Phoenix Fox cannot turn it off and does not try to. The camera runs only when you ask for it.
 

@@ -21,12 +21,12 @@ final class WearablesSDKTests: XCTestCase {
         XCTAssertEqual(glasses.errorMessage, "The glasses connection is not running.")
         XCTAssertFalse(glasses.isStreaming)
 
-        do {
-            try await glasses.register()
-            XCTFail("expected the SDK to be unavailable")
-        } catch {
-            XCTAssertEqual(error.localizedDescription, "The glasses connection is not running.")
-        }
+        await glasses.register()
+        XCTAssertEqual(glasses.registration.stall, .notRunning("The glasses connection is not running."))
+        XCTAssertFalse(glasses.registration.isWorking)
+        XCTAssertEqual(glasses.registrationDetails, "Glasses toolkit: not running. Meta AI opened: no. Answer from Meta AI: no.")
+        glasses.dismissRegistrationTrouble()
+        XCTAssertNil(glasses.registration.stall)
 
         await glasses.handleCallback(URL(string: "https://phoenix-fox-links.cinderandcrown.workers.dev/dat?x=1")!)
         XCTAssertNil(glasses.pendingRegistration)

@@ -53,7 +53,7 @@ enum OnboardingStep: Int, CaseIterable, Sendable {
         case .welcome:
             return "Phoenix Fox puts your assistants in your glasses. Say “Jarvis”, ask for what you need, and hear the answer. Setting up takes about a minute."
         case .glasses:
-            return "This opens the Meta AI app, where you allow Phoenix Fox to use your glasses. Then it brings you back here."
+            return "Before you tap Open Meta AI, pair your glasses in the Meta AI app, update Meta AI and your glasses, and turn on Developer Mode. The steps are below. Then Meta AI asks you to allow Phoenix Fox and brings you back here."
         case .permissions:
             return "Phoenix Fox asks for three things now. Anything else, such as your location, is asked for the first time you use a feature that needs it."
         case .assistants:
@@ -61,6 +61,18 @@ enum OnboardingStep: Int, CaseIterable, Sendable {
         case .ready:
             return "Put your glasses on and say the wake word."
         }
+    }
+
+    /// What to do before the step's main button, in order. Only the glasses step has any:
+    /// Meta AI refuses to connect until these are done, and says only "Internal error".
+    var preparation: [String] {
+        self == .glasses ? GlassesPreparation.steps : []
+    }
+
+    /// The glasses step's main button.
+    static func glassesButton(connected: Bool, stall: RegistrationStall?) -> String {
+        if connected { return "Continue" }
+        return stall?.canRetry == true ? "Try again" : "Open Meta AI"
     }
 
     /// What the step promises about privacy, where it has something to promise.

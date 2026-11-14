@@ -21,7 +21,10 @@ def good_info():
         "CFBundleShortVersionString": "1.0.0",
         "CFBundleVersion": "42.1",
         "ITSAppUsesNonExemptEncryption": False,
-        "UIBackgroundModes": ["audio", "remote-notification"],
+        "UIBackgroundModes": ["audio", "bluetooth-central", "remote-notification"],
+        "NSBluetoothAlwaysUsageDescription": "Connects to the glasses.",
+        "NSLocalNetworkUsageDescription": "Joins the glasses' Wi-Fi for the camera.",
+        "NSBonjourServices": ["_bonjour._tcp"],
         "MWDAT": {
             "AppLinkURLScheme": "https://phoenix-fox-links.cinderandcrown.workers.dev/dat",
             "MetaAppID": "1651172483404286",
@@ -38,6 +41,8 @@ def good_entitlements():
         "aps-environment": "production",
         "com.apple.developer.associated-domains": ["applinks:phoenix-fox-links.cinderandcrown.workers.dev"],
         "com.apple.developer.kernel.increased-memory-limit": True,
+        "com.apple.developer.networking.HotspotConfiguration": True,
+        "com.apple.developer.networking.wifi-info": True,
         "get-task-allow": False,
     }
 
@@ -63,6 +68,14 @@ class SignedAppTests(unittest.TestCase):
             ("info", lambda d: d["MWDAT"].pop("MetaAppID"), "MetaAppID"),
             ("info", lambda d: d.pop("MWDAT"), "ClientToken"),
             ("info", lambda d: d["UIBackgroundModes"].append("processing"), "BGTaskSchedulerPermittedIdentifiers"),
+            ("info", lambda d: d["UIBackgroundModes"].remove("bluetooth-central"), "bluetooth-central"),
+            ("info", lambda d: d.update(NSBluetoothAlwaysUsageDescription=" "), "NSBluetoothAlwaysUsageDescription"),
+            ("info", lambda d: d.pop("NSLocalNetworkUsageDescription"), "NSLocalNetworkUsageDescription"),
+            ("info", lambda d: d.update(NSLocalNetworkUsageDescription=""), "NSLocalNetworkUsageDescription"),
+            ("info", lambda d: d.pop("NSBonjourServices"), "NSBonjourServices"),
+            ("info", lambda d: d.update(NSBonjourServices=["_other._tcp"]), "NSBonjourServices"),
+            ("entitlements", lambda d: d.pop("com.apple.developer.networking.HotspotConfiguration"), "Hotspot Configuration"),
+            ("entitlements", lambda d: d.update({"com.apple.developer.networking.wifi-info": False}), "Access Wi-Fi Information"),
             ("entitlements", lambda d: d.update({"aps-environment": "development"}), "Push"),
             ("entitlements", lambda d: d.pop("aps-environment"), "Push"),
             ("entitlements", lambda d: d.pop("com.apple.developer.associated-domains"), "Associated domain"),
@@ -197,8 +210,19 @@ class SignedAppTests(unittest.TestCase):
         with open(os.path.join(root, "OpenVision/OpenVision.entitlements"), "rb") as file:
             entitlements = plistlib.load(file)
         found = run(info, entitlements)
-        for fixed in ("ITSAppUsesNonExemptEncryption", "AppLinkURLScheme", "MetaAppID", "BGTaskSchedulerPermittedIdentifiers", "Associated domain"):
+        for fixed in ("ITSAppUsesNonExemptEncryption", "AppLinkURLScheme", "MetaAppID", "BGTaskSchedulerPermittedIdentifiers", "Associated domain",
+                      "bluetooth-central", "NSBluetoothAlwaysUsageDescription", "NSLocalNetworkUsageDescription", "NSBonjourServices",
+                      "Hotspot Configuration", "Access Wi-Fi Information"):
             self.assertFalse(any(fixed in problem for problem in found), f"{fixed}: {found}")
+
+    def test_the_workflow_turns_on_the_capability_for_each_wifi_entitlement(self):
+        # An entitlement whose capability is off on the App ID is left out of the App
+        # Store profile, and the export step then fails to sign.
+        root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        with open(os.path.join(root, ".github/workflows/testflight.yml"), encoding="utf-8") as file:
+            workflow = file.read()
+        for capability in ("HOT_SPOT", "ACCESS_WIFI_INFORMATION"):
+            self.assertIn(capability, workflow)
 
 
 if __name__ == "__main__":
