@@ -61,3 +61,22 @@ Agent work: Fire Fox, Indy, Driver, and Rally through the relay, after the local
 ## What stays blocked, and why
 
 Meta keeps "Hey Meta", the volunteer Be My Eyes session, WhatsApp / Messenger / Instagram calling and POV video, notification readout, silent social messaging, 3K glasses video files, in-lens UI, and the Neural Band on hardware that Adventurer does not have. iOS keeps other apps' notifications private and does not allow an app to set the system volume. Phoenix Fox says that out loud instead of inventing a success.
+
+## Beyond Meta
+
+These are the extra companion behaviors, still only where a public API exists. The camera light is Meta's hardware. Phoenix Fox does not turn it off and does not record unless you ask.
+
+| Ask Jarvis | What happens | Cost |
+| --- | --- | --- |
+| Wake word while the app is in front, or while the audio session is still up | The existing on-device voice-activity check runs first. Whisper runs after speech, not on silence. The orange mic dot stays. iOS will not keep a hidden mic alive with no audio session. | No model until you speak. |
+| Hey Siri, then the Phoenix Fox shortcut | An App Intent named Jarvis opens the app. Apple requires the app name in the phrase, so it is "Wake Jarvis in Phoenix Fox", and you can put that shortcut on the Action Button. A bare "Hey Siri, Jarvis" with no app name is not something Apple lets a third party register. | None. |
+| Dynamic Island | A Live Activity is requested with the listening or camera line. The in-app status line is the one that always shows. A custom island layout is not a second hidden recorder. | None. |
+| Text someone on WhatsApp, Messenger, SMS, or email | The dictated words are filled into that app's public URL or the share sheet. You still tap send. Contacts supplies the number or address after you allow it. | None. |
+| A relay alert | The phone can register for push. Urgent lines interrupt speech. Ordinary lines wait. Low ones sit until the morning brief. If Apple push is not configured, nothing is invented. | A few bytes. |
+| Watch this | The official camera stream starts, so the glasses light is on, and a banner says so. Frames are compared on the phone. Only a changed frame goes to the cheap vision model, and only a handful. Say stop watching and the stream stops. | One cheap call per real scene change. |
+| Grok, take over | The same request is sent to Fire Fox, Indy, Driver, and Rally. You hear each result. The list is saved on the phone. | Relay only. |
+| Remember this, including a photo note | Stored on the phone, encrypted with a key that stays in the Keychain. "Where did I park" searches that list on device. | No cloud. |
+| Translate, then summarize the meeting | The next utterances are translated by the cheap model and appended to a transcript. A summary is a short relay brief. There is no always-on interpreter and no lens captions on Adventurer. | One short call per utterance you chose. |
+| Morning brief | Once each morning, if the relay is set, the assistants are asked for a short brief. | One relay round. |
+| Record a clip | Uses the existing recorder, which only runs while the camera stream is up. The light stays on. The file goes to Photos. | No model. |
+

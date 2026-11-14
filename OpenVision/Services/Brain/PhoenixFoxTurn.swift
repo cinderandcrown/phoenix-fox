@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: Apache-2.0
+// Copyright 2026 Cinder and Crown LLC
+
 // Phoenix Fox turn: Whisper text is already cleaned. Short talk can use cheap Grok.
 // Tasks and named assistants go to the relay. One photo, then the camera turns off.
 
@@ -13,6 +16,10 @@ enum PhoenixFoxTurn {
         speakFiller: (String) -> Void,
         speak: (String, String?, Bool) -> Void
     ) async {
+        if let line = await CompanionRuntime.shared.consume(cleaned, snapshot: snapshot) {
+            speak(line, nil, false)
+            return
+        }
         if let outcome = await PhoenixFoxFeatures.handle(cleaned, snapshot: snapshot) {
             switch outcome {
             case .spoken(let line):

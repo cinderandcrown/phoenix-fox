@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: Apache-2.0
+// Copyright 2026 Cinder and Crown LLC
+
 // Phoenix Fox local features that match Meta AI where iOS and DAT allow it.
 // Anything this file cannot do is spoken as blocked. It never pretends a call,
 // a WhatsApp video session, or an in-lens map succeeded.
@@ -27,8 +30,13 @@ enum PhoenixFoxFeatures {
         if lower.contains("be my eyes") || lower.contains("call a volunteer") {
             return .spoken("A Be My Eyes volunteer can only see your camera from inside the Meta AI app. I can describe the scene instead. Say look at this.")
         }
-        if lower.contains("whatsapp") || lower.contains("messenger") || lower.contains("instagram") && (lower.contains("call") || lower.contains("video")) {
-            return .spoken("WhatsApp, Messenger, and Instagram calls stay inside those apps. Meta does not let another app place them from the glasses. I can call a phone number, or text one.")
+        if lower.contains("whatsapp") || lower.contains("messenger") || (lower.contains("instagram") && (lower.contains("call") || lower.contains("video"))) {
+            if lower.contains("call") || lower.contains("video") {
+                return .spoken("WhatsApp, Messenger, and Instagram calls stay inside those apps. Meta does not let another app place them from the glasses. I can open a chat with your words filled in, or call a phone number.")
+            }
+        }
+        if lower.contains("whatsapp") || lower.contains("on messenger") || lower.hasPrefix("email ") || lower.hasPrefix("send an email") {
+            return .spoken(await MessageHandoff.send(text))
         }
         if lower.contains("live translation") || lower.contains("translate this conversation") {
             return .spoken("I can translate the next thing you say, or a sign if you say look at this. A continuous two-person interpreter with captions is a Meta AI and Display feature, and these glasses have no lens screen.")

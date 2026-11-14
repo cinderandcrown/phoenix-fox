@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: Apache-2.0
+// Copyright 2026 Cinder and Crown LLC
+
 // Jarvis - JarvisPersona.swift
 // Spoken persona for fast, on-glasses answers. Any instant brain receives the same text.
 

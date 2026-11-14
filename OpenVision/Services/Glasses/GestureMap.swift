@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: Apache-2.0
+// Copyright 2026 Cinder and Crown LLC
+
 // Jarvis - GestureMap.swift
 // Vendor-neutral reading of glasses and Neural Band input.
 //

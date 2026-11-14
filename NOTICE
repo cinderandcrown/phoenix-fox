@@ -1,0 +1,18 @@
+Phoenix Fox
+Copyright 2026 Cinder and Crown LLC
+
+This product includes software from the projects listed in THIRD_PARTY_NOTICES.md.
+Those notices and their licenses stay in force for those portions. They are not
+replaced by the Apache License 2.0 that covers Cinder and Crown LLC's own work.
+
+The name "Phoenix Fox", the Phoenix Fox logo, and related branding are trademarks
+of Cinder and Crown LLC. They are not licensed under the Apache License 2.0.
+See section 6 of that license.
+
+The Meta Wearables Device Access Toolkit is linked as a binary dependency.
+It is not part of this license. It remains under the Meta Wearables Developer
+Terms: https://wearables.developer.meta.com/terms
+No Meta SDK source is relicensed here.
+
+"Jarvis" is a spoken wake word inside the app. It is not the product name and
+it is not a trademark granted by this license.

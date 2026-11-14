@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: Apache-2.0
+// Copyright 2026 Cinder and Crown LLC
+
 // Phoenix Fox - on-device Whisper, with the Apple transcript as the fallback.
 // Model weights download on first use and are not stored in the repo.
 

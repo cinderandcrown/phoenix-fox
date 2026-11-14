@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: Apache-2.0
+// Copyright 2026 Cinder and Crown LLC
+
 // Phoenix Fox - audio captured after the wake word, for on-device Whisper.
 // The tap runs on the audio thread. This buffer only copies samples.
 

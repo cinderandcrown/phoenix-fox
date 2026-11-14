@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: Apache-2.0
+// Copyright 2026 Cinder and Crown LLC
+
 // Jarvis - GlassesProductTarget.swift
 // v1 is the pair the owner wears today: Meta Glasses Adventurer.
 //

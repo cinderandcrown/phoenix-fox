@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: Apache-2.0
+// Copyright 2026 Cinder and Crown LLC
+
 // Phoenix Fox - the relay client for Fire Fox, Indy, Driver, and Rally.
 // The URL and bearer token come from Settings. Neither is in the repo.
 

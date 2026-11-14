@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: Apache-2.0
+// Copyright 2026 Cinder and Crown LLC
+
 // Jarvis - ClaudeService.swift
 // Anthropic Messages API. A peer of Grok and OpenAI, not a special case.
 // https://docs.anthropic.com/en/api/messages

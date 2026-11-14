@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: Apache-2.0
+// Copyright 2026 Cinder and Crown LLC
+
 // Jarvis - BrainCatalog.swift
 // One list of brains. Adding a provider is a case, a type that conforms to AIBackend,
 // and one row here. The voice agent never names a vendor except through this catalog.

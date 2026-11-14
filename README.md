@@ -8,13 +8,15 @@
 
 <p align="center">Phoenix Fox is Cinder &amp; Crown’s build on the MIT project OpenVision. The home-screen name is Phoenix Fox. Jarvis is the spoken nickname only.</p>
 
+<p align="center"><strong>The code is Apache License 2.0</strong> (copyright 2026 Cinder and Crown LLC), with upstream MIT, BSD, and Apache notices kept in <a href="THIRD_PARTY_NOTICES.md">THIRD_PARTY_NOTICES.md</a>. The name Phoenix Fox and the branding are trademarks of Cinder and Crown LLC and are <strong>not</strong> licensed under Apache 2.0.</p>
+
 <p align="center">
   The open-source iOS app connecting Meta Ray-Ban smart glasses to AI assistants — cloud or fully on-device.
   <br/>
   <strong>Your glasses. Your AI. Your rules.</strong>
 </p>
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 [![Swift 5](https://img.shields.io/badge/Swift-5-orange.svg)](https://swift.org)
 [![iOS 18+](https://img.shields.io/badge/iOS-18+-blue.svg)](https://developer.apple.com/ios/)
 [![Latest release](https://img.shields.io/github/v/release/rayl15/OpenVision?color=2ea44f)](https://github.com/rayl15/OpenVision/releases)

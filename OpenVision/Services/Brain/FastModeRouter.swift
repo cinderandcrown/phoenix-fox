@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: Apache-2.0
+// Copyright 2026 Cinder and Crown LLC
+
 // Jarvis - FastModeRouter.swift
 // Rules first. `classifier` is the hook for a later model. Nil means the rules decide.
 // Only task-like turns go to the relay. Short talk stays on the cheap instant brain.

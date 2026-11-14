@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: Apache-2.0
+// Copyright 2026 Cinder and Crown LLC
+
 // Jarvis - AssistantRoster.swift
 // The wearer's assistants. The shipped app starts with one assistant named by them.
 // Fire Fox, Indy, Driver, and Rally are not compiled in. The owner types those in Settings.

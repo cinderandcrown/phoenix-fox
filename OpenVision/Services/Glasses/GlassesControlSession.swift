@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: Apache-2.0
+// Copyright 2026 Cinder and Crown LLC
+
 // Jarvis - GlassesControlSession.swift
 // A camera-off device session so buttons, the Neural Band, and the in-lens display
 // work without streaming video. The camera session takes over only for an explicit look

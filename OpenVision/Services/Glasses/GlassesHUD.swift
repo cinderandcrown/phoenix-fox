@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: Apache-2.0
+// Copyright 2026 Cinder and Crown LLC
+
 // Jarvis - GlassesHUD.swift
 // In-lens cards for Meta Ray-Ban Display. Audio-only glasses never touch this path.
 //

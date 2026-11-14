@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: Apache-2.0
+// Copyright 2026 Cinder and Crown LLC
+
 // Jarvis - GlassesLink.swift
 // Connection state the UI can show. The SDK pushes devices; this records the phase,
 // battery, and a short log. Reconnect is the SDK's devicesStream coming back, plus a
