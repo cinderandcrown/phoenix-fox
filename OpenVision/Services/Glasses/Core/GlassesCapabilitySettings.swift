@@ -104,8 +104,8 @@ enum OwnerProfile {
     /// installed owner build applies the profile once per version, so a switch the owner
     /// turned off afterwards stays off.
     ///
-    /// 1: the accessibility suite and the glasses capabilities. 2: the workshop.
-    static let version = 2
+    /// 1: the accessibility suite and the glasses capabilities. 2: the workshop. 3: Look to Talk on.
+    static let version = 3
 
     static func apply(to access: inout AccessibilitySettings) {
         access.faceRecognition = true

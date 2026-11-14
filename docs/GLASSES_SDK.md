@@ -2,6 +2,8 @@
 
 Phoenix Fox talks to the glasses only through Meta's Wearables Device Access Toolkit for iOS. The wearer says Jarvis. That is the wake word, not the product name.
 
+Hardware honesty here supports the product north star in [DESIGN_PRINCIPLES.md](DESIGN_PRINCIPLES.md): presence with the wearer, never a fake promise (background vision, HFP+A2DP at once, App Store full-sensor photos).
+
 - Package: `https://github.com/facebook/meta-wearables-dat-ios`
 - Version pinned in this repo: **1.0.1** (9 October 2026). No developer-facing changes from 1.0.0.
 - Docs: [wearables.developer.meta.com](https://wearables.developer.meta.com/docs/develop/dat/)
@@ -36,7 +38,7 @@ This is the standard build. It asks the least of the glasses and uses nothing Me
 | Pairing through the Meta AI app | MWDATCore | Yes |
 | Device link, battery, worn, hinge, temperature | `Device.addDeviceStateListener` | Yes |
 | Camera stream and a still photo | MWDATCamera | Yes, only when he asks the glasses to look, or turns live video on. 504 by 896 at 7 frames a second. |
-| Microphone and speaker | Bluetooth HFP and A2DP, as Meta's mic and speaker guide describes | Yes. The toolkit does not expose a separate speaker API. |
+| Microphone and speaker | Bluetooth HFP (mono 16 kHz mic + voice) or A2DP (speaker). **Not both at once.** HFP must settle before the camera stream. | Yes. The toolkit does not expose a separate speaker API. Phoenix Fox picks one link mode at a time. |
 | In-lens display | MWDATDisplay | Not present. The app does not try to draw a card. |
 | Inputs, motion, speech on the glasses | MWDATInputs, MWDATMotion, MWDATSpeech | Off. See the owner build below. |
 
@@ -62,8 +64,8 @@ Everything here goes through the toolkit's public interface. Nothing changes the
 | Video stream size | 360 by 640, 504 by 896, or 720 by 1280 | The largest size for one look, watching, Smart Capture, live video, and recordings. The middle size for Guide mode, where a fresh frame matters more than detail. | 504 by 896 |
 | Video frame rate | 2, 7, 15, 24, or 30 a second. Any other number is refused. | 30 for a recording, 24 for Guide mode, 15 for live video, 7 where sharpness matters more than motion | 7 |
 | Sound with the video | PCM at 16, 44.1, or 48 kHz from the glasses' microphones | 48 kHz as the sound track of a recording. 16 kHz for sound alerts while the camera is already on. | Not used |
-| Photo from the whole sensor | Up to 4032 by 3024. Not while a stream is running. | "Take a picture" keeps the full size. Reading a page or a label uses the next size down, which arrives sooner. Falls back to a stream frame if the photo does not arrive. | A stream frame |
-| HEVC stream | Compressed video in place of raw frames | **Not used.** See below. | Not used |
+| Photo from the whole sensor | Up to 4032 by 3024. Not while a stream is running. **Experimental in DAT** — Meta says apps that use it cannot ship to the App Store yet. | Owner / TestFlight only (`allowsExperimental` + Glasses limits). Falls back to a stream frame. | **Stream frame only** (App Store–safe). Full-sensor capture stays behind the owner flag. |
+| HEVC stream | Compressed video in place of raw frames when the app is backgrounded. DAT does not decode these for third-party apps. | **Not used.** Raw frames only while foregrounded. | Not used |
 | Touchpad and action button | Select, navigation, back | A double tap talks to Jarvis. A swipe back stops Jarvis talking. | Not used |
 | Capture button | Short press, double press, hold | One press looks, two keep a picture, a hold takes a note | Not used |
 | Neural Band | Select, navigation, drag | Listened for on display glasses, the pair a band comes with, and handled like the touchpad. Nothing waits on one. | Same |
@@ -111,9 +113,21 @@ A shake of the head says no to any question Jarvis is waiting on. With no questi
 
 Two nods say yes only to a question about the wearer's own lists: setting the emergency contact, or deleting a routine. A yes that calls someone, saves or erases a face, starts Guide mode, or lets an assistant act has to be spoken. A head moves for many reasons, and those answers cannot be taken back.
 
+
+### Audio link modes (HFP vs A2DP)
+
+Meta's mic and speaker path uses the phone's Bluetooth audio session. On the glasses:
+
+- **HFP** carries the wearer's mic (mono **16 kHz**, tuned to their voice) and short spoken replies. Used while listening and for conversation.
+- **A2DP** is higher-quality speaker output with **no** glasses mic. Used for longer playback when the mic is not needed.
+- **They cannot run at the same time.** Phoenix Fox never enables both category options together (`AudioRoutePolicy` / `AudioSessionManager`).
+- **HFP must be fully settled before the camera stream starts**, or glasses audio can fail with no error. `waitUntilCameraSafe()` enforces that ordering.
+
+See [ON_DEVICE_CAPABILITIES.md](ON_DEVICE_CAPABILITIES.md).
+
 ### Why the HEVC stream is not used
 
-The compressed stream keeps arriving when the phone is locked, which would let a recording continue in a pocket. iOS does not let an app decode video in the background, so the frames could not be turned into pictures or written through the recorder's current path, and a recording that silently kept going with the phone locked is also the wrong default for a camera worn on the face. Recordings use raw frames with the phone unlocked.
+Raw camera frames arrive only while Phoenix Fox is in the foreground. When the app is backgrounded or the phone is locked, the toolkit delivers HEVC-compressed frames that DAT does not decode for third-party apps — so a look while locked cannot work, and we refuse it with a spoken line. Recordings use raw frames with the phone unlocked; we do not promise background vision.
 
 ### How this was checked
 

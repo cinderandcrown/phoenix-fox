@@ -30,6 +30,7 @@ struct OnboardingView: View {
     @State private var relayAddress = ""
     @State private var relayToken = ""
     @State private var relayOutcome: RelayCheck.Outcome?
+    @State private var grokKey = ""
 
     private var step: OnboardingStep { OnboardingStep.restored(savedStep) }
 
@@ -43,6 +44,7 @@ struct OnboardingView: View {
         .onAppear {
             relayAddress = settingsManager.settings.relayURL
             relayToken = settingsManager.settings.relayToken
+            grokKey = settingsManager.settings.grokAPIKey
         }
         .task { await readAnswers() }
         .onChange(of: scenePhase) { _, phase in
@@ -69,7 +71,11 @@ struct OnboardingView: View {
                 ),
                 isBusy: glassesManager.registration.isWorking,
                 onPrimary: { glassesManager.isRegistered ? goOn() : connectGlasses() },
-                onSkip: glassesManager.isRegistered ? nil : { goOn() },
+                // Skipping glasses is allowed, but never silent: the home banner stays until Register.
+                onSkip: glassesManager.isRegistered ? nil : {
+                    settingsManager.settings.skippedGlassesSetup = true
+                    goOn()
+                },
                 onBack: { goBack() }
             ) {
                 GlassesStepDetail(
@@ -107,6 +113,27 @@ struct OnboardingView: View {
                     .onChange(of: relayToken) { relayOutcome = nil }
                 if let relayOutcome {
                     OutcomeLabel(text: relayOutcome.line, good: relayOutcome.isGood)
+                }
+                VStack(alignment: .leading, spacing: Theme.Space.tight) {
+                    Text("Grok API key (optional)")
+                        .font(.subheadline.weight(.semibold))
+                    SecureField("xai-…", text: $grokKey)
+                        .textInputAutocapitalization(.never)
+                        .autocorrectionDisabled()
+                        .onChange(of: grokKey) { _, value in
+                            settingsManager.settings.grokAPIKey = value.trimmingCharacters(in: .whitespacesAndNewlines)
+                            if settingsManager.settings.isGrokConfigured,
+                               settingsManager.settings.aiBackend == .appleFoundation
+                                || settingsManager.settings.aiBackend == .ownAssistant {
+                                // Prefer Grok for fast looks when a key is saved and no other cloud brain is set.
+                                if !settingsManager.settings.isOwnAssistantConfigured {
+                                    settingsManager.settings.aiBackend = .grok
+                                }
+                            }
+                        }
+                    Text("Saved on this phone. Used for short looks when Fast mode is on.")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
                 }
             }
 

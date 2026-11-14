@@ -352,6 +352,17 @@ struct AppSettings: Codable, Equatable {
     /// the audio route. Turn off to always use the phone. (Glasses mic uses more battery.)
     var preferGlassesMic: Bool = true
 
+    /// Left glasses setup during onboarding. Home shows a Register banner until connected.
+    var skippedGlassesSetup: Bool = false
+
+    /// Where spoken answers play. Automatic prefers the glasses whenever a Bluetooth
+    /// output is present. The phone speaker is only forced when the wearer chooses it.
+    var speakerPreference: SpeakerPreference = .auto
+
+    /// Rough paid-provider usage this month, plus an optional soft cap (dollars).
+    /// Soft cap warns only — never blocks a look or downgrades vision quality.
+    var providerUsage = ProviderUsageLedger()
+
     // MARK: - AI Customization
 
     /// Custom instructions appended to AI system prompt
@@ -483,6 +494,7 @@ extension OwnerProfile {
             // An installation that had an earlier profile gets only what is new since
             // then. Re-applying the whole profile would undo what the owner switched off.
             if settings.ownerProfileVersion < 2 { apply(to: &settings.workshop) }
+            if settings.ownerProfileVersion < 3 { applyLookToTalk(to: &settings.workshop) }
             settings.ownerProfileVersion = version
         }
         return true

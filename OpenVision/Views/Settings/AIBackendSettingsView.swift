@@ -46,6 +46,26 @@ struct AIBackendSettingsView: View {
                 Text("OpenClaw offers more tools and privacy. Gemini Live has lower latency.")
             }
 
+            Section {
+                let usage = settingsManager.settings.providerUsage
+                LabeledContent("This month (est.)", value: String(format: "$%.2f", usage.totalDollars))
+                Stepper(
+                    "Soft cap: \(usage.monthlySoftCapDollars == 0 ? "Off" : "$\(usage.monthlySoftCapDollars)")",
+                    value: $settingsManager.settings.providerUsage.monthlySoftCapDollars,
+                    in: 0...500,
+                    step: 5
+                )
+                if usage.softCapReached {
+                    Text("Soft cap reached. Jarvis still answers; expensive top models stay available — this is a warning only.")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                }
+            } header: {
+                Text("Provider usage")
+            } footer: {
+                Text("Estimates only. Soft cap never blocks a look or downgrades vision quality. Presence stays on-device-first.")
+            }
+
             // Backend Configuration Links
             Section {
                 NavigationLink {

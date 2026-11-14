@@ -90,9 +90,9 @@ final class VoiceCommandService: ObservableObject {
     /// a wearer whose speech has long pauses.
     var extraPause: TimeInterval = 0
 
-    /// Keep recognition on the phone when the phone supports it. Live captions turn this on,
-    /// so other people's speech is not sent to a server.
-    var prefersOnDeviceRecognition = false {
+    /// Keep recognition on the phone when the phone supports it. Always-on wake stays
+    /// on-device so it never burns paid STT credits.
+    var prefersOnDeviceRecognition = true {
         didSet {
             guard prefersOnDeviceRecognition != oldValue, isListening, state == .idle else { return }
             restartRecognition()
@@ -577,8 +577,8 @@ final class VoiceCommandService: ObservableObject {
         switch state {
         case .idle:
             currentTranscription = transcription
-            // Check for wake word
-            if detectWakeWord(in: transcription) {
+            // Wake word only at the start of an utterance. Mid-phrase "vision" echo is ignored.
+            if wakeWordAtStart(transcription) {
                 handleWakeWordDetected()
             } else {
                 onAmbientSpeech?(transcription)
@@ -587,7 +587,7 @@ final class VoiceCommandService: ObservableObject {
         case .listening, .conversationMode:
             // Strip wake word from transcription (like xmeta does)
             var command = transcription
-            for ww in [wakeWord.lowercased(), "jarvis", "hey jarvis", "ok jarvis", "ok vision", "okay vision", "hey vision", "hi vision"] {
+            for ww in [wakeWord.lowercased(), "jarvis", "hey jarvis", "ok jarvis", "okay jarvis", "hi jarvis"] {
                 if let range = command.lowercased().range(of: ww) {
                     command = String(command[range.upperBound...]).trimmingCharacters(in: .whitespaces)
                     break
@@ -688,27 +688,27 @@ final class VoiceCommandService: ObservableObject {
         return stopWords.contains { lower.contains($0) }
     }
 
-    /// True when a wake-word variation sits at (or very near) the START of the transcript — i.e. a
-    /// deliberate "Ok Vision …" barge-in. During TTS the mic also hears the reply itself, whose
-    /// transcription can incidentally contain a "…vision…" buried mid-sentence; requiring the wake
-    /// word up front rejects those phantoms while still catching a real interrupt.
+    /// True when a Jarvis wake-word variation sits at (or very near) the START of the transcript.
+    /// Mid-phrase matches are ignored — the mic hearing TTS/echo must not re-trigger.
     private func wakeWordAtStart(_ text: String) -> Bool {
         let lower = text.lowercased()
-        let variations = [
-            wakeWord.lowercased(),
-            "jarvis", "hey jarvis", "ok jarvis", "okay jarvis",
-            "ok vision", "okay vision", "o.k. vision", "o k vision",
-            "hey vision", "hi vision",
-            "a vision", "heavy vision", "have vision", "obey vision", "oak vision"
-        ]
-        for v in variations {
+        for v in Self.jarvisWakeVariations(including: wakeWord) {
             if let r = lower.range(of: v) {
-                // Characters of speech before the wake word. A little leeway ("uh, ok vision")
-                // is fine; a whole sentence in front of it means it's echo, not a barge-in.
+                // A little leeway ("uh, jarvis") is fine; a whole sentence in front is echo.
                 if lower.distance(from: lower.startIndex, to: r.lowerBound) <= 12 { return true }
             }
         }
         return false
+    }
+
+    /// Jarvis-focused wake phrases (and common mishears). "Vision" variants were dropped —
+    /// they false-fired on TTS echo and ambient speech.
+    private static func jarvisWakeVariations(including configured: String) -> [String] {
+        [
+            configured.lowercased(),
+            "jarvis", "hey jarvis", "ok jarvis", "okay jarvis", "hi jarvis",
+            "jarvies", "jarvus", "jarvahs", "charvis",
+        ]
     }
 
     /// Detect wake word in transcription
@@ -716,29 +716,7 @@ final class VoiceCommandService: ObservableObject {
         guard bypassCooldown || !wakeWordCooldownActive else { return false }
 
         let lowercased = text.lowercased()
-        let wakeWordLower = wakeWord.lowercased()
-
-        // Check for exact match or common variations/misrecognitions
-        let variations = [
-            wakeWordLower,
-            "jarvis", "hey jarvis", "ok jarvis", "okay jarvis",
-            // OK Vision variants (most reliable)
-            "ok vision",
-            "okay vision",
-            "o.k. vision",
-            "o k vision",
-            // Ok Vision variants
-            "hey vision",
-            "hi vision",
-            // Common misrecognitions
-            "a vision",
-            "heavy vision",
-            "have vision",
-            "obey vision",
-            "oak vision"
-        ]
-
-        let detected = variations.contains { lowercased.contains($0) }
+        let detected = Self.jarvisWakeVariations(including: wakeWord).contains { lowercased.contains($0) }
         if detected {
             print("[VoiceCommand] Detected wake word in: '\(text)'")
         }
@@ -748,17 +726,8 @@ final class VoiceCommandService: ObservableObject {
     /// Extract command text after wake word
     private func extractCommandAfterWakeWord(_ text: String) -> String {
         let lowercased = text.lowercased()
-        let wakeWordLower = wakeWord.lowercased()
 
-        let variations = [
-            wakeWordLower,
-            "jarvis", "hey jarvis", "ok jarvis", "okay jarvis",
-            "ok vision", "okay vision", "o.k. vision", "o k vision",
-            "hey vision", "hi vision",
-            "a vision", "heavy vision", "have vision", "obey vision", "oak vision"
-        ]
-
-        for variation in variations {
+        for variation in Self.jarvisWakeVariations(including: wakeWord) {
             if let range = lowercased.range(of: variation) {
                 let afterWakeWord = String(text[range.upperBound...])
                 return Self.dropWakePunctuation(afterWakeWord)
@@ -807,7 +776,7 @@ final class VoiceCommandService: ObservableObject {
         var command = text
         let wakeWordLower = wakeWord.lowercased()
 
-        for prefix in [wakeWordLower, "hey jarvis", "ok jarvis", "okay jarvis", "hey vision", "ok vision", "okay vision"] {
+        for prefix in [wakeWordLower, "hey jarvis", "ok jarvis", "okay jarvis", "hi jarvis"] {
             if command.lowercased().hasPrefix(prefix) {
                 command = Self.dropWakePunctuation(String(command.dropFirst(prefix.count)))
                 break

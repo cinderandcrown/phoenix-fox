@@ -345,15 +345,14 @@ final class VoiceAgentViewModel: ObservableObject {
     }
 
     /// Runs a command that came from the glasses through the same turn as a spoken one.
+    /// Accessibility, phone tools, and workshop run even when no cloud brain is configured —
+    /// presence with the wearer does not wait on a session gate.
     func acceptGlassesCommand(_ text: String) {
         let heard = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !heard.isEmpty else { return }
-        guard settingsManager.settings.isCurrentBackendConfigured else {
-            sayAssistantNeedsSetup()
-            return
+        if !isSessionActive && settingsManager.settings.isCurrentBackendConfigured {
+            startSession()
         }
-        if !isSessionActive { startSession() }
-        guard isSessionActive else { return }
         let cleaned = DictationCleanup.clean(heard)
         userTranscript = cleaned
         commandTurnActive = true
@@ -610,37 +609,28 @@ final class VoiceAgentViewModel: ObservableObject {
         voiceCommandService.enterConversationMode()
     }
 
-    /// Apply the preferred audio route: the glasses' Bluetooth mic + speaker when the user wants it
-    /// and they're the connected audio device, otherwise the phone's built-in mic + loud speaker.
-    /// Attempting glasses is what makes iOS expose the HFP mic — so we try it directly rather than
-    /// pre-checking availability (which can't see HFP until it's allowed). Returns true on glasses.
+    /// Applies the shared audio route: answers prefer the glasses whenever a Bluetooth
+    /// output is present; the HFP mic is used when preferred and the camera is off.
     @discardableResult
     private func applyPreferredAudioRoute() -> Bool {
-        // Never pick the glasses HFP mic while the camera is streaming: video saturates the
-        // Bluetooth link, so the SCO audio channel can't be serviced. configureForGlasses() can
-        // still "succeed" in that state, but the mic is deaf — commands are never transcribed
-        // (seen when recording starts the stream before a wake-word session). Phone mic instead.
-        if settingsManager.settings.preferGlassesMic, glassesManager.isRegistered,
-           !glassesManager.isStreaming,
-           (try? AudioSessionManager.shared.configureForGlasses()) == true {
-            return true
-        }
-        // Glasses mic off, glasses not connected as audio, or no HFP input available → phone.
-        // Loud speaker so spoken replies are audible (not the quiet earpiece).
-        print("[VoiceAgent] Using iPhone mic + speaker (glasses mic off or unavailable)")
-        try? AudioSessionManager.shared.configureForPhone()
-        return false
+        let settings = settingsManager.settings
+        let glassesMic = (try? AudioSessionManager.shared.applyPreferredRoute(
+            preferGlassesMic: settings.preferGlassesMic,
+            speakerPreference: settings.speakerPreference,
+            cameraStreaming: glassesManager.isStreaming
+        )) == true
+        print("[VoiceAgent] \(AudioSessionManager.shared.destination.title). Mic: \(glassesMic ? "glasses" : "phone")")
+        return glassesMic
     }
 
     private func configureAudioForGlasses() {
-        // If we're already on the glasses' Bluetooth (HFP) route and still listening, do NOT tear
-        // the audio session down and re-activate it. That re-activation renegotiates the HFP SCO
-        // link, which the glasses render as a "Bluetooth connecting/closing" blip — heard on every
-        // wake after the first (the route stays on HFP between sessions, so the re-config is pure
-        // churn). Skipping it keeps SCO stable, so the wake chime plays cleanly each time.
-        if settingsManager.settings.preferGlassesMic, glassesManager.isRegistered,
-           !glassesManager.isStreaming,   // HFP is deaf while the camera streams — reconfigure to phone
-           AudioSessionManager.shared.isBluetoothHFPActive, voiceCommandService.isListening {
+        // Already on the glasses HFP mic and still listening: leave the session alone so
+        // SCO is not renegotiated on every wake.
+        if settingsManager.settings.preferGlassesMic,
+           !glassesManager.isStreaming,
+           AudioSessionManager.shared.isBluetoothHFPActive,
+           AudioSessionManager.shared.destination.isGlasses,
+           voiceCommandService.isListening {
             return
         }
         let wasListening = voiceCommandService.isListening
@@ -649,6 +639,11 @@ final class VoiceAgentViewModel: ObservableObject {
         if wasListening {
             try? voiceCommandService.startListening()
         }
+    }
+
+    /// After the camera stops, the HFP mic can come back. Re-apply the preferred route.
+    func audioRouteAfterCameraStopped() {
+        configureAudioForGlasses()
     }
 
     func stopSession() {
@@ -884,14 +879,13 @@ final class VoiceAgentViewModel: ObservableObject {
             guard let self else { return }
             print("[VoiceAgent] Command captured: \(command)")
 
-            // IMPORTANT: Only process commands when session is active
-            // This prevents processing stale commands after session ends
-            guard self.isSessionActive else {
-                print("[VoiceAgent] Ignoring command - session not active")
+            // Accessibility, phone actions, and the local workshop run whenever the app is
+            // listening. A cloud turn still starts a session below when the brain is needed.
+            if !self.isSessionActive {
                 if !self.settingsManager.settings.isCurrentBackendConfigured {
-                    self.sayAssistantNeedsSetup()
+                    // Local handlers below may still answer; only complain when nothing can.
+                    print("[VoiceAgent] No session yet — trying local handlers first")
                 }
-                return
             }
 
             // An answer to a question the agent asked mid-turn, not a new command.
@@ -1230,20 +1224,17 @@ final class VoiceAgentViewModel: ObservableObject {
             return
         }
 
-        // Vision-phrased questions OUTSIDE live mode must never reach the local model text-only:
-        // FastVLM answered "please upload an image", that refusal entered conversation history,
-        // and the model then parroted it on every later vision turn — image attached or not.
-        // Photo-capture phrasings ("take a photo and...") are handled elsewhere and unaffected;
-        // this catches the bare "what do you see" style, which has no image source outside live
-        // mode, and answers with guidance instead of poisoning the session.
-        if !isLiveVideoMode, settingsManager.settings.aiBackend == .localGemma {
+        // Vision-phrased questions outside live mode: capture a stream frame and answer
+        // on-device first (OCR / codes / local VLM), then Grok or the relay if needed.
+        // Never send an imageless turn to a text-only local model — that poisoned history.
+        if !isLiveVideoMode {
             let visionPhrases = ["what do you see", "what am i looking at", "what are you looking at",
                                  "what's in front of me", "what is in front of me",
-                                 "describe what you see", "describe the view", "describe the scene"]
-            if visionPhrases.contains(where: { lowerCommand.contains($0) }),
-               !lowerCommand.contains("photo") && !lowerCommand.contains("picture") {
-                NSLog("[OV] vision question outside live mode — guiding instead of imageless model call")
-                speakResponse("I can't see anything right now. Say 'take a photo' for a quick look, or 'start live video' and I'll watch continuously.")
+                                 "describe what you see", "describe the view", "describe the scene",
+                                 "what's this", "what is this", "look at this"]
+            if visionPhrases.contains(where: { lowerCommand.contains($0) }) {
+                NSLog("[OV] vision question — on-device/stream-frame look instead of text-only refusal")
+                await describeSceneOnDevice(prompt: command)
                 return
             }
         }
@@ -2228,8 +2219,9 @@ final class VoiceAgentViewModel: ObservableObject {
                 await captureAndSendPhoto(withPrompt: command)
                 return
             }
-            agentState = isSessionActive ? .listening : .idle
-            speakResponse("This on-device model is text only. For camera questions, select SmolVLM2 as your local model, or switch to Gemini or OpenClaw in Settings.")
+            // No cloud vision model: describe what the glasses see on this phone.
+            agentState = .thinking
+            await self.describeSceneOnDevice(prompt: command)
             return
         }
         // Route the command. With Apple TTS, stream the answer: speak sentences as they generate.
@@ -2333,6 +2325,90 @@ final class VoiceAgentViewModel: ObservableObject {
         try await backend.sendMessage(prompt, imageData: backend.supportsImageInput ? imageData : nil)
     }
 
+    /// On-device first look: OCR / barcodes / scene labels, then local VLM, then cloud.
+    private func describeSceneOnDevice(prompt: String) async {
+        if UIApplication.shared.applicationState != .active {
+            speakResponse("The glasses camera needs Phoenix Fox open on the screen.")
+            agentState = isSessionActive ? .listening : .idle
+            return
+        }
+        let kind = LookKindParser.kind(for: prompt)
+        var imageData = await freshLiveFrame()
+        if imageData == nil, glassesManager.isRegistered {
+            await AudioSessionManager.shared.waitUntilCameraSafe()
+            await glassesManager.startStreaming()
+            imageData = await freshLiveFrame()
+            if glassesManager.isStreaming { await glassesManager.stopStreaming() }
+            audioRouteAfterCameraStopped()
+        }
+        guard let imageData, let budgeted = ImageBudget.jpeg(imageData) else {
+            speakResponse("I couldn't get a photo from the glasses. Please try again.")
+            agentState = isSessionActive ? .listening : .idle
+            return
+        }
+
+        // OCR / barcode first when that is enough.
+        if kind == .readText || kind == .code {
+            if kind == .readText {
+                let fragments = await AccessVision.text(in: budgeted, corrected: true).map(\.text)
+                if OnDeviceLook.textIsEnough(kind: kind, fragments: fragments) {
+                    speakResponse(OnDeviceLook.spokenText(from: fragments))
+                    agentState = isSessionActive ? .listening : .idle
+                    return
+                }
+            }
+            if kind == .code {
+                let codes = await AccessVision.screen(in: budgeted).codes.map(\.payload)
+                if let line = OnDeviceLook.spokenCode(from: codes) {
+                    speakResponse(line)
+                    agentState = isSessionActive ? .listening : .idle
+                    return
+                }
+            }
+        }
+
+        // On-device scene labels.
+        let sightings = await AccessVision.sightings(in: budgeted)
+        let labels = sightings.prefix(3).map { (name: $0.label ?? $0.kind.rawValue, confidence: 0.6) }
+        if let line = OnDeviceLook.spokenScene(from: Array(labels)), kind == .describeScene,
+           NetworkPath.shared.status == .offline || !settingsManager.settings.isGrokConfigured {
+            speakResponse(line)
+            agentState = isSessionActive ? .listening : .idle
+            return
+        }
+
+        // Local VLM when loaded.
+        if GemmaLocalService.shared.visionReady,
+           let local = try? await GemmaLocalService.shared.describeFrame(budgeted, prompt: prompt, maxTokens: 80),
+           !local.isEmpty {
+            speakResponse(local)
+            agentState = isSessionActive ? .listening : .idle
+            return
+        }
+
+        // Cloud vision only when online and configured.
+        if NetworkPath.shared.status == .offline {
+            if let line = OnDeviceLook.spokenScene(from: Array(labels)) {
+                speakResponse(line)
+            } else {
+                speakResponse(CapabilityMatrix.offlineRefusal(for: "vision-qa"))
+            }
+            agentState = isSessionActive ? .listening : .idle
+            return
+        }
+        let backend = settingsManager.settings.aiBackend
+        if settingsManager.settings.isGrokConfigured || [.openAI, .claude, .openClaw, .ownAssistant].contains(backend) {
+            do {
+                try await sendPromptToActiveBackend(visionPromptFromCommand(prompt), imageData: budgeted)
+            } catch {
+                speakResponse(error.localizedDescription)
+            }
+        } else {
+            speakResponse("I can read text and name what I see on this phone. Add a Grok API key in Settings for richer answers about a photo.")
+        }
+        agentState = isSessionActive ? .listening : .idle
+    }
+
     private func captureAndSendPhoto(withPrompt prompt: String) async {
         // Try to get an image from various sources
         var imageData: Data?
@@ -2345,6 +2421,8 @@ final class VoiceAgentViewModel: ObservableObject {
         // so drop the artificial delay entirely.
         if glassesManager.isRegistered && !glassesManager.isStreaming {
             print("[VoiceAgent] Starting glasses camera stream for photo...")
+            // HFP must settle before the camera stream or glasses audio fails silently.
+            await AudioSessionManager.shared.waitUntilCameraSafe()
             await glassesManager.startStreaming()
             startedStreamingForPhoto = true
         }
@@ -2366,6 +2444,7 @@ final class VoiceAgentViewModel: ObservableObject {
         if imageData != nil && glassesManager.isStreaming && !isLiveVideoMode && !GuideMode.shared.isOn {
             NSLog("[OV] photo captured — stopping camera (click and go)")
             await glassesManager.stopStreaming()
+            audioRouteAfterCameraStopped()
         }
 
         // Send with or without image
@@ -2375,7 +2454,7 @@ final class VoiceAgentViewModel: ObservableObject {
                 // VLM replies "I can't take photos / please provide an image" before describing.
                 let visionPrompt = visionPromptFromCommand(prompt)
                 NSLog("[OV] Sending message with photo (%d bytes), prompt: \"%@\"", imageData.count, visionPrompt)
-                try await sendPromptToActiveBackend(visionPrompt, imageData: imageData)
+                try await sendPromptToActiveBackend(visionPrompt, imageData: ImageBudget.jpeg(imageData) ?? imageData)
             } else {
                 NSLog("[OV] No image available — capture returned nil; NOT sending to model")
                 // Don't send a degraded text-only prompt to the model — that's what makes it

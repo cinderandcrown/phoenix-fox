@@ -57,7 +57,7 @@ enum OnboardingStep: Int, CaseIterable, Sendable {
         case .permissions:
             return "Phoenix Fox asks for three things now. Anything else, such as your location, is asked for the first time you use a feature that needs it."
         case .assistants:
-            return "If you run your own assistants behind a relay, enter its details and they will answer you. If you do not, skip this and Jarvis answers on its own."
+            return "If you run your own assistants behind a relay, enter its details and they will answer you. You can also add a Grok API key for fast looks. If you skip both, Jarvis answers on this phone."
         case .ready:
             return "Put your glasses on and say the wake word."
         }

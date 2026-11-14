@@ -4,6 +4,8 @@ A skill teaches Phoenix Fox one new spoken command. It is a small JSON file that
 
 Skills are one of the ten features in the [innovation backlog](INNOVATION_BACKLOG.md). They are in the owner build only, under **Settings → Owner build → Workshop → Skills**. Nothing here has been run on glasses yet. The status is in the backlog's status table.
 
+Skills must feel like presence, not a macro dump: short spoken confirmation, capture only what was declared, reuse conversation context when the wearer follows up, and never start themselves. See the [presence checklist](DESIGN_PRINCIPLES.md#presence-checklist-every-feature).
+
 ## What a skill can and cannot do
 
 A skill can:

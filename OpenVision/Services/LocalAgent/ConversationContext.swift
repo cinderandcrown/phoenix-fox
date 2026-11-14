@@ -18,7 +18,7 @@ final class ConversationContext {
 
     /// Keep the last few exchanges — enough for natural follow-ups, bounded so local models stay
     /// well within their memory/context budget.
-    private let maxMessages = 8
+    private let maxMessages = ContextBudget.defaultMessageCap
 
     private init() {}
 
@@ -46,6 +46,7 @@ final class ConversationContext {
         let clean = content.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !clean.isEmpty else { return }
         turns.append(Turn(role: role, content: clean))
-        if turns.count > maxMessages { turns.removeFirst(turns.count - maxMessages) }
+        let trimmed = ContextBudget.trim(turns.map { ($0.role, $0.content) }, maxMessages: maxMessages)
+        turns = trimmed.map { Turn(role: $0.role, content: $0.content) }
     }
 }

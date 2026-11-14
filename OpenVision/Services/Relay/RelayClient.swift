@@ -31,6 +31,21 @@ struct RelayClient: Sendable {
     /// create a second one. Once the relay has the ask, a failed poll is retried until the
     /// deadline, because the bot may already be working on it.
     func ask(_ ask: RelayAsk, to endpoint: RelayEndpoint) async throws -> [RelayReply] {
+        // Fail fast when a real /health says no bot can answer — a 90s poll with nobody
+        // listening feels like a hang. Legacy relays without /health (or a 404) still proceed.
+        if let health = try? await knownHealth(of: endpoint) {
+            let wanted = ask.targetBot.trimmingCharacters(in: .whitespacesAndNewlines)
+            if health.webhooks.isEmpty {
+                throw RelayError.noBotConnected(wanted: wanted.isEmpty ? nil : wanted)
+            }
+            if !wanted.isEmpty {
+                let names = health.webhooks.map { $0.lowercased() }
+                if !names.contains(wanted.lowercased()) {
+                    throw RelayError.noBotConnected(wanted: wanted)
+                }
+            }
+        }
+
         let deadline = now().addingTimeInterval(Self.replyDeadline)
         let body = try JSONEncoder().encode(ask)
 
@@ -85,11 +100,17 @@ struct RelayClient: Sendable {
     /// A relay from before `/health` existed answers 404 once the token has passed, which is success too.
     func health(of endpoint: RelayEndpoint) async throws -> RelayHealth {
         do {
-            let data = try await send(endpoint, "GET", "/health", timeout: 15)
-            return try decode(RelayHealth.self, from: data)
+            return try await knownHealth(of: endpoint)
         } catch RelayError.server(status: 404) {
             return RelayHealth(ok: true, apns: nil, devices: nil, webhooks: [], webhookProblems: [])
         }
+    }
+
+    /// `/health` when the route exists. Throws on 404 so callers that need webhook presence
+    /// do not treat a legacy empty stub as "no bots connected".
+    func knownHealth(of endpoint: RelayEndpoint) async throws -> RelayHealth {
+        let data = try await send(endpoint, "GET", "/health", timeout: 15)
+        return try decode(RelayHealth.self, from: data)
     }
 
     // MARK: Plumbing
@@ -423,6 +444,8 @@ enum RelayError: Error, Equatable, LocalizedError {
     case offline
     /// The relay took the ask, and no bot answered in time.
     case noReply
+    /// Health shows no bot webhook (or the named bot is missing), so a long poll would hang.
+    case noBotConnected(wanted: String?)
     /// The relay answered with something this app does not understand.
     case malformed
 
@@ -465,6 +488,11 @@ enum RelayError: Error, Equatable, LocalizedError {
         case .server(let status): return status == 0 ? "The relay could not be reached." : "The relay returned an error, \(status)."
         case .offline: return "The phone is offline, so I could not reach the relay."
         case .noReply: return "No reply came back in time."
+        case .noBotConnected(let wanted):
+            if let wanted, !wanted.isEmpty {
+                return "\(wanted) is not connected to the relay. Start that bot, then try again."
+            }
+            return "No bot is connected to the relay. Start Fire Fox, Indy, Driver, or Rally, then try again."
         case .malformed: return "The relay sent something I could not read."
         }
     }

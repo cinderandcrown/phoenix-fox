@@ -2,6 +2,8 @@
 
 How the Phoenix Fox iPhone app looks, moves, and speaks, and why. It covers the brand, the home screen, first run, the voice on the glasses, and the tests that keep them from drifting.
 
+**Product north star** (presence with the wearer, not a passive Q&A box) lives in [DESIGN_PRINCIPLES.md](DESIGN_PRINCIPLES.md). Every feature checklist must pass that document’s presence checklist. This file is the visual and interaction system for the phone UI.
+
 ## What has been checked, and how
 
 No one on this project has a Mac, so read this section before trusting anything below.
@@ -16,6 +18,8 @@ No one on this project has a Mac, so read this section before trusting anything 
 CI is the only compiler. Until it runs this branch, treat the layout as a careful first draft.
 
 ## Principles
+
+Presence and personality rules: [DESIGN_PRINCIPLES.md](DESIGN_PRINCIPLES.md). For the phone UI specifically:
 
 1. **The glasses are the product. The phone is the dashboard.** The wearer is usually not looking at the phone. So the home screen answers three questions at a glance: are my glasses there, what is Jarvis doing, and what is my team doing.
 2. **Say what is happening in one or two words.** Listening. Looking. Asking Indy. Replying. A person should never wonder whether they were heard.

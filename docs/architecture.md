@@ -2,6 +2,8 @@
 
 How OpenVision is organized, and the seams to use when extending it.
 
+Product intent (presence with the wearer, not a passive Q&A box): [DESIGN_PRINCIPLES.md](DESIGN_PRINCIPLES.md).
+
 ```
 OpenVision/
 ├── App/                 App entry (OpenVisionApp)

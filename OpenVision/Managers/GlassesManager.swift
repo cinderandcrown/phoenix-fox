@@ -351,6 +351,15 @@ final class GlassesManager: ObservableObject {
             print("[GlassesManager] Cannot start streaming - not registered")
             return
         }
+        // Raw frames only arrive while the app is in the foreground. Background gets
+        // HEVC that DAT does not decode, so a look while locked cannot work.
+        if UIApplication.shared.applicationState != .active {
+            errorMessage = "The glasses camera needs Phoenix Fox open on the screen. Unlock the phone and try again."
+            GlassesLink.shared.record("Camera refused: app not in the foreground (raw frames only).")
+            return
+        }
+        // HFP must settle before the camera stream, or glasses audio can fail silently.
+        await AudioSessionManager.shared.waitUntilCameraSafe()
         guard let deviceId = connectedDevice else {
             errorMessage = "No glasses connected"
             print("[GlassesManager] Cannot start streaming - no device connected")
@@ -734,7 +743,11 @@ final class GlassesManager: ObservableObject {
     /// when the glasses did not deliver. The caller then takes a frame from the stream,
     /// which is smaller and has always worked.
     func captureStill(_ use: StillUse) async -> Data? {
-        guard SettingsManager.shared.glassesCapabilities.highResolutionStills else { return nil }
+        // Full-sensor photo is experimental in DAT 1.0.1 and Meta says apps using it
+        // cannot ship to the App Store yet. Only the owner/TestFlight build may try it;
+        // store builds always use a stream frame.
+        guard BuildFlavor.current.allowsExperimental,
+              SettingsManager.shared.glassesCapabilities.highResolutionStills else { return nil }
         return await exclusively { await self.still(use) }
     }
 

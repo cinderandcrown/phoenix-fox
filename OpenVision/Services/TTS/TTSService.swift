@@ -197,6 +197,7 @@ extension TTSService: AVSpeechSynthesizerDelegate {
             // First-wins per turn, and gated inside the collector on the turn having requested
             // TTS, so later sentences and unrelated system utterances can't misattribute.
             MetricsCollector.shared.markFirstAudio()
+            AudioSessionManager.shared.logSpeaking()
             if !self.isSpeaking {
                 self.isSpeaking = true
                 self.onSpeechStarted?()

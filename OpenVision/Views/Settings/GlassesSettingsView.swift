@@ -204,6 +204,12 @@ struct GlassesSettingsView: View {
                 }
 
                 NavigationLink {
+                    GlassesCheckView()
+                } label: {
+                    Text("Glasses check")
+                }
+
+                NavigationLink {
                     TroubleshootingView()
                 } label: {
                     Text("Troubleshooting")

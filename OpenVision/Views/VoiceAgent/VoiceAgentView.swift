@@ -171,6 +171,10 @@ struct VoiceAgentView: View {
         model.isRecording = viewModel.isRecording
         model.recordingNote = viewModel.recordingStatus
         model.trouble = viewModel.errorMessage
+        model.offline = NetworkPath.shared.status == .offline
+        model.needsGlassesRegister = !glassesManager.isRegistered
+        let audio = AudioSessionManager.shared
+        model.speakingThrough = "Speaking through \(audio.destination.title)"
         return model
     }
 
