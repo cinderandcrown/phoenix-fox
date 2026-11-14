@@ -28,6 +28,8 @@ enum WindowReader {
     static func read(_ view: ScreenView, roster: [LookName]) -> LookReading {
         var found: [LookCandidate] = []
         let typical = median(view.text.map(\.box.height))
+        let folded = badgeLeads.map { $0.flatMap(words) }
+        let leads = view.text.filter { folded.contains(words($0.text)) }.map(\.box)
 
         for entry in roster {
             let target = LookTarget.assistant(entry.bot)
@@ -39,7 +41,11 @@ enum WindowReader {
             let names = entry.all.map(words).filter { !$0.isEmpty }
             for fragment in view.text where fragment.confidence >= leastConfidence {
                 let line = words(fragment.text)
-                guard let (shape, evidence) = names.compactMap({ match($0, in: line) }).max(by: { $0.0 < $1.0 }) else { continue }
+                guard var (shape, evidence) = names.compactMap({ match($0, in: line) }).max(by: { $0.0 < $1.0 }) else { continue }
+                // A badge on a narrow note wraps: "TALK TO" on one line and the name under it.
+                if names.contains(line), leads.contains(where: { isAbove($0, fragment.box) }) {
+                    (shape, evidence) = (1, .badge)
+                }
                 var score = shape * facing(fragment.box)
                 if evidence != .badge {
                     score *= 0.7 + 0.3 * min(1, fragment.confidence)
@@ -115,6 +121,13 @@ enum WindowReader {
         case "0", "O", "o": return "o"
         default: return character.lowercased().first ?? character
         }
+    }
+
+    /// Whether one line of text sits directly over another, as two lines of one label do.
+    private static func isAbove(_ upper: FrameBox, _ lower: FrameBox) -> Bool {
+        let gap = lower.y - upper.maxY
+        let overlap = min(upper.maxX, lower.maxX) - max(upper.x, lower.x)
+        return upper.midY < lower.y && gap < 1.5 * lower.height && overlap > 0
     }
 
     // MARK: - Where it is

@@ -187,6 +187,23 @@ final class LookToTalkReadingTests: XCTestCase {
         XCTAssertEqual(reading.verdict(), .sure(indy(), deliberate: true))
     }
 
+    func testABadgeMayWrapOntoTwoLines() {
+        let wrapped = read([line("TALK TO", y: 0.40, height: 0.06), line("INDY", y: 0.48, height: 0.06)])
+        XCTAssertEqual(wrapped.candidates.first?.evidence, .badge)
+        XCTAssertEqual(wrapped.verdict(), .sure(indy(), deliberate: true))
+
+        // The words must be directly over the name: not far above, not beside, not under.
+        let far = read([line("TALK TO", y: 0.1, height: 0.06), line("INDY", y: 0.48, height: 0.06)])
+        XCTAssertEqual(far.candidates.first?.evidence, .title)
+        let beside = read([line("TALK TO", x: 0.15, y: 0.40, height: 0.06), line("INDY", x: 0.85, y: 0.48, height: 0.06)])
+        XCTAssertEqual(beside.candidates.first?.evidence, .title)
+        let under = read([line("INDY", y: 0.40, height: 0.06), line("TALK TO", y: 0.48, height: 0.06)])
+        XCTAssertEqual(under.candidates.first?.evidence, .title)
+        // And only a name alone on its line is completed this way.
+        let title = read([line("TALK TO", y: 0.40, height: 0.06), line("Indy - Grok", y: 0.48, height: 0.06)])
+        XCTAssertEqual(title.candidates.first?.evidence, .title)
+    }
+
     func testABadgeHasNothingElseOnItsLine() {
         let reading = read([line("you can talk to Indy about that")])
         XCTAssertEqual(reading.candidates.first?.evidence, .mention)
