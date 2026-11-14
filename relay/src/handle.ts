@@ -9,11 +9,16 @@ import { botKey, deliver, targetsFor, type DeliveryResult, type WebhookConfig, t
 export const MAX_BODY = 1_200_000;
 const ASK_TTL_MS = 15 * 60 * 1000;
 const INBOX_TTL_MS = 24 * 60 * 60 * 1000;
+/** Beta feedback reports stay for thirty days so the owner's bots can triage them. */
+export const FEEDBACK_TTL_MS = 30 * 24 * 60 * 60 * 1000;
 /** How long an ask stays out of `/pending` while its webhook is still being tried. */
 const SENDING_GRACE_MS = 60 * 1000;
 const MAX_DEVICES = 8;
 const ALL_HANDS_REPLIES = 4;
 const ASK_ID = /^[A-Za-z0-9._:-]{1,128}$/;
+const MAX_FEEDBACK_NOTE = 8_000;
+const MAX_FEEDBACK_TRANSCRIPT = 16_000;
+const MAX_FEEDBACK_DIAGNOSTICS_CHARS = 200_000;
 const LIMITS: Record<string, number> = {
   ask: 30,
   pending: 120,
@@ -23,6 +28,8 @@ const LIMITS: Record<string, number> = {
   inbox: 40,
   device: 10,
   health: 30,
+  feedback: 20,
+  feedback_list: 60,
 };
 
 export interface Reply {
@@ -65,6 +72,20 @@ export interface InboxRecord extends PushNotice {
 export interface DeviceRecord extends PushDevice {
   platform: string;
   updatedAt: number;
+}
+
+/** A beta feedback report from the phone. Diagnostics must already be redacted by the client. */
+export interface FeedbackRecord {
+  id: string;
+  createdAt: number;
+  note: string;
+  transcript: string;
+  source: string;
+  app_version: string;
+  build: string;
+  /** Structured diagnostics. Never contains raw secrets when the phone redacts correctly. */
+  diagnostics: Record<string, unknown>;
+  include_media: boolean;
 }
 
 export interface RelayDeps {
@@ -119,10 +140,15 @@ function route(
     if (method === "GET" && head === "inbox") return limit(deps, "inbox", () => getInbox(url, deps));
     if (method === "POST" && head === "device") return limit(deps, "device", () => postDevice(request, deps));
     if (method === "GET" && head === "health") return limit(deps, "health", () => getHealth(deps));
+    if (method === "POST" && head === "feedback") return limit(deps, "feedback", () => postFeedback(request, deps));
+    if (method === "GET" && head === "feedback") return limit(deps, "feedback_list", () => listFeedback(url, deps));
   }
   if (depth === 2 && head === "reply") {
     if (method === "POST") return limit(deps, "reply", () => postReply(request, tail, deps));
     if (method === "GET") return limit(deps, "reply_poll", () => getReply(url, tail, deps));
+  }
+  if (depth === 2 && head === "feedback" && method === "GET") {
+    return limit(deps, "feedback_list", () => getFeedback(tail, deps));
   }
   return Promise.resolve(json({ error: "not found" }, 404));
 }
@@ -324,6 +350,80 @@ async function pushTo(device: DeviceRecord, notice: PushNotice, deps: RelayDeps)
   return outcome.status;
 }
 
+// MARK: Beta feedback
+
+async function postFeedback(request: Request, deps: RelayDeps): Promise<Response> {
+  const body = await readJson(request);
+  if (!body) return json({ error: "expected json" }, 400);
+  const id = stringField(body, "id") || crypto.randomUUID();
+  if (!ASK_ID.test(id)) return json({ error: "id must be 1 to 128 letters, digits, or . _ : -" }, 400);
+  const note = stringField(body, "note");
+  if (!note) return json({ error: "note is required" }, 400);
+  if (note.length > MAX_FEEDBACK_NOTE) return json({ error: "note is too long" }, 400);
+
+  const existing = await readFeedback(deps, id);
+  if (existing) return json({ id, status: "stored", created_at: new Date(existing.createdAt).toISOString() }, 200);
+
+  await sweep(deps);
+
+  const diagnostics = asDiagnostics(body.diagnostics);
+  if (diagnostics === null) return json({ error: "diagnostics must be a JSON object" }, 400);
+  const diagnosticsText = JSON.stringify(diagnostics);
+  if (diagnosticsText.length > MAX_FEEDBACK_DIAGNOSTICS_CHARS) {
+    return json({ error: "diagnostics is too large" }, 400);
+  }
+
+  const record: FeedbackRecord = {
+    id,
+    createdAt: deps.now(),
+    note,
+    transcript: stringField(body, "transcript").slice(0, MAX_FEEDBACK_TRANSCRIPT),
+    source: (stringField(body, "source") || "app").slice(0, 64),
+    app_version: (stringField(body, "app_version") || "").slice(0, 64),
+    build: (stringField(body, "build") || "").slice(0, 64),
+    diagnostics,
+    include_media: body.include_media === true,
+  };
+  await deps.mailbox.put(feedbackKey(id), record);
+  return json({ id, status: "stored", created_at: new Date(record.createdAt).toISOString() }, 202);
+}
+
+async function listFeedback(url: URL, deps: RelayDeps): Promise<Response> {
+  await sweep(deps);
+  const reports = await feedbackReports(deps);
+  const limitRaw = Number(url.searchParams.get("limit") ?? "50");
+  const limit = Number.isFinite(limitRaw) ? Math.min(Math.max(Math.floor(limitRaw), 1), 100) : 50;
+  const items = reports.slice(0, limit).map((report) => ({
+    id: report.id,
+    created_at: new Date(report.createdAt).toISOString(),
+    note: report.note.slice(0, 240),
+    source: report.source,
+    app_version: report.app_version,
+    build: report.build,
+    include_media: report.include_media,
+  }));
+  return json({ reports: items }, 200);
+}
+
+async function getFeedback(id: string, deps: RelayDeps): Promise<Response> {
+  if (!ASK_ID.test(id)) return json({ error: "unknown feedback" }, 404);
+  const report = await readFeedback(deps, id);
+  if (!report || expired(report.createdAt, deps.now(), FEEDBACK_TTL_MS)) {
+    return json({ error: "unknown feedback" }, 404);
+  }
+  return json({
+    id: report.id,
+    created_at: new Date(report.createdAt).toISOString(),
+    note: report.note,
+    transcript: report.transcript,
+    source: report.source,
+    app_version: report.app_version,
+    build: report.build,
+    include_media: report.include_media,
+    diagnostics: report.diagnostics,
+  }, 200);
+}
+
 // MARK: Status
 
 async function getHealth(deps: RelayDeps): Promise<Response> {
@@ -352,6 +452,10 @@ async function sweep(deps: RelayDeps): Promise<void> {
   for (const key of await deps.mailbox.list("inbox:")) {
     const message = asInbox(await deps.mailbox.get(key));
     if (!message || expired(message.createdAt, now, INBOX_TTL_MS)) await deps.mailbox.delete(key);
+  }
+  for (const key of await deps.mailbox.list("feedback:")) {
+    const report = asFeedback(await deps.mailbox.get(key));
+    if (!report || expired(report.createdAt, now, FEEDBACK_TTL_MS)) await deps.mailbox.delete(key);
   }
 }
 
@@ -410,6 +514,22 @@ async function devicesOf(deps: RelayDeps): Promise<DeviceRecord[]> {
 
 async function readAsk(deps: RelayDeps, id: string): Promise<AskRecord | null> {
   return asAsk(await deps.mailbox.get(askKey(id)));
+}
+
+async function readFeedback(deps: RelayDeps, id: string): Promise<FeedbackRecord | null> {
+  return asFeedback(await deps.mailbox.get(feedbackKey(id)));
+}
+
+async function feedbackReports(deps: RelayDeps): Promise<FeedbackRecord[]> {
+  const keys = await deps.mailbox.list("feedback:");
+  const reports: FeedbackRecord[] = [];
+  for (const key of keys) {
+    const report = asFeedback(await deps.mailbox.get(key));
+    if (!report || expired(report.createdAt, deps.now(), FEEDBACK_TTL_MS)) continue;
+    reports.push(report);
+  }
+  reports.sort((a, b) => b.createdAt - a.createdAt);
+  return reports;
 }
 
 // MARK: Rules
@@ -500,6 +620,21 @@ function asDevice(value: unknown): DeviceRecord | null {
   return record;
 }
 
+function asFeedback(value: unknown): FeedbackRecord | null {
+  if (!value || typeof value !== "object") return null;
+  const record = value as FeedbackRecord;
+  if (typeof record.id !== "string" || typeof record.note !== "string" || typeof record.createdAt !== "number") {
+    return null;
+  }
+  return record;
+}
+
+function asDiagnostics(value: unknown): Record<string, unknown> | null {
+  if (value === undefined) return {};
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  return value as Record<string, unknown>;
+}
+
 /** Parses a JSON object body. Throws `BodyTooLarge` once the body passes the size limit. */
 async function readJson(request: Request): Promise<Record<string, unknown> | null> {
   const text = await readText(request, MAX_BODY);
@@ -556,6 +691,10 @@ function inboxKey(id: string): string {
 
 function deviceKey(token: string): string {
   return `device:${token}`;
+}
+
+function feedbackKey(id: string): string {
+  return `feedback:${id}`;
 }
 
 function json(body: unknown, status: number): Response {

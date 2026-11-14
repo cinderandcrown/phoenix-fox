@@ -273,3 +273,65 @@ describe("health", () => {
     expect((await call("/health", { headers: { authorization: "Bearer nope" } })).status).toBe(401);
   });
 });
+
+describe("beta feedback", () => {
+  it("stores a report and lets the owner's bots read it back", async () => {
+    const { call } = harness();
+    const created = await call("/feedback", {
+      method: "POST",
+      body: JSON.stringify({
+        id: "fb1",
+        note: "Mic cut out",
+        transcript: "Jarvis, report a bug",
+        source: "voice",
+        app_version: "1.0.0",
+        build: "42",
+        include_media: false,
+        diagnostics: {
+          glasses: { registered: true, streaming: false },
+          logs: [{ category: "audio", message: "route changed" }],
+        },
+      }),
+    });
+    expect(created.status).toBe(202);
+    expect(await created.json()).toMatchObject({ id: "fb1", status: "stored" });
+
+    const listed = await call("/feedback");
+    expect(listed.status).toBe(200);
+    const summary = await listed.json() as { reports: { id: string; note: string }[] };
+    expect(summary.reports).toHaveLength(1);
+    expect(summary.reports[0]).toMatchObject({ id: "fb1", note: "Mic cut out" });
+    expect(JSON.stringify(summary)).not.toContain("registered");
+
+    const full = await call("/feedback/fb1");
+    expect(full.status).toBe(200);
+    const body = await full.json() as { diagnostics: { glasses: { registered: boolean } }; note: string };
+    expect(body.note).toBe("Mic cut out");
+    expect(body.diagnostics.glasses.registered).toBe(true);
+  });
+
+  it("does not create a second report for the same id", async () => {
+    const { call } = harness();
+    await call("/feedback", { method: "POST", body: JSON.stringify({ id: "fb2", note: "first" }) });
+    const again = await call("/feedback", { method: "POST", body: JSON.stringify({ id: "fb2", note: "second" }) });
+    expect(again.status).toBe(200);
+    const full = await (await call("/feedback/fb2")).json() as { note: string };
+    expect(full.note).toBe("first");
+  });
+
+  it("expires feedback after thirty days", async () => {
+    const relay = harness();
+    await relay.post("/feedback", { id: "old", note: "stale" });
+    relay.advance(30 * 24 * 60 * 60 * 1000 + 1);
+    await relay.post("/feedback", { id: "fresh", note: "new" });
+    expect((await relay.call("/feedback/old")).status).toBe(404);
+    const listed = await relay.read<{ reports: { id: string }[] }>("/feedback");
+    expect(listed.reports.map((report) => report.id)).toEqual(["fresh"]);
+  });
+
+  it("rejects feedback without a note", async () => {
+    const { call } = harness();
+    const response = await call("/feedback", { method: "POST", body: JSON.stringify({ id: "fb3" }) });
+    expect(response.status).toBe(400);
+  });
+});

@@ -14,11 +14,11 @@ Request bodies are JSON objects of at most 1.2 MB. A larger body gets `413`.
 
 One deployment is one owner. The phone and the four bots share the bearer, so they share one mailbox. A second household is a second worker with a different secret.
 
-Rate limits are per route and per minute: 30 asks, 120 pending polls, 60 replies, 180 reply polls, 30 pushes, 40 inbox polls, 10 device registrations, 30 health checks. Over the limit the worker returns `429` and `Retry-After: 60`.
+Rate limits are per route and per minute: 30 asks, 120 pending polls, 60 replies, 180 reply polls, 30 pushes, 40 inbox polls, 10 device registrations, 30 health checks, 20 feedback posts, 60 feedback reads. Over the limit the worker returns `429` and `Retry-After: 60`.
 
 Long polls stop at 25 seconds even if `wait` is larger. The phone uses `wait=20` on replies and `wait=25` on the inbox.
 
-An ask is kept for 15 minutes. A pushed message is kept for 24 hours or until the phone reads it.
+An ask is kept for 15 minutes. A pushed message is kept for 24 hours or until the phone reads it. A beta feedback report is kept for 30 days.
 
 ## Phone
 
@@ -215,6 +215,56 @@ An ask that is unknown or older than 15 minutes gets `404`.
 ```
 
 `priority` is `urgent`, `normal`, or `low`. The message is stored for `GET /inbox`. The response is `202` with `{ "id", "status": "queued", "apns" }`, where `apns` is `sent`, `partial`, `failed`, or `skipped`. The inbox write succeeds whatever happens to the push.
+
+## Beta feedback
+
+The phone posts a redacted diagnostics report when the wearer shakes the phone, says "Jarvis, report a bug", or uses Settings → Report a bug. The owner's bots (and anyone with the bearer) can list and read those reports.
+
+### `POST /feedback`
+
+```json
+{
+  "id": "optional-uuid",
+  "note": "Mic cut out when I looked left",
+  "transcript": "Jarvis, report a bug — mic cut out when I looked left",
+  "source": "voice",
+  "app_version": "1.0.0",
+  "build": "42",
+  "include_media": false,
+  "diagnostics": {
+    "audio_route_history": ["HFP → Built-In Mic"],
+    "glasses": { "registered": true, "streaming": false },
+    "provider": { "backend": "own_assistant", "model": "…", "last_error": null },
+    "logs": [{ "at": "…", "category": "audio", "message": "…" }]
+  }
+}
+```
+
+`note` is required. `diagnostics` must be a JSON object (the phone redacts keys, tokens, raw audio, and images unless the tester opted in). The response is `202` with `{ "id", "status": "stored", "created_at" }`. Posting the same `id` again returns `200` and does not create a second report.
+
+### `GET /feedback`
+
+```json
+{
+  "reports": [
+    {
+      "id": "…",
+      "created_at": "2026-11-14T18:00:00.000Z",
+      "note": "Mic cut out when I looked left",
+      "source": "voice",
+      "app_version": "1.0.0",
+      "build": "42",
+      "include_media": false
+    }
+  ]
+}
+```
+
+Newest first. Optional `limit` (1–100, default 50). Summaries only — no full diagnostics.
+
+### `GET /feedback/{id}`
+
+Returns the full stored report, including `diagnostics`. Unknown or expired ids get `404`.
 
 ## Status
 
