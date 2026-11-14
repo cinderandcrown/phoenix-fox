@@ -1,7 +1,8 @@
 name: CI
 
-# Unsigned iOS Simulator build. Proves Phoenix Fox compiles. No Apple account required.
-# Signing and TestFlight are in testflight.yml and stay skipped until the secrets exist.
+# iOS Simulator build and unit tests. No Apple account required: the simulator build is
+# signed on the runner with no identity, the same as a simulator build on any Mac.
+# Signing for devices and TestFlight are in testflight.yml.
 
 on:
   pull_request:
@@ -12,16 +13,39 @@ concurrency:
   group: ci-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
+# This workflow builds code from pull requests, including forks. It uses no secrets and
+# its token can only read.
+permissions:
+  contents: read
+
 env:
   DEVELOPER_DIR: /Applications/Xcode_26.6.app/Contents/Developer
 
 jobs:
+  scripts:
+    name: Scripts
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - name: Tests for the signing and project scripts
+        run: python3 -m unittest discover -s scripts -v
+
   build:
-    name: Simulator build (unsigned)
+    name: Build and test (simulator)
     runs-on: macos-26
     timeout-minutes: 90
     steps:
       - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      # The project file is maintained by scripts/xcodeproj_sync.py. A Swift file that is
+      # on disk but not in the project would silently not be compiled.
+      - name: Project lists every source file
+        run: python3 scripts/xcodeproj_sync.py --check
 
       - name: Config files for compile
         run: |
@@ -30,23 +54,45 @@ jobs:
           # Empty client token is enough to compile. The real token is a secret.
           sed -i '' 's/^DEVELOPMENT_TEAM = .*/DEVELOPMENT_TEAM = /' Config.xcconfig
 
-      - name: Cache Swift packages
-        uses: actions/cache@v6
+      # Package checkouts and their build products are restored together so a run only
+      # recompiles Phoenix Fox itself. The key follows the project file, so a dependency
+      # change starts from the closest older cache and saves a new one.
+      - name: Restore packages and package build products
+        id: cache
+        uses: actions/cache/restore@v6
         with:
-          path: .spm
-          key: spm-${{ runner.os }}-${{ hashFiles('PhoenixFox.xcodeproj/project.pbxproj', 'project.yml') }}
-          restore-keys: spm-${{ runner.os }}-
+          path: |
+            .spm
+            DerivedData
+          key: build-${{ runner.os }}-xcode26.6-${{ hashFiles('PhoenixFox.xcodeproj/project.pbxproj') }}
+          restore-keys: build-${{ runner.os }}-xcode26.6-
 
       - name: Show toolchain
         run: |
           xcodebuild -version
           xcrun --sdk iphonesimulator --show-sdk-version
 
-      - name: Disable SwiftPM prebuilts (swift-syntax prebuilts lack iOS slices)
+      - name: Build settings for CI
         run: |
+          # swift-syntax prebuilts ship macOS slices only. The app links no macro
+          # target; this is a backstop if a package ever compiles one.
           defaults write com.apple.dt.Xcode IDEPackageEnablePrebuilts -bool NO
           rm -rf .spm/prebuilts
+          # Report every compile error in one run instead of stopping at the first.
+          defaults write com.apple.dt.Xcode IDEBuildingContinueBuildingAfterErrors -bool YES
+          # A fresh checkout has new inodes and timestamps. Without these two lines the
+          # restored build products are treated as stale and everything recompiles.
+          defaults write com.apple.dt.XCBuild IgnoreFileSystemDeviceInodeChanges -bool YES
+          find Vendor -exec touch -t 202601010000 {} +
 
+      # The app and its tests are signed, with no identity and no team, as a simulator
+      # build is on any Mac. An unsigned app has no entitlements, and the simulator then
+      # refuses it the Keychain, where every API key and the relay token are stored.
+      #
+      # Packages are not signed. A setting on the command line reaches every target, and
+      # codesign refuses the MisakiSwift and KokoroSwift resource bundles because each
+      # holds a folder named Resources. PHOENIX_FOX_TARGET is YES only on our two
+      # targets and is empty everywhere else, which turns signing off there.
       - name: Build for simulator
         run: |
           set -o pipefail
@@ -59,16 +105,79 @@ jobs:
             -derivedDataPath DerivedData \
             -skipPackagePluginValidation \
             -skipMacroValidation \
-            CODE_SIGNING_ALLOWED=NO \
-            CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGN_IDENTITY= \
+            ARCHS=arm64 \
+            ONLY_ACTIVE_ARCH=NO \
+            'CODE_SIGNING_ALLOWED=$(PHOENIX_FOX_TARGET)' \
             DEVELOPMENT_TEAM= \
+          | tee xcodebuild.log \
           | xcbeautify --renderer github-actions
+
+      # xcbeautify drops file paths from the job log. This prints each diagnostic in
+      # Phoenix Fox sources once, with its location, and fails the job on any warning.
+      - name: Diagnostics in Phoenix Fox sources
+        if: always()
+        run: |
+          [ -f xcodebuild.log ] || exit 0
+          root="$PWD/"
+          ours() {
+            grep -E "^${root}(OpenVision|OpenVisionTests)/[^:]+:[0-9]+:[0-9]+: $1:" xcodebuild.log \
+              | sed "s|^${root}||" | awk '!seen[$0]++' || true
+          }
+          errors="$(ours error)"
+          warnings="$(ours warning)"
+          echo "Errors: $(printf '%s' "$errors" | grep -c . || true)"
+          printf '%s\n' "$errors"
+          echo "Warnings: $(printf '%s' "$warnings" | grep -c . || true)"
+          printf '%s\n' "$warnings"
+          echo "Notes:"
+          ours note
+          if [ -n "$errors" ] || [ -n "$warnings" ]; then exit 1; fi
+
+      - name: Unit tests
+        run: |
+          set -o pipefail
+          device="$(xcrun simctl list devices available -j \
+            | python3 -c 'import json,sys; d=json.load(sys.stdin)["devices"]; print(next(x["udid"] for k in sorted(d, reverse=True) if "iOS" in k for x in d[k] if x["name"].startswith("iPhone")))')"
+          echo "Simulator: $device"
+          xcodebuild test-without-building \
+            -project PhoenixFox.xcodeproj \
+            -scheme PhoenixFox \
+            -destination "platform=iOS Simulator,id=$device" \
+            -clonedSourcePackagesDirPath .spm \
+            -derivedDataPath DerivedData \
+            -skipPackagePluginValidation \
+            -skipMacroValidation \
+            -resultBundlePath TestResults.xcresult \
+            -parallel-testing-enabled NO \
+          | tee xcodebuild-test.log \
+          | xcbeautify --renderer github-actions
+
+      - name: Save packages and package build products
+        if: always() && steps.cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v6
+        with:
+          path: |
+            .spm
+            DerivedData
+          key: build-${{ runner.os }}-xcode26.6-${{ hashFiles('PhoenixFox.xcodeproj/project.pbxproj') }}
+
+      # The versions the packages resolved to, so they can be pinned in the repository.
+      - name: Upload resolved package versions
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: package-resolved
+          path: PhoenixFox.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved
+          if-no-files-found: ignore
 
       - name: Upload build log on failure
         if: failure()
         uses: actions/upload-artifact@v7
         with:
           name: xcodebuild-logs
-          path: DerivedData/Logs/Build/*.xcactivitylog
+          path: |
+            xcodebuild.log
+            xcodebuild-test.log
+            TestResults.xcresult
+            DerivedData/Logs/Build/*.xcactivitylog
           if-no-files-found: ignore

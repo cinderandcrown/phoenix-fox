@@ -55,6 +55,8 @@ enum AssistantRoster {
     static func address(in text: String, bots: [AssistantBot]) -> (bot: AssistantBot, remainder: String, explicit: Bool) {
         let roster = normalized(bots).sorted { $0.name.count > $1.name.count }
         let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+            .trimmingCharacters(in: CharacterSet(charactersIn: ",.;:!?\"'"))
+            .trimmingCharacters(in: .whitespacesAndNewlines)
         let lower = trimmed.lowercased()
         for bot in roster {
             let name = bot.name.lowercased()

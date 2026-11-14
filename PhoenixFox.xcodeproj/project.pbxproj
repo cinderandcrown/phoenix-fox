@@ -126,8 +126,11 @@
 		FCA8B46A222A0C469FF7873B /* KokoroTTSService.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE848862D72446F7BBDD3D89 /* KokoroTTSService.swift */; };
 		FCFECBF332943E64812DC931 /* AIBackendSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57A8327E5265287A0C89DE3D /* AIBackendSettingsView.swift */; };
 		FED4796E980F43C3C55F04B0 /* GrokService.swift in Sources */ = {isa = PBXBuildFile; fileRef = D2D074291D5EC56FE593A962 /* GrokService.swift */; };
-		FFFDF7E8B3F8E6A194E1571E /* MLXHuggingFace in Frameworks */ = {isa = PBXBuildFile; productRef = 4169E6A87853A9ECECC3C6E4 /* MLXHuggingFace */; };
 		A11AA1000000000000000001 /* GestureMap.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11AA2000000000000000001 /* GestureMap.swift */; };
+		D31AA1000000000000000001 /* LocalModelHub.swift in Sources */ = {isa = PBXBuildFile; fileRef = D31AA2000000000000000001 /* LocalModelHub.swift */; };
+		D31AA1000000000000000002 /* MindMeld.swift in Sources */ = {isa = PBXBuildFile; fileRef = D31AA2000000000000000002 /* MindMeld.swift */; };
+		D31AA1000000000000000003 /* CompanionSurface.swift in Sources */ = {isa = PBXBuildFile; fileRef = D31AA2000000000000000003 /* CompanionSurface.swift */; };
+		D31AA1000000000000000004 /* MindMeldTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D31AA2000000000000000004 /* MindMeldTests.swift */; };
 		A11AA1000000000000000002 /* GlassesHUD.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11AA2000000000000000002 /* GlassesHUD.swift */; };
 		A11AA1000000000000000003 /* GlassesControlSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11AA2000000000000000003 /* GlassesControlSession.swift */; };
 		A11AA1000000000000000004 /* GlassesProductTarget.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11AA2000000000000000004 /* GlassesProductTarget.swift */; };
@@ -151,6 +154,23 @@
 		C21AA100000000000000000A /* WhisperTranscriber.swift in Sources */ = {isa = PBXBuildFile; fileRef = C21AA200000000000000000A /* WhisperTranscriber.swift */; };
 		C21AA100000000000000000B /* OwnAssistantSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C21AA200000000000000000B /* OwnAssistantSettingsView.swift */; };
 		E21AA3000000000000000001 /* WhisperKit in Frameworks */ = {isa = PBXBuildFile; productRef = E21AA2000000000000000001 /* WhisperKit */; };
+		1E2FD51A71E410A32EDE2E74 /* JSONValueTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B1BCE95BFCBFB8E8855E0F8 /* JSONValueTests.swift */; };
+		339637E3354B17658B60A4DA /* SpeechPipelineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DE8BB8877F17EC12EE63410A /* SpeechPipelineTests.swift */; };
+		2CA4771EB603F66271733563 /* IncomingLinkTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B04CAE019F2258540EAB3B9 /* IncomingLinkTests.swift */; };
+		35C1B21220F9545774175F08 /* IncomingLink.swift in Sources */ = {isa = PBXBuildFile; fileRef = D721D43D709E9412709ACC90 /* IncomingLink.swift */; };
+		9DD6F1F0D3656875244E01C4 /* PCMConversion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7F04F7FDE8E33F931110B0CF /* PCMConversion.swift */; };
+		CAB72119CBBE5DAE10ECB1B9 /* JSONValue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21B9586BAD796C456BA89265 /* JSONValue.swift */; };
+		8BF888E85180E71C520D45D0 /* ResumeOnce.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07CBBA601F8B713B0B004752 /* ResumeOnce.swift */; };
+		41BA82E53DC6B71605D98EAA /* RelayClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5109BFC57B90ADE2E95DBC71 /* RelayClient.swift */; };
+		4D00FDBCB04FB2E64CDBCACA /* RelayImages.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6AA41A16B55526CB60458427 /* RelayImages.swift */; };
+		B93FA675EE3094D186653ED3 /* RelayClientTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEF251501487FBCFE35139B7 /* RelayClientTests.swift */; };
+		5BEAA3380B2AAAE924270E28 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = B003816401C4A4C8035543AE /* PrivacyInfo.xcprivacy */; };
+		2BE06430EBD52AD493360F94 /* WearablesSDK.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3A02A6407C18B263A7FA388 /* WearablesSDK.swift */; };
+		7A3558B2ADF81CB0CABB1EF7 /* WearablesSDKTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA4F4112907EC707F95A12AC /* WearablesSDKTests.swift */; };
+		17071B87BC626664A102F829 /* PushAlerts.swift in Sources */ = {isa = PBXBuildFile; fileRef = F65548F5E24356AB1C1A022A /* PushAlerts.swift */; };
+		BD522A8C6366C94E2122EBED /* V1PathTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41B5E6408E5368D623A1F507 /* V1PathTests.swift */; };
+		8D3A45D450C73036D7B2D663 /* PushRegistration.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9C14EF86E3580197A7B53B8 /* PushRegistration.swift */; };
+		707177A7B368108C877AA335 /* PushRegistrationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1CECA1829EDBD13BE99F363 /* PushRegistrationTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -298,9 +318,30 @@
 		C21AA200000000000000000C /* PhoenixFoxFeatures.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhoenixFoxFeatures.swift; sourceTree = "<group>"; };
 		C21AA200000000000000000D /* Companion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Companion.swift; sourceTree = "<group>"; };
 		C21AA200000000000000000E /* SmartCapture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmartCapture.swift; sourceTree = "<group>"; };
+		D31AA2000000000000000001 /* LocalModelHub.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalModelHub.swift; sourceTree = "<group>"; };
+		D31AA2000000000000000002 /* MindMeld.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MindMeld.swift; sourceTree = "<group>"; };
+		D31AA2000000000000000003 /* CompanionSurface.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompanionSurface.swift; sourceTree = "<group>"; };
+		D31AA2000000000000000004 /* MindMeldTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MindMeldTests.swift; sourceTree = "<group>"; };
 		C21AA2000000000000000009 /* UtterancePCMBuffer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UtterancePCMBuffer.swift; sourceTree = "<group>"; };
 		C21AA200000000000000000A /* WhisperTranscriber.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WhisperTranscriber.swift; sourceTree = "<group>"; };
 		C21AA200000000000000000B /* OwnAssistantSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OwnAssistantSettingsView.swift; sourceTree = "<group>"; };
+		7F04F7FDE8E33F931110B0CF /* PCMConversion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PCMConversion.swift; sourceTree = "<group>"; };
+		21B9586BAD796C456BA89265 /* JSONValue.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JSONValue.swift; sourceTree = "<group>"; };
+		07CBBA601F8B713B0B004752 /* ResumeOnce.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResumeOnce.swift; sourceTree = "<group>"; };
+		9B1BCE95BFCBFB8E8855E0F8 /* JSONValueTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JSONValueTests.swift; sourceTree = "<group>"; };
+		DE8BB8877F17EC12EE63410A /* SpeechPipelineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpeechPipelineTests.swift; sourceTree = "<group>"; };
+		D721D43D709E9412709ACC90 /* IncomingLink.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IncomingLink.swift; sourceTree = "<group>"; };
+		1B04CAE019F2258540EAB3B9 /* IncomingLinkTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IncomingLinkTests.swift; sourceTree = "<group>"; };
+		5109BFC57B90ADE2E95DBC71 /* RelayClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RelayClient.swift; sourceTree = "<group>"; };
+		6AA41A16B55526CB60458427 /* RelayImages.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RelayImages.swift; sourceTree = "<group>"; };
+		DEF251501487FBCFE35139B7 /* RelayClientTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RelayClientTests.swift; sourceTree = "<group>"; };
+		B003816401C4A4C8035543AE /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		D3A02A6407C18B263A7FA388 /* WearablesSDK.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WearablesSDK.swift; sourceTree = "<group>"; };
+		CA4F4112907EC707F95A12AC /* WearablesSDKTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WearablesSDKTests.swift; sourceTree = "<group>"; };
+		F65548F5E24356AB1C1A022A /* PushAlerts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushAlerts.swift; sourceTree = "<group>"; };
+		41B5E6408E5368D623A1F507 /* V1PathTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = V1PathTests.swift; sourceTree = "<group>"; };
+		C9C14EF86E3580197A7B53B8 /* PushRegistration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushRegistration.swift; sourceTree = "<group>"; };
+		B1CECA1829EDBD13BE99F363 /* PushRegistrationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushRegistrationTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -318,7 +359,6 @@
 				408073C736E7EB74442648EF /* MLXLLM in Frameworks */,
 				B82C3BB7AED7C2367F729678 /* MLXVLM in Frameworks */,
 				6E678BA570E5148EE9D9B4FE /* MLXLMCommon in Frameworks */,
-				FFFDF7E8B3F8E6A194E1571E /* MLXHuggingFace in Frameworks */,
 				67FDB8417ED64F0FF8B576F5 /* HuggingFace in Frameworks */,
 				08440F1603742AB28B2B4815 /* Tokenizers in Frameworks */,
 				CE2920AEAD476DFA9953169C /* KokoroSwift in Frameworks */,
@@ -498,6 +538,7 @@
 			isa = PBXGroup;
 			children = (
 				C3FFDFCB5AA5A664CC70E183 /* OpenVisionApp.swift */,
+				D721D43D709E9412709ACC90 /* IncomingLink.swift */,
 			);
 			path = App;
 			sourceTree = "<group>";
@@ -508,6 +549,8 @@
 				CAD745CF110FC8C25A5B34D8 /* HapticFeedback.swift */,
 				C1BF0DC63344C51A046E37E0 /* OVExceptionCatcher.h */,
 				09CF2D46A856380011EEC513 /* OVExceptionCatcher.m */,
+				21B9586BAD796C456BA89265 /* JSONValue.swift */,
+				07CBBA601F8B713B0B004752 /* ResumeOnce.swift */,
 			);
 			path = Helpers;
 			sourceTree = "<group>";
@@ -546,6 +589,7 @@
 				FE408AE66B4AA82F2C43B752 /* Vision */,
 				500CF1A1CC87EC3E3E60B086 /* Voice */,
 				6B0B152C6E932E62A9D51175 /* Web */,
+				F409D2B8DB74D4D4E62E1226 /* Relay */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -611,6 +655,7 @@
 				529F4C0838CFE7F8F55E28E4 /* AudioPlaybackService.swift */,
 				3DA55F18F98C8B110680989C /* AudioSessionManager.swift */,
 				CE2B8AE1E195B62D980BEA66 /* SoundService.swift */,
+				7F04F7FDE8E33F931110B0CF /* PCMConversion.swift */,
 			);
 			path = Audio;
 			sourceTree = "<group>";
@@ -639,6 +684,7 @@
 			isa = PBXGroup;
 			children = (
 				DFBB8B07B4970CA5F63B3B2A /* GemmaLocalService.swift */,
+				D31AA2000000000000000001 /* LocalModelHub.swift */,
 			);
 			path = GemmaLocal;
 			sourceTree = "<group>";
@@ -686,6 +732,7 @@
 				CDC538C538178747352D72C8 /* Sounds */,
 				2410F1B11CD5A7070F3E7590 /* Assets.xcassets */,
 				E553EFA930E3B93EEA8F0AB6 /* Info.plist */,
+				B003816401C4A4C8035543AE /* PrivacyInfo.xcprivacy */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -729,6 +776,14 @@
 				BE4D7E31C137C29246EB9281 /* NativeToolSupportTests.swift */,
 				E7752EDE12666E6361064A9F /* SubscriptionAuthTests.swift */,
 				C05A9A6876CC108B7CEDFDFC /* TextChunkingTests.swift */,
+				D31AA2000000000000000004 /* MindMeldTests.swift */,
+				9B1BCE95BFCBFB8E8855E0F8 /* JSONValueTests.swift */,
+				DE8BB8877F17EC12EE63410A /* SpeechPipelineTests.swift */,
+				1B04CAE019F2258540EAB3B9 /* IncomingLinkTests.swift */,
+				DEF251501487FBCFE35139B7 /* RelayClientTests.swift */,
+				CA4F4112907EC707F95A12AC /* WearablesSDKTests.swift */,
+				41B5E6408E5368D623A1F507 /* V1PathTests.swift */,
+				B1CECA1829EDBD13BE99F363 /* PushRegistrationTests.swift */,
 			);
 			path = OpenVisionTests;
 			sourceTree = "<group>";
@@ -760,9 +815,11 @@
 			isa = PBXGroup;
 			children = (
 				A11AA2000000000000000001 /* GestureMap.swift */,
+				D31AA2000000000000000003 /* CompanionSurface.swift */,
 				A11AA2000000000000000002 /* GlassesHUD.swift */,
 				A11AA2000000000000000003 /* GlassesControlSession.swift */,
 				A11AA2000000000000000004 /* GlassesProductTarget.swift */,
+				D3A02A6407C18B263A7FA388 /* WearablesSDK.swift */,
 			);
 			path = Glasses;
 			sourceTree = "<group>";
@@ -790,6 +847,7 @@
 				C21AA200000000000000000C /* PhoenixFoxFeatures.swift */,
 				C21AA200000000000000000D /* Companion.swift */,
 				C21AA200000000000000000E /* SmartCapture.swift */,
+				D31AA2000000000000000002 /* MindMeld.swift */,
 			);
 			path = Brain;
 			sourceTree = "<group>";
@@ -801,6 +859,17 @@
 				C21AA200000000000000000A /* WhisperTranscriber.swift */,
 			);
 			path = Speech;
+			sourceTree = "<group>";
+		};
+		F409D2B8DB74D4D4E62E1226 /* Relay */ = {
+			isa = PBXGroup;
+			children = (
+				5109BFC57B90ADE2E95DBC71 /* RelayClient.swift */,
+				6AA41A16B55526CB60458427 /* RelayImages.swift */,
+				F65548F5E24356AB1C1A022A /* PushAlerts.swift */,
+				C9C14EF86E3580197A7B53B8 /* PushRegistration.swift */,
+			);
+			path = Relay;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -849,7 +918,6 @@
 				0DB70D0CA14C70A3B9547241 /* MLXLLM */,
 				FEDC861C14CDA73BBCF6CCFD /* MLXVLM */,
 				6ADFD2818BFD4713F6BDA7F7 /* MLXLMCommon */,
-				4169E6A87853A9ECECC3C6E4 /* MLXHuggingFace */,
 				CCBF8A11015C4FD6F78FF103 /* HuggingFace */,
 				8F8A2A9D74F79603F186C7B4 /* Tokenizers */,
 				1DCD8AD4861E50005E48943D /* KokoroSwift */,
@@ -914,6 +982,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				6F8F4FD14445FC3FE1A771D2 /* Assets.xcassets in Resources */,
+				5BEAA3380B2AAAE924270E28 /* PrivacyInfo.xcprivacy in Resources */,
 				D78274C690CE91F7747815F8 /* thinking_loop.mp3 in Resources */,
 				E7CDE1FBC061C2DF4BDDD84E /* wake_activation.mp3 in Resources */,
 				7C118644498027D47E828115 /* wake_word_ding.mp3 in Resources */,
@@ -959,6 +1028,14 @@
 				5F19226406CF5B705B57BACF /* NativeToolSupportTests.swift in Sources */,
 				5A0CE2F7458D3C9E63627724 /* SubscriptionAuthTests.swift in Sources */,
 				361AD2F1AB7C557D47CD125D /* TextChunkingTests.swift in Sources */,
+				D31AA1000000000000000004 /* MindMeldTests.swift in Sources */,
+				1E2FD51A71E410A32EDE2E74 /* JSONValueTests.swift in Sources */,
+				339637E3354B17658B60A4DA /* SpeechPipelineTests.swift in Sources */,
+				2CA4771EB603F66271733563 /* IncomingLinkTests.swift in Sources */,
+				B93FA675EE3094D186653ED3 /* RelayClientTests.swift in Sources */,
+				7A3558B2ADF81CB0CABB1EF7 /* WearablesSDKTests.swift in Sources */,
+				BD522A8C6366C94E2122EBED /* V1PathTests.swift in Sources */,
+				707177A7B368108C877AA335 /* PushRegistrationTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1002,6 +1079,7 @@
 				F1D86E9A3AB2A994A205AB83 /* GeminiSettingsView.swift in Sources */,
 				BFC445B65C5C0BE610EC719E /* GeminiVisionService.swift in Sources */,
 				62B472287A9628E0E6FB377D /* GemmaLocalService.swift in Sources */,
+				D31AA1000000000000000001 /* LocalModelHub.swift in Sources */,
 				313177DDBE794549925682FA /* GemmaSettingsView.swift in Sources */,
 				587295A93FA82DEBB18139BB /* GlassCard.swift in Sources */,
 				BE99A2B1118292BBC7E1FC59 /* GlassesManager.swift in Sources */,
@@ -1023,6 +1101,8 @@
 				C21AA100000000000000000C /* PhoenixFoxFeatures.swift in Sources */,
 				C21AA100000000000000000D /* Companion.swift in Sources */,
 				C21AA100000000000000000E /* SmartCapture.swift in Sources */,
+				D31AA1000000000000000002 /* MindMeld.swift in Sources */,
+				D31AA1000000000000000003 /* CompanionSurface.swift in Sources */,
 				C21AA1000000000000000009 /* UtterancePCMBuffer.swift in Sources */,
 				C21AA100000000000000000A /* WhisperTranscriber.swift in Sources */,
 				C21AA100000000000000000B /* OwnAssistantSettingsView.swift in Sources */,
@@ -1081,6 +1161,15 @@
 				79C519EDCA508C00DAAB1F6E /* VoiceSettingsView.swift in Sources */,
 				1339DF5D7DB28F0048D95846 /* WebSearchService.swift in Sources */,
 				53B484EF0A2017B9718AC548 /* WebSearchSettingsView.swift in Sources */,
+				35C1B21220F9545774175F08 /* IncomingLink.swift in Sources */,
+				9DD6F1F0D3656875244E01C4 /* PCMConversion.swift in Sources */,
+				CAB72119CBBE5DAE10ECB1B9 /* JSONValue.swift in Sources */,
+				8BF888E85180E71C520D45D0 /* ResumeOnce.swift in Sources */,
+				41BA82E53DC6B71605D98EAA /* RelayClient.swift in Sources */,
+				4D00FDBCB04FB2E64CDBCACA /* RelayImages.swift in Sources */,
+				2BE06430EBD52AD493360F94 /* WearablesSDK.swift in Sources */,
+				17071B87BC626664A102F829 /* PushAlerts.swift in Sources */,
+				8D3A45D450C73036D7B2D663 /* PushRegistration.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1098,15 +1187,17 @@
 		00287CBDEB7CFD087BF2824B /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				"AD_HOC_CODE_SIGNING_ALLOWED[sdk=iphoneos*]" = "$(APP_AD_HOC_SIGNING)";
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = OpenVision/OpenVision.entitlements;
-				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_IDENTITY = "$(APP_CODE_SIGN_IDENTITY)";
 				ENABLE_PREVIEWS = YES;
 				INFOPLIST_FILE = OpenVision/Resources/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
+				PHOENIX_FOX_TARGET = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = "$(PRODUCT_BUNDLE_IDENTIFIER)";
 				SDKROOT = iphoneos;
 				SUPPORTS_MACCATALYST = NO;
@@ -1120,7 +1211,8 @@
 			baseConfigurationReference = C2FFA22452C8901C2424D466 /* Config.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				APP_LINK_URL_SCHEME = "${APP_LINK_URL_SCHEME}";
+				APP_AD_HOC_SIGNING = NO;
+				APP_CODE_SIGN_IDENTITY = "Apple Development";
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
@@ -1153,7 +1245,7 @@
 				CLIENT_TOKEN = "${CLIENT_TOKEN}";
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 15;
+				CURRENT_PROJECT_VERSION = 1;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = "${DEVELOPMENT_TEAM}";
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
@@ -1174,7 +1266,7 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				INFOPLIST_FILE = OpenVision/Resources/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
-				MARKETING_VERSION = 2.14.0;
+				MARKETING_VERSION = 1.0.0;
 				META_APP_ID = "${META_APP_ID}";
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
@@ -1184,6 +1276,7 @@
 				SDKROOT = iphoneos;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_STRICT_CONCURRENCY = complete;
 				SWIFT_VERSION = 5.9;
 			};
 			name = Debug;
@@ -1191,15 +1284,17 @@
 		E7B1CE542521A664F8D122A2 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				"AD_HOC_CODE_SIGNING_ALLOWED[sdk=iphoneos*]" = "$(APP_AD_HOC_SIGNING)";
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = OpenVision/OpenVision.entitlements;
-				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_IDENTITY = "$(APP_CODE_SIGN_IDENTITY)";
 				ENABLE_PREVIEWS = YES;
 				INFOPLIST_FILE = OpenVision/Resources/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
+				PHOENIX_FOX_TARGET = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = "$(PRODUCT_BUNDLE_IDENTIFIER)";
 				SDKROOT = iphoneos;
 				SUPPORTS_MACCATALYST = NO;
@@ -1218,6 +1313,7 @@
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
+				PHOENIX_FOX_TARGET = YES;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/PhoenixFox.app/PhoenixFox";
@@ -1234,6 +1330,7 @@
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
+				PHOENIX_FOX_TARGET = YES;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/PhoenixFox.app/PhoenixFox";
@@ -1245,7 +1342,8 @@
 			baseConfigurationReference = C2FFA22452C8901C2424D466 /* Config.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				APP_LINK_URL_SCHEME = "${APP_LINK_URL_SCHEME}";
+				APP_AD_HOC_SIGNING = NO;
+				APP_CODE_SIGN_IDENTITY = "Apple Development";
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
@@ -1278,7 +1376,7 @@
 				CLIENT_TOKEN = "${CLIENT_TOKEN}";
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 15;
+				CURRENT_PROJECT_VERSION = 1;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = "${DEVELOPMENT_TEAM}";
 				ENABLE_NS_ASSERTIONS = NO;
@@ -1293,7 +1391,7 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				INFOPLIST_FILE = OpenVision/Resources/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
-				MARKETING_VERSION = 2.14.0;
+				MARKETING_VERSION = 1.0.0;
 				META_APP_ID = "${META_APP_ID}";
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
@@ -1302,6 +1400,7 @@
 				SDKROOT = iphoneos;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_STRICT_CONCURRENCY = complete;
 				SWIFT_VERSION = 5.9;
 			};
 			name = Release;
@@ -1350,16 +1449,16 @@
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/huggingface/swift-huggingface.git";
 			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 0.1.0;
+				kind = exactVersion;
+				version = 1.0.0;
 			};
 		};
 		922ADEF49EB5DA6AD8635D76 /* XCRemoteSwiftPackageReference "swift-transformers" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/huggingface/swift-transformers.git";
 			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 1.0.0;
+				kind = exactVersion;
+				version = 1.4.0;
 			};
 		};
 		A5A141D31B148DEEEB11F94D /* XCRemoteSwiftPackageReference "FluidAudio" */ = {
@@ -1418,11 +1517,6 @@
 		1DCD8AD4861E50005E48943D /* KokoroSwift */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = KokoroSwift;
-		};
-		4169E6A87853A9ECECC3C6E4 /* MLXHuggingFace */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = ECA8A07B405261A27FD7625B /* XCRemoteSwiftPackageReference "mlx-swift-lm" */;
-			productName = MLXHuggingFace;
 		};
 		6ADFD2818BFD4713F6BDA7F7 /* MLXLMCommon */ = {
 			isa = XCSwiftPackageProductDependency;

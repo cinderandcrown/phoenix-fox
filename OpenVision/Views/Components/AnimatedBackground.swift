@@ -5,6 +5,7 @@ import SwiftUI
 
 /// Animated gradient background for the app
 struct AnimatedBackground: View {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var animateGradient = false
 
     var body: some View {
@@ -49,7 +50,9 @@ struct AnimatedBackground: View {
             }
         }
         .ignoresSafeArea()
+        .accessibilityHidden(true)
         .onAppear {
+            guard !reduceMotion else { return }
             withAnimation(
                 .easeInOut(duration: 8)
                 .repeatForever(autoreverses: true)
@@ -60,65 +63,60 @@ struct AnimatedBackground: View {
     }
 }
 
-/// Particle effect overlay
+/// Slow drifting motes behind the voice screen.
+///
+/// Each mote's position is a pure function of the clock, so no state changes per frame and
+/// the drawing stops when the view goes away, when the app is in the background, and when
+/// Reduce Motion is on.
 struct ParticleEffect: View {
     let particleCount: Int
 
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.scenePhase) private var scenePhase
     @State private var particles: [Particle] = []
 
-    struct Particle: Identifiable {
-        let id = UUID()
-        var x: CGFloat
-        var y: CGFloat
-        var size: CGFloat
-        var opacity: CGFloat
-        var speed: CGFloat
+    struct Particle {
+        var x: Double
+        /// Where in its climb the mote starts, 0 to 1.
+        var phase: Double
+        var size: Double
+        var opacity: Double
+        /// Fraction of the view's height climbed per second.
+        var speed: Double
     }
 
     var body: some View {
-        GeometryReader { geometry in
+        TimelineView(.animation(minimumInterval: 1.0 / 20.0, paused: reduceMotion || scenePhase != .active)) { timeline in
             Canvas { context, size in
+                let seconds = timeline.date.timeIntervalSinceReferenceDate
                 for particle in particles {
+                    let climbed = (particle.phase + seconds * particle.speed).truncatingRemainder(dividingBy: 1)
                     let rect = CGRect(
                         x: particle.x * size.width,
-                        y: particle.y * size.height,
+                        y: (1 - climbed) * size.height,
                         width: particle.size,
                         height: particle.size
                     )
-                    context.fill(
-                        Circle().path(in: rect),
-                        with: .color(.white.opacity(particle.opacity))
-                    )
+                    context.fill(Circle().path(in: rect), with: .color(.white.opacity(particle.opacity)))
                 }
             }
-            .onAppear {
-                generateParticles()
-                startAnimation(size: geometry.size)
-            }
+        }
+        .allowsHitTesting(false)
+        .accessibilityHidden(true)
+        .onAppear {
+            if particles.count != particleCount { particles = Self.scatter(particleCount) }
         }
     }
 
-    private func generateParticles() {
-        particles = (0..<particleCount).map { _ in
+    private static func scatter(_ count: Int) -> [Particle] {
+        (0..<max(0, count)).map { _ in
             Particle(
-                x: CGFloat.random(in: 0...1),
-                y: CGFloat.random(in: 0...1),
-                size: CGFloat.random(in: 1...3),
-                opacity: CGFloat.random(in: 0.1...0.3),
-                speed: CGFloat.random(in: 0.0001...0.0005)
+                x: .random(in: 0...1),
+                phase: .random(in: 0...1),
+                size: .random(in: 1...3),
+                opacity: .random(in: 0.1...0.3),
+                speed: .random(in: 0.002...0.01)
             )
-        }
-    }
-
-    private func startAnimation(size: CGSize) {
-        Timer.scheduledTimer(withTimeInterval: 0.05, repeats: true) { _ in
-            for i in particles.indices {
-                particles[i].y -= particles[i].speed
-                if particles[i].y < 0 {
-                    particles[i].y = 1
-                    particles[i].x = CGFloat.random(in: 0...1)
-                }
-            }
         }
     }
 }

@@ -19,6 +19,66 @@ Sources, all Meta:
 
 "Better with Grok Bot" means Fire Fox, Indy, Driver, or Rally do the multi-step work, and a cheap vision model answers a single look. Silence stays on the phone.
 
+## Status
+
+No row says Done, because nothing here has been run on a pair of glasses yet. The words mean:
+
+- **Built**: the whole path is in the app, it compiles in CI with no warnings, and the parts that do not need hardware are covered by unit tests. The owner confirms it on Adventurer with the steps in [SETUP.md](../SETUP.md).
+- **Partial**: a real part is in the app, and the last column names what is missing.
+- **Blocked**: Meta or iOS does not allow it. The app says so out loud.
+- **Not started**: asked for and not built yet.
+
+A row moves to Done when the owner has seen it work on the glasses.
+
+Display glasses and the Neural Band do not get a second code path. `CompanionSurface.present` speaks every reply and adds a lens card only when the glasses report a display. `GestureMap` turns a tap, a swipe, or the capture button into talk, look, or note, and those enter the same turn as a spoken command. Adventurer does not open the input session, because it would compete with the camera.
+
+| Feature | Status | What remains |
+| --- | --- | --- |
+| DAT pairing and device session | Built | Owner: Developer Mode in Meta AI, then Register App. If the glasses SDK cannot start, the app still opens and shows the reason on the Glasses screen. Adventurer is `DeviceType.metaGlasses`. |
+| Jarvis wake word | Built | The phone hears it over Bluetooth. A comma after the wake word no longer hides "ask Indy". Owner confirms it is heard with the glasses on. |
+| "Hey Meta" opens Phoenix Fox | Partial | The wake word stays Meta's. A launch from the glasses starts the Jarvis session. Whether Meta AI hands the launch to this app is unconfirmed. |
+| On-device Whisper | Built | The `base` model downloads on first speech. The first request and each follow-up are re-heard by Whisper. If the model is not there, the Apple transcript is used. |
+| One camera still, light on | Built | "Take a picture" and look-and-ask. The stream stops after the shot. Owner confirms the light matches the stream. |
+| Ask a bot ("ask Indy about X") | Built | Routing is covered by `V1PathTests`, and the relay calls by `RelayClientTests`. Needs the relay token in Settings. |
+| Spoken replies on the glasses | Built | Bluetooth speaker when the glasses are the audio route. A reply from a bot other than the default is spoken with its name. Per-bot voices are stored and not yet used. |
+| Push alerts | Partial | The inbox long-poll speaks alerts while the app is open. The push token is sent to the relay once a relay is saved. Closed-app delivery needs the relay pull request deployed and has not been seen on a phone. |
+| Look and ask, text in view, read aloud | Built | One compressed photo, then the camera turns off. Fast mode uses Grok when a key is saved. Otherwise the same photo goes to the relay. |
+| Live conversation after Jarvis | Partial | Follow-ups stay open until silence. Barging in on a reply is not used, because the glasses microphones hear the speakers. Say Jarvis, then the next request. |
+| Translation and meeting notes | Partial | The next utterances can be translated on the phone. "Meeting notes" sends that transcript to Fire Fox when the relay is set. No lens captions on Adventurer. No always-on interpreter. |
+| Messages, SMS, email | Partial | Contacts lookup, then the public URL. You still tap send. No silent send. |
+| Record a clip | Partial | The preview stream is saved to Photos while the light is on. It is not Meta's 3K file. |
+| QR | Built | Vision on one photo. An `https` link opens. |
+| Reminders, timers, time, date, battery | Built | On the phone, or `Device.batteryLevel` when the link is up. Time and date use no model. |
+| Remember / recall | Built | AES-GCM notes, key in the Keychain. Search is on-device word vectors, not a photo embedding. |
+| Calls | Partial | `tel:` opens Phone after a Contacts lookup. |
+| Music play, pause, next, previous | Partial | System player only. The app says so when that is all it can reach. |
+| Share a photo into Meta's apps | Partial | The still goes to Photos. There is no hand-off into Messenger or Instagram. |
+| Walking directions | Partial | First spoken step, then Apple Maps. No continuous guidance. |
+| Concierge booking | Partial | The request goes to the named bot through the relay. The app does not book anything itself. |
+| Take over, all bots at once | Partial | Fire Fox, Indy, Driver, and Rally are asked together, and each reply is spoken as it arrives. Not yet run against the live relay. |
+| Smart Capture | Partial | Session, change detection, keep/skip, Photos album, encrypted index. Auto-route stays off until you turn it on. |
+| Watch this | Partial | Stream at 7 fps with the light on. Only a changed frame is sent. "Stop watching" ends it. |
+| Morning brief and place reminders | Partial | One brief when the relay is set. A 150 meter region speaks on entry and needs Always location. |
+| In-lens cards | Blocked on Adventurer | Replies and urgent alerts already go through `CompanionSurface.present`, which draws a card when the glasses report a display. Display glasses are the remaining hardware test. |
+| Temple tap and Neural Band | Blocked on Adventurer | On display glasses a tap starts a turn, the capture button asks for a look, and a hold saves a note. Nothing waits on a band. |
+| WhatsApp, Messenger, Instagram calls | Blocked | Spoken. No public API, and DAT does not hand the camera to another calling app. |
+| Read other apps' notifications | Blocked | Spoken. iOS keeps those private. |
+| Set the system volume | Blocked | The level is spoken. The rocker on the glasses stays in charge. |
+| Be My Eyes volunteer video | Blocked | A one-photo description is offered instead. |
+| Workout stats | Partial | Not wired. HealthKit is the later path. It is not claimed. |
+| Mind meld | Built | Off until "mind meld on". Stores words on the phone. "What should I do" proposes one bot ask. "Do that" or "have Indy handle that" sends it. No camera bytes. |
+| Choose Grok, ChatGPT, Gemini, Claude, or your own assistant | Partial | The backends are in the app and Settings switches between them. The default is the relay. One setting that swaps the bot team for another provider with the same wake word, and a paid tier for the bot team, are not built. |
+| Guide mode for blind and low-vision users | Not started | Scene narration, hazard callouts, sign reading, object finding, walking directions, and an emergency call. The comparison is Be My Eyes. Planned after v1 is confirmed on the glasses. |
+| Accessibility suite and `docs/ACCESSIBILITY.md` | Not started | The relay settings screen announces its result to VoiceOver. A full VoiceOver pass over every screen has not been done. |
+
+## Mind meld
+
+This is not a Meta feature. It is the on-phone half of the bot team.
+
+Say "mind meld on". After that, finished turns are written to `phoenix-mindmeld.json` in the app's documents: what you said, what came back, and, if you asked for a look, the words of that question. The file is not a camera roll. "Remember this" is still the encrypted note path, and it is the only one that keeps a JPEG, with the capture light on.
+
+"What should I do" does not call a model. It names a bot and a next ask from the log and the clock, then waits. "Do that", "have Indy handle that", or "send this to Driver" is the hands-free send through the relay. "Mind meld off" stops the log and leaves the encrypted notes alone.
+
 | Meta feature | On Adventurer with DAT 1.0.1 and iOS | Phoenix Fox |
 | --- | --- | --- |
 | Wake with "Hey Meta" or a touchpad hold | **Partial.** The hardware wake word stays Meta's. DAT does not let another app register "Hey Meta" or replace it. The touchpad can report a tap only while an input session is up. Adventurer does not keep that session open, because it would block the camera. | Say **Jarvis**. The phone hears it over Bluetooth. Meta's wake word is unchanged. |
@@ -71,7 +131,7 @@ These are the extra companion behaviors, still only where a public API exists. T
 | 1. Jarvis always-listening, App Intent, Action Button, Live Activity | **Partial.** Listening stays up across tabs and in the background audio session, with the system mic indicator. The shortcut is "Wake Jarvis in Phoenix Fox", which is what you assign to the Action Button. Apple will not register a bare "Hey Siri, Jarvis". A Live Activity is requested. There is no widget extension, so the island has no custom layout. | `OpenVision/Services/Voice/VoiceCommandService.swift`, `OpenVision/Services/Brain/Companion.swift`, `OpenVision/Views/VoiceAgent/VoiceAgentViewModel.swift`, `OpenVision/Resources/Info.plist` |
 | 2. WhatsApp, Messenger, SMS, email handoff with Contacts | **Partial.** Opens the app with the text filled in and looks up the contact. The wearer still taps send. No silent send, and no in-app chat list. | `OpenVision/Services/Brain/Companion.swift` (`MessageHandoff`), `OpenVision/Services/Brain/PhoenixFoxFeatures.swift` |
 | 3. Bot inbox, relay push, APNs, read aloud, voice reply | **Partial.** The worker in `relay/` implements `/ask`, `/pending`, `/reply/{id}`, `/push`, `/inbox`, and `/device`. The app long-polls the inbox and registers its APNs token. Pushes send only after the APNs secrets are set, and this repo does not deploy the worker. | `relay/`, `docs/RELAY_API.md`, `OpenVision/Services/Brain/OwnAssistantService.swift` |
-| 4. Watch this, adaptive rate, change detection, live conversation, barge-in | **Partial.** The DAT stream stays at 8 fps with the light on. Inspection moves between about 0.4s and 2.5s when the scene changes, and only a changed frame goes to Grok. The conversation stays open. Interrupting speech still requires "Jarvis" plus the next request, so the reply echoing in the mic is not treated as a new command. | `OpenVision/Services/Brain/Companion.swift`, `OpenVision/Services/LiveVision/FrameChange.swift`, `OpenVision/Views/VoiceAgent/VoiceAgentViewModel.swift` |
+| 4. Watch this, adaptive rate, change detection, live conversation, barge-in | **Partial.** The DAT stream stays at 7 fps with the light on. Inspection moves between about 0.4s and 2.5s when the scene changes, and only a changed frame goes to Grok. The conversation stays open. Interrupting speech still requires "Jarvis" plus the next request, so the reply echoing in the mic is not treated as a new command. | `OpenVision/Services/Brain/Companion.swift`, `OpenVision/Services/LiveVision/FrameChange.swift`, `OpenVision/Views/VoiceAgent/VoiceAgentViewModel.swift` |
 | 5. Grok, take over, parallel dispatch, spoken progress, task history | **Partial.** Fire Fox, Indy, Driver, and Rally are requested at the same time, and each reply is spoken as it arrives. The list is in Settings. This needs the relay, which is not running here. | `OpenVision/Services/Brain/Companion.swift`, `OpenVision/Services/Brain/OwnAssistantService.swift`, `OpenVision/Views/Settings/SettingsView.swift` |
 | 6. Encrypted memory and photo memories, semantic search | **Partial.** Notes and an optional photo are sealed with AES-GCM. The key is in the Keychain. Search ranks on-device word vectors from `NLEmbedding`, which is a bag of words, not a photo embedding model. | `OpenVision/Services/Brain/Companion.swift` (`SecureNotes`), `OpenVision/Services/Brain/PhoenixFoxFeatures.swift` |
 | 7. Live translation, captions, meeting notes | **Partial.** Spoken translation and on-phone captions for the utterances you choose. "Meeting notes" sends that transcript to Fire Fox when the relay is set. No lens captions on Adventurer, and no always-on interpreter. | `OpenVision/Services/Brain/Companion.swift` (`TranscriptLog`) |

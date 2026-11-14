@@ -2,7 +2,7 @@
 // Copyright 2026 Cinder and Crown LLC
 
 // Jarvis - FastModeRouter.swift
-// Rules first. `classifier` is the hook for a later model. Nil means the rules decide.
+// Rules decide the route, on the phone, before any model is paid for.
 // Only task-like turns go to the relay. Short talk stays on the cheap instant brain.
 
 import Foundation
@@ -21,16 +21,10 @@ enum JarvisRoute: Equatable {
     case relay(RelayTurn)
     case dictate(kind: String)
     case needsPro(String)
-}
-
-protocol JarvisRouteClassifying: AnyObject {
-    func classify(_ text: String) async -> JarvisRoute?
+    case mind(MindCommand)
 }
 
 enum FastModeRouter {
-    /// Swap in an LLM classifier without touching call sites. A nil result falls through to the rules.
-    static weak var classifier: JarvisRouteClassifying?
-
     struct Context {
         var fastMode: Bool
         var isPro: Bool
@@ -39,14 +33,11 @@ enum FastModeRouter {
         var clipEnabled: Bool
     }
 
-    static func decide(_ text: String, context: Context) async -> JarvisRoute {
-        if let classified = await classifier?.classify(text) { return classified }
-        return rules(text, context: context)
-    }
-
     static func rules(_ text: String, context: Context) -> JarvisRoute {
         let lower = text.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
         let fallback = AssistantRoster.defaultBot(in: context.bots).name
+
+        if let mind = mind(lower, bots: context.bots) { return .mind(mind) }
 
         if contains(lower, ["status report", "all hands", "everyone check in", "everyone report"]) {
             guard context.isPro else { return .needsPro("All hands is a Pro feature.") }
@@ -82,6 +73,42 @@ enum FastModeRouter {
             return .instant(text: body, photo: false, cacheable: true)
         }
         return .relay(RelayTurn(intent: "message", targetBot: target, text: body, photo: false, clip: false, cacheable: false))
+    }
+
+    private static func mind(_ lower: String, bots: [AssistantBot]) -> MindCommand? {
+        if lower == "mind meld on" || lower == "start mind meld" || lower == "turn mind meld on" {
+            return .consent(true)
+        }
+        if lower == "mind meld off" || lower == "stop mind meld" || lower == "turn mind meld off" {
+            return .consent(false)
+        }
+        if lower == "what should i do" || lower == "what do i need" || lower == "what's next" || lower == "whats next" || lower == "anticipate" {
+            return .anticipate
+        }
+        if lower == "what did i just say" || lower == "what was i saying" || lower == "what did i say" {
+            return .recallSpoken
+        }
+        if lower == "what did i see" || lower == "what was i looking at" {
+            return .recallSeen
+        }
+        if lower == "do that" || lower == "yes do it" || lower == "go ahead" || lower == "handle that" {
+            let bot = AssistantRoster.defaultBot(in: bots).name
+            return .handoff(bot: bot, ask: nil)
+        }
+        let roster = AssistantRoster.normalized(bots).sorted { $0.name.count > $1.name.count }
+        for bot in roster {
+            let name = bot.name.lowercased()
+            let handles = ["have \(name) handle ", "ask \(name) to handle "]
+            for prefix in handles where lower.hasPrefix(prefix) {
+                let rest = String(lower.dropFirst(prefix.count)).trimmingCharacters(in: .whitespacesAndNewlines)
+                let ask = rest.isEmpty || ["it", "that", "this"].contains(rest) ? nil : "Handle \(rest)."
+                return .handoff(bot: bot.name, ask: ask)
+            }
+            if lower == "send that to \(name)" || lower == "send this to \(name)" {
+                return .handoff(bot: bot.name, ask: nil)
+            }
+        }
+        return nil
     }
 
     private static func dictation(_ lower: String, original: String, target: String) -> JarvisRoute? {

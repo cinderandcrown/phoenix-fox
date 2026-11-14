@@ -24,6 +24,11 @@
     <key>LSRequiresIPhoneOS</key>
     <true/>
 
+    <!-- The app uses only the encryption that iOS provides (HTTPS, and CryptoKit for data it
+         stores on the phone), which is exempt from export paperwork. -->
+    <key>ITSAppUsesNonExemptEncryption</key>
+    <false/>
+
     <!-- Supported Orientations -->
     <key>UISupportedInterfaceOrientations</key>
     <array>
@@ -46,21 +51,6 @@
         <string>LaunchBackground</string>
     </dict>
 
-    <!-- URL Schemes for Meta AI Callback -->
-    <key>CFBundleURLTypes</key>
-    <array>
-        <dict>
-            <key>CFBundleTypeRole</key>
-            <string>Editor</string>
-            <key>CFBundleURLName</key>
-            <string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
-            <key>CFBundleURLSchemes</key>
-            <array>
-                <string>$(APP_LINK_URL_SCHEME)</string>
-            </array>
-        </dict>
-    </array>
-
     <!-- Queried URL Schemes (Meta AI app) -->
     <key>LSApplicationQueriesSchemes</key>
     <array>
@@ -72,7 +62,7 @@
     <!-- Required Device Capabilities -->
     <key>UIRequiredDeviceCapabilities</key>
     <array>
-        <string>armv7</string>
+        <string>arm64</string>
         <string>microphone</string>
     </array>
 
@@ -80,8 +70,6 @@
     <key>UIBackgroundModes</key>
     <array>
         <string>audio</string>
-        <string>fetch</string>
-        <string>processing</string>
         <string>bluetooth-central</string>
         <string>bluetooth-peripheral</string>
         <string>external-accessory</string>
@@ -155,13 +143,15 @@
         <true/>
     </dict>
 
-    <!-- Wearables Device Access Toolkit configuration -->
+    <!-- Wearables Device Access Toolkit configuration. The Meta AI app returns to this
+         universal link. It is written out here, not read from a build setting, because
+         an xcconfig file treats the two slashes in a URL as the start of a comment. -->
     <key>MWDAT</key>
     <dict>
+        <key>AppLinkURLScheme</key>
+        <string>https://phoenix-fox-links.cinderandcrown.workers.dev/dat</string>
         <key>MetaAppID</key>
         <string>1651172483404286</string>
-        <key>AppLinkURLScheme</key>
-        <string>$(APP_LINK_URL_SCHEME)://</string>
         <key>ClientToken</key>
         <string>$(META_CLIENT_TOKEN)</string>
         <key>TeamID</key>

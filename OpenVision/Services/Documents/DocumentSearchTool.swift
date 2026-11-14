@@ -9,7 +9,7 @@ import Foundation
 struct DocumentSearchTool: NativeTool {
     let name = "search_docs"
     let description = "Work with the user's imported documents (manuals, recipes, guides, instructions). Actions: 'search' (needs query — return the most relevant passages; use whenever the user asks about their documents), 'list' (name the imported documents), 'focus' (needs query naming the document — the user wants to work with one document, e.g. 'open my router manual'; its content will then be checked first for every question), 'unfocus' (the user is done with the document, e.g. 'close the document')."
-    let parametersSchema: [String: Any] = [
+    let parametersSchema: JSONValue = [
         "type": "object",
         "properties": [
             "action": ["type": "string", "description": "search, list, focus, or unfocus"],
@@ -18,10 +18,10 @@ struct DocumentSearchTool: NativeTool {
         "required": ["action"]
     ]
 
-    func execute(args: [String: Any]) async throws -> String {
-        switch (args["action"] as? String ?? "search").lowercased() {
+    func execute(args: ToolArguments) async throws -> String {
+        switch (args["action"]?.stringValue ?? "search").lowercased() {
         case "focus", "open":
-            guard let query = (args["query"] as? String)?.trimmingCharacters(in: .whitespaces),
+            guard let query = args["query"]?.stringValue?.trimmingCharacters(in: .whitespaces),
                   !query.isEmpty else { return "Which document should I open?" }
             let docs = DocumentStore.shared.documents()
             guard !docs.isEmpty else {
@@ -32,14 +32,14 @@ struct DocumentSearchTool: NativeTool {
                 return "I couldn't find a document matching '\(query)'. You have: \(names)."
             }
             let doc = docs[index]
-            await MainActor.run { DocumentFocus.shared.activate(doc) }
+            await DocumentFocus.shared.activate(doc)
             return "Focused on \(doc.title). I'll check it first for your questions — say 'close the document' when you're done."
 
         case "unfocus", "close":
             let title = await MainActor.run { () -> String? in
-                let t = DocumentFocus.shared.activeDocument?.title
+                let open = DocumentFocus.shared.activeDocument?.title
                 DocumentFocus.shared.deactivate()
-                return t
+                return open
             }
             return title.map { "Closed \($0)." } ?? "No document was open."
 
@@ -52,7 +52,7 @@ struct DocumentSearchTool: NativeTool {
             return "\(docs.count) document\(docs.count == 1 ? "" : "s"): " + names.joined(separator: "; ")
 
         default:   // search
-            guard let query = (args["query"] as? String)?.trimmingCharacters(in: .whitespaces),
+            guard let query = args["query"]?.stringValue?.trimmingCharacters(in: .whitespaces),
                   !query.isEmpty else {
                 return "What should I look for in your documents?"
             }

@@ -57,21 +57,18 @@ enum NativeToolSupport {
     /// from the utterance — overriding whatever absolute time the model computed. Models (small
     /// ones especially) routinely do "now + 15" wrong; the transcript is ground truth. Returns
     /// the parsed minutes when the override applied, for logging.
-    static func applyRelativeTimeGuard(_ args: inout [String: Any], command: String?) -> Int? {
+    static func applyRelativeTimeGuard(_ args: inout ToolArguments, command: String?) -> Int? {
         guard let command, let rel = relativeMinutes(in: command) else { return nil }
         for key in ["hour", "minute", "day_offset", "due_iso8601", "start_iso8601"] {
             args.removeValue(forKey: key)
         }
-        args["minutes_from_now"] = rel
+        args["minutes_from_now"] = JSONValue(rel)
         return rel
     }
 
     /// LLMs send numbers as Int, Double, or even String — coerce to Int.
-    static func int(_ v: Any?) -> Int? {
-        if let i = v as? Int { return i }
-        if let d = v as? Double { return Int(d) }
-        if let s = v as? String { return Int(s.trimmingCharacters(in: .whitespaces)) }
-        return nil
+    static func int(_ value: JSONValue?) -> Int? {
+        value?.intValue
     }
 
     /// Ensure we can post local notifications (timers/alarms/pomodoro). Requests once if undetermined.
@@ -120,7 +117,7 @@ enum NativeToolSupport {
     ///   2. `minutes_from_now` — a relative offset in minutes.
     ///   3. `due_iso8601` / `start_iso8601` — an absolute ISO timestamp (last-resort fallback).
     /// Returns nil if none is present.
-    static func resolveDate(from args: [String: Any]) -> Date? {
+    static func resolveDate(from args: ToolArguments) -> Date? {
         let cal = Calendar.current
         let now = Date()
 
@@ -146,7 +143,7 @@ enum NativeToolSupport {
         }
 
         // 3) ISO fallback.
-        if let iso = (args["due_iso8601"] as? String) ?? (args["start_iso8601"] as? String),
+        if let iso = args["due_iso8601"]?.stringValue ?? args["start_iso8601"]?.stringValue,
            !iso.isEmpty {
             return parseISO(iso)
         }

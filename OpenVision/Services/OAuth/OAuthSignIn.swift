@@ -45,26 +45,26 @@ final class OAuthSignIn: NSObject, ASWebAuthenticationPresentationContextProvidi
             let resume = ResumeOnce(continuation)
             do {
                 try server.start(
-                    onCallback: { query in resume.resume(.success(query)) },
-                    onFailure: { error in resume.resume(.failure(error)) }
+                    onCallback: { query in resume.resume(returning: query) },
+                    onFailure: { error in resume.resume(throwing: error) }
                 )
             } catch {
-                resume.resume(.failure(error))
+                resume.resume(throwing: error)
                 return
             }
             let session = ASWebAuthenticationSession(url: url, callbackURLScheme: nil) { _, _ in
                 // With no callback scheme this only fires when the sheet is dismissed — by the
                 // user, or by us after the loopback callback (which already resumed).
-                resume.resume(.failure(OAuthError.cancelled))
+                resume.resume(throwing: OAuthError.cancelled)
             }
             session.presentationContextProvider = self
             self.session = session
             if !session.start() {
-                resume.resume(.failure(OAuthError.provider("couldn't open the sign-in page")))
+                resume.resume(throwing: OAuthError.provider("couldn't open the sign-in page"))
             }
             Task {
                 try? await Task.sleep(for: Self.deadline)
-                resume.resume(.failure(OAuthError.timedOut))   // no-op if already finished
+                resume.resume(throwing: OAuthError.timedOut)   // no-op if already finished
             }
         }
 
@@ -79,21 +79,5 @@ final class OAuthSignIn: NSObject, ASWebAuthenticationPresentationContextProvidi
             let windows = scenes.flatMap(\.windows)
             return windows.first(where: \.isKeyWindow) ?? windows.first ?? ASPresentationAnchor()
         }
-    }
-}
-
-/// Resumes a continuation at most once — the loopback callback and the sheet's dismissal race.
-private final class ResumeOnce<T>: @unchecked Sendable {
-    private var continuation: CheckedContinuation<T, Error>?
-    private let lock = NSLock()
-
-    init(_ continuation: CheckedContinuation<T, Error>) { self.continuation = continuation }
-
-    func resume(_ result: Result<T, Error>) {
-        lock.lock()
-        let continuation = self.continuation
-        self.continuation = nil
-        lock.unlock()
-        continuation?.resume(with: result)
     }
 }

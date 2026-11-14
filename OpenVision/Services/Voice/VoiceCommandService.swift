@@ -378,6 +378,8 @@ final class VoiceCommandService: ObservableObject {
         state = .conversationMode
         hasSpokenThisTurn = false
         currentTranscription = ""
+        // Follow-ups have no wake-word begin(). Start a fresh clip so Whisper hears them too.
+        utteranceBuffer.begin(rate: audioEngine?.inputNode.outputFormat(forBus: 0).sampleRate ?? 48_000)
 
         // Start conversation timeout (exits if no speech for 4 seconds)
         startConversationTimeout()
@@ -719,11 +721,17 @@ final class VoiceCommandService: ObservableObject {
         for variation in variations {
             if let range = lowercased.range(of: variation) {
                 let afterWakeWord = String(text[range.upperBound...])
-                    .trimmingCharacters(in: .whitespaces)
-                return afterWakeWord
+                return Self.dropWakePunctuation(afterWakeWord)
             }
         }
         return ""
+    }
+
+    /// "Jarvis, ask Indy" leaves a comma. The bot router only matches a name at the start.
+    private static func dropWakePunctuation(_ text: String) -> String {
+        text.trimmingCharacters(in: .whitespacesAndNewlines)
+            .trimmingCharacters(in: CharacterSet(charactersIn: ",.;:!?\"'"))
+            .trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
     /// Handle wake word detection
@@ -761,7 +769,7 @@ final class VoiceCommandService: ObservableObject {
 
         for prefix in [wakeWordLower, "hey jarvis", "ok jarvis", "okay jarvis", "hey vision", "ok vision", "okay vision"] {
             if command.lowercased().hasPrefix(prefix) {
-                command = String(command.dropFirst(prefix.count)).trimmingCharacters(in: .whitespaces)
+                command = Self.dropWakePunctuation(String(command.dropFirst(prefix.count)))
                 break
             }
         }

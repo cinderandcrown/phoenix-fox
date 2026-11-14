@@ -6,7 +6,7 @@ import UserNotifications
 struct TimerTool: NativeTool {
     let name = "set_timer"
     let description = "Set a countdown timer that notifies the user after a duration. Use for 'set a 10 minute timer', 'timer for the pasta', etc."
-    let parametersSchema: [String: Any] = [
+    let parametersSchema: JSONValue = [
         "type": "object",
         "properties": [
             "seconds": ["type": "integer", "description": "Duration in seconds"],
@@ -15,10 +15,10 @@ struct TimerTool: NativeTool {
         "required": ["seconds"]
     ]
 
-    func execute(args: [String: Any]) async throws -> String {
+    func execute(args: ToolArguments) async throws -> String {
         let seconds = NativeToolSupport.int(args["seconds"]) ?? 0
         guard seconds > 0, seconds <= 86400 else { return "A timer needs a duration between 1 second and 24 hours." }
-        let label = args["label"] as? String
+        let label = args["label"]?.stringValue
         guard await NativeToolSupport.ensureNotificationAuth() else {
             return "Timer noted, but notifications are off, so I can't alert you. Enable them in Settings."
         }

@@ -131,13 +131,7 @@ struct GlassesSettingsView: View {
                     // DWA is missing ("DWA did not report its version" in the SDK log) — this is
                     // the SDK's recovery path for that state.
                     Button {
-                        Task {
-                            do {
-                                try await Wearables.shared.openDATGlassesAppUpdate()
-                            } catch {
-                                glassesManager.errorMessage = "Glasses app update hand-off failed: \(error.localizedDescription)"
-                            }
-                        }
+                        Task { await glassesManager.updateGlassesApp() }
                     } label: {
                         Label("Install/Update Glasses App", systemImage: "arrow.down.circle")
                     }

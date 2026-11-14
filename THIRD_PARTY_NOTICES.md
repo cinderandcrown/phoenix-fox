@@ -64,7 +64,11 @@ Vendored at `Vendor/MLXUtilsLibrary`. Apache License 2.0. The vendored LICENSE f
 
 ## mlx-swift and mlx-swift-lm
 
-Linked as Swift packages for the optional on-device model. Their upstream licenses apply (mlx-swift is commonly MIT; confirm the tag pinned in the Xcode project before a store submission). They are not relicensed by Cinder and Crown LLC.
+Linked as Swift packages for the optional on-device model. Their upstream licenses apply (mlx-swift is commonly MIT; confirm the tag pinned in the Xcode project before a store submission). They are not relicensed by Cinder and Crown LLC. The app does not link the MLXHuggingFace macro product. `LocalModelHub.swift` calls the public Hugging Face and Tokenizers APIs instead, so the build does not compile that SwiftSyntax plugin.
+
+## swift-huggingface and swift-transformers
+
+Pinned in `project.yml` (`swift-huggingface` 1.0.0, `swift-transformers` 1.4.0). Used to download on-device model snapshots and load their tokenizers. Upstream Apache-2.0. They are not relicensed by Cinder and Crown LLC.
 
 ## Not included
 

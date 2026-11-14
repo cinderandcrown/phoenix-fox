@@ -238,7 +238,7 @@ struct AppSettings: Codable, Equatable {
 
     // MARK: - Own assistants (relay)
 
-    /// Base URL of the relay, no trailing slash. Empty until entered in Settings.
+    /// Address of the relay. Empty means the owner's relay, `RelayEndpoint.defaultAddress`.
     var relayURL: String = ""
     /// Bearer token the app sends to the relay. Keychain only.
     var relayToken: String = ""
@@ -246,6 +246,8 @@ struct AppSettings: Codable, Equatable {
     var jarvisFastMode: Bool = true
     /// Spoken persona may say "sir". Off until turned on.
     var jarvisAddressAsSir: Bool = false
+    /// On-phone log of what he says. Off until he says "mind meld on". Never stores camera bytes.
+    var mindMeldEnabled: Bool = false
     /// Extra frames with "look at this". Off to keep uploads small.
     var jarvisLookClip: Bool = false
     var assistantBots: [AssistantBot] = AssistantRoster.seed
@@ -411,11 +413,10 @@ struct AppSettings: Codable, Equatable {
 
     var isClaudeConfigured: Bool { !claudeAPIKey.isEmpty }
 
-    /// Relay URL and app token. The token never lives in the repo.
-    var isOwnAssistantConfigured: Bool {
-        let url = relayURL.trimmingCharacters(in: .whitespacesAndNewlines)
-        return (url.hasPrefix("https://") || url.hasPrefix("http://")) && !relayToken.isEmpty
-    }
+    /// The relay to call, or nil until a token has been entered. The token never lives in the repo.
+    var relayEndpoint: RelayEndpoint? { RelayEndpoint(address: relayURL, token: relayToken) }
+
+    var isOwnAssistantConfigured: Bool { relayEndpoint != nil }
 
     /// Whether Hermes is configured (server URL and API key)
     var isHermesConfigured: Bool {

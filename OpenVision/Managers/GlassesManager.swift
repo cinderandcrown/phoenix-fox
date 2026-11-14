@@ -42,9 +42,14 @@ final class GlassesManager: ObservableObject {
     /// Error message for UI display
     @Published var errorMessage: String?
 
+    /// A connection that was started from the Meta AI app and waits for the wearer's answer.
+    /// Nothing is connected until `answerPendingRegistration(approve:)` says so.
+    @Published private(set) var pendingRegistration: RegistrationRequest?
+
     // MARK: - Private Properties
 
-    private let wearables = Wearables.shared
+    /// Nil when the glasses SDK did not start. See `WearablesSDK`.
+    private var wearables: (any WearablesInterface)? { WearablesSDK.interface }
     // 0.9.0 camera lifecycle: DeviceSession owns the device link, Camera owns the camera
     // hardware, camera.stream carries frames. Stopping the camera cascades to the stream.
     private var deviceSession: DeviceSession?
@@ -74,6 +79,7 @@ final class GlassesManager: ObservableObject {
 
     private init() {
         print("[GlassesManager] Initializing")
+        if wearables == nil { errorMessage = WearablesSDK.failure }
         setupRegistrationListener()
         setupDevicesListener()
     }
@@ -83,6 +89,7 @@ final class GlassesManager: ObservableObject {
     /// Register app with Meta AI
     func register() async throws {
         print("[GlassesManager] Starting registration")
+        guard let wearables else { throw GlassesUnavailable() }
 
         // Check if already registered
         for await state in wearables.registrationStateStream() {
@@ -108,6 +115,10 @@ final class GlassesManager: ObservableObject {
             await stopStreaming()
         }
 
+        guard let wearables else {
+            errorMessage = GlassesUnavailable().reason
+            return
+        }
         do {
             try await wearables.startUnregistration()
             isRegistered = false
@@ -121,10 +132,76 @@ final class GlassesManager: ObservableObject {
         }
     }
 
+    /// Hands off to the Meta AI app to install or update the app's component on the glasses.
+    func updateGlassesApp() async {
+        guard let wearables else {
+            errorMessage = GlassesUnavailable().reason
+            return
+        }
+        do {
+            try await wearables.openDATGlassesAppUpdate()
+        } catch {
+            errorMessage = "Could not open the Meta AI app to update the glasses. \(error.localizedDescription)"
+        }
+    }
+
+    // MARK: - Meta AI callback
+
+    private var lastCallback: (url: URL, at: Date)?
+
+    /// Finishes a registration or permission round trip when the Meta AI app opens
+    /// Phoenix Fox through its universal link.
+    func handleCallback(_ url: URL) async {
+        // iOS can deliver one link through two routes. The SDK must see it once.
+        if let lastCallback, lastCallback.url == url, Date().timeIntervalSince(lastCallback.at) < 2 { return }
+        lastCallback = (url, Date())
+        guard let wearables else {
+            errorMessage = GlassesUnavailable().reason
+            GlassesLink.shared.record("Meta AI callback ignored: the glasses SDK is not running.")
+            return
+        }
+        do {
+            let handled = try await wearables.handleUrl(url) { [weak self] request in
+                Task { @MainActor in self?.pendingRegistration = request }
+            }
+            if handled {
+                errorMessage = nil
+                GlassesLink.shared.record("Meta AI callback handled.")
+            } else {
+                GlassesLink.shared.record("Opened by a link the glasses SDK did not recognise.")
+            }
+        } catch {
+            errorMessage = "Meta AI could not finish connecting. \(error.localizedDescription)"
+            GlassesLink.shared.record("Meta AI callback failed: \(error.localizedDescription)")
+        }
+    }
+
+    /// Answers a connection the Meta AI app started. Declining tells Meta AI to drop it.
+    func answerPendingRegistration(approve: Bool) async {
+        guard let request = pendingRegistration else { return }
+        pendingRegistration = nil
+        do {
+            if approve {
+                try await request.continueRegistration()
+            } else {
+                try await request.cancelRegistration()
+            }
+        } catch {
+            errorMessage = approve
+                ? "Connecting to Meta AI failed. \(error.localizedDescription)"
+                : "Meta AI did not confirm the cancel. \(error.localizedDescription)"
+            GlassesLink.shared.record("Registration request \(approve ? "approve" : "decline") failed: \(error.localizedDescription)")
+        }
+    }
+
     // MARK: - Streaming
 
     /// Start camera streaming from glasses
     func startStreaming() async {
+        guard let wearables else {
+            errorMessage = GlassesUnavailable().reason
+            return
+        }
         guard isRegistered else {
             errorMessage = "Not registered with Meta AI"
             print("[GlassesManager] Cannot start streaming - not registered")
@@ -186,13 +263,14 @@ final class GlassesManager: ObservableObject {
 
         // v1 target is Meta Glasses Adventurer (DeviceType.metaGlasses): displayless.
         // Camera comes up only for an explicit look or live video. Mic and speaker stay on
-        // Bluetooth HFP, not the camera audio stream. 8 fps is enough for a still and costs less.
+        // Bluetooth HFP, not the camera audio stream. The toolkit accepts 2, 7, 15, 24, or 30
+        // frames a second and nothing in between. 7 is enough for a still and costs less.
         GlassesControlSession.shared.suspendForCamera()
         let config = StreamConfiguration(
             videoCodec: .raw,
             audioCodec: nil,
             resolution: .medium,
-            frameRate: 8
+            frameRate: 7
         )
 
         do {
@@ -308,6 +386,7 @@ final class GlassesManager: ObservableObject {
     // MARK: - Private Methods
 
     private func setupRegistrationListener() {
+        guard let wearables else { return }
         registrationTask = Task {
             for await state in wearables.registrationStateStream() {
                 await MainActor.run {
@@ -326,6 +405,7 @@ final class GlassesManager: ObservableObject {
     }
 
     private func setupDevicesListener() {
+        guard let wearables else { return }
         devicesTask = Task {
             for await devices in wearables.devicesStream() {
                 await MainActor.run {

@@ -424,12 +424,14 @@ struct SmartCaptureSettingsView: View {
                     Text("High").tag(0.08)
                 }
             }
-            Section("Categories") {
+            Section {
                 Toggle("Receipts", isOn: $settings.settings.smartCaptureReceipts)
                 Toggle("Business cards", isOn: $settings.settings.smartCaptureCards)
                 Toggle("Whiteboards", isOn: $settings.settings.smartCaptureBoards)
                 Toggle("Highlights", isOn: $settings.settings.smartCaptureHighlights)
                 Toggle("Send kept items to the relay", isOn: $settings.settings.smartCaptureAutoRoute)
+            } header: {
+                Text("Categories")
             } footer: {
                 Text("Receipts can go to Fire Fox, cards to Contacts, whiteboards to notes, and highlights into the morning brief. Auto-route stays off until you turn it on.")
             }

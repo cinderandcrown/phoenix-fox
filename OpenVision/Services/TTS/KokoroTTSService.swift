@@ -20,8 +20,8 @@ final class KokoroTTSService: ObservableObject {
 
     // MARK: - Storage
 
-    private static let modelFile = "kokoro-v1_0.safetensors"
-    private static let hfBase = "https://huggingface.co/prince-canuma/Kokoro-82M/resolve/main"
+    private nonisolated static let modelFile = "kokoro-v1_0.safetensors"
+    private nonisolated static let hfBase = "https://huggingface.co/prince-canuma/Kokoro-82M/resolve/main"
 
     /// Curated voices (a* = American, b* = British; first letter drives the Language).
     static let voices: [String] = [
@@ -30,17 +30,14 @@ final class KokoroTTSService: ObservableObject {
         "bf_emma", "bf_isabella", "bm_george", "bm_lewis"
     ]
 
-    private var storageDir: URL {
+    private nonisolated static var storageDir: URL {
         let base = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
         return base.appendingPathComponent("KokoroTTS", isDirectory: true)
     }
-    private var modelURL: URL { storageDir.appendingPathComponent(Self.modelFile) }
-    private func voiceURL(_ name: String) -> URL {
-        storageDir.appendingPathComponent("voices", isDirectory: true).appendingPathComponent("\(name).safetensors")
-    }
+    private nonisolated static var modelURL: URL { storageDir.appendingPathComponent(modelFile) }
 
     /// Whether the main model is on disk.
-    var isModelReady: Bool { FileManager.default.fileExists(atPath: modelURL.path) }
+    var isModelReady: Bool { FileManager.default.fileExists(atPath: Self.modelURL.path) }
 
     @Published var downloadProgress: Double = 0
     @Published var isDownloading = false
@@ -50,15 +47,18 @@ final class KokoroTTSService: ObservableObject {
 
     // MARK: - Engine + playback
 
-    private var engine: KokoroTTS?
-    private var voiceCache: [String: MLXArray] = [:]
+    private let synthesizer = KokoroSynthesizer(
+        modelURL: KokoroTTSService.modelURL,
+        voicesDirectory: KokoroTTSService.storageDir.appendingPathComponent("voices", isDirectory: true),
+        voicesAddress: "\(KokoroTTSService.hfBase)/voices"
+    )
 
     private let audioEngine = AVAudioEngine()
     private let playerNode = AVAudioPlayerNode()
     private var audioReady = false
 
     private init() {
-        try? FileManager.default.createDirectory(at: storageDir, withIntermediateDirectories: true)
+        try? FileManager.default.createDirectory(at: Self.storageDir, withIntermediateDirectories: true)
     }
 
     // MARK: - Download
@@ -68,34 +68,10 @@ final class KokoroTTSService: ObservableObject {
         if isModelReady { onProgress(1); return }
         isDownloading = true
         defer { isDownloading = false }
-        try FileManager.default.createDirectory(at: storageDir, withIntermediateDirectories: true)
-        try await download(from: "\(Self.hfBase)/\(Self.modelFile)", to: modelURL) { [weak self] p in
-            self?.downloadProgress = p
-            onProgress(p)
-        }
-    }
-
-    private func ensureVoice(_ name: String) async throws -> MLXArray {
-        if let cached = voiceCache[name] { return cached }
-        let url = voiceURL(name)
-        if !FileManager.default.fileExists(atPath: url.path) {
-            try FileManager.default.createDirectory(at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
-            try await download(from: "\(Self.hfBase)/voices/\(name).safetensors", to: url, onProgress: { _ in })
-        }
-        let arrays = try MLX.loadArrays(url: url)
-        guard let voice = arrays["voice"] ?? arrays.values.first else {
-            throw KokoroError.badVoice(name)
-        }
-        voiceCache[name] = voice
-        return voice
-    }
-
-    private func ensureEngine() throws -> KokoroTTS {
-        if let engine { return engine }
-        guard isModelReady else { throw KokoroError.modelMissing }
-        let e = KokoroTTS(modelPath: modelURL, g2p: .misaki)
-        engine = e
-        return e
+        try FileManager.default.createDirectory(at: Self.storageDir, withIntermediateDirectories: true)
+        try await KokoroDownload.fetch("\(Self.hfBase)/\(Self.modelFile)", to: Self.modelURL)
+        downloadProgress = 1
+        onProgress(1)
     }
 
     // MARK: - Speak
@@ -118,16 +94,10 @@ final class KokoroTTSService: ObservableObject {
             if pendingBuffers <= 0 { isSpeaking = false }   // everything already played (or nothing to play)
         }
         do {
-            let voiceArray = try await ensureVoice(voice)
-            let tts = try ensureEngine()
-            let language: Language = voice.first == "b" ? .enGB : .enUS
             var first = true
             for sentence in TextChunking.sentences(clean) {
                 guard isSpeaking else { break }   // stop() was called mid-reply
-                let samples: [Float] = try await Task.detached(priority: .userInitiated) {
-                    let (audio, _) = try tts.generateAudio(voice: voiceArray, language: language, text: sentence)
-                    return audio
-                }.value
+                let samples = try await synthesizer.samples(for: sentence, voice: voice)
                 guard isSpeaking else { break }
                 if !samples.isEmpty {
                     enqueue(samples, restartPlayer: first)
@@ -221,13 +191,7 @@ final class KokoroTTSService: ObservableObject {
 
     private func synthesizeAndEnqueue(text: String, voice: String) async {
         do {
-            let voiceArray = try await ensureVoice(voice)
-            let tts = try ensureEngine()
-            let language: Language = voice.first == "b" ? .enGB : .enUS
-            let samples: [Float] = try await Task.detached(priority: .userInitiated) {
-                let (audio, _) = try tts.generateAudio(voice: voiceArray, language: language, text: text)
-                return audio
-            }.value
+            let samples = try await synthesizer.samples(for: text, voice: voice)
             guard !utteranceCancelled, !samples.isEmpty else { return }
             enqueue(samples, restartPlayer: !streamStarted)
             streamStarted = true
@@ -272,13 +236,7 @@ final class KokoroTTSService: ObservableObject {
             }
         }
         do {
-            let voiceArray = try await ensureVoice(voice)
-            let tts = try ensureEngine()
-            let language: Language = voice.first == "b" ? .enGB : .enUS
-            let samples: [Float] = try await Task.detached(priority: .utility) {
-                let (audio, _) = try tts.generateAudio(voice: voiceArray, language: language, text: clean)
-                return audio
-            }.value
+            let samples = try await synthesizer.samples(for: clean, voice: voice)
             // A reply may have begun while we synthesised: beginStreaming sets `streaming`,
             // speak() restarts the player (utteranceCancelled/stop covers that route). Drop.
             guard isSpeaking, !streaming, !utteranceCancelled, !samples.isEmpty else { return }
@@ -361,7 +319,7 @@ final class KokoroTTSService: ObservableObject {
     // MARK: - Storage management
 
     static func downloadedSizeBytes() -> Int64 {
-        let base = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0].appendingPathComponent("KokoroTTS", isDirectory: true)
+        let base = storageDir
         guard let en = FileManager.default.enumerator(at: base, includingPropertiesForKeys: [.totalFileAllocatedSizeKey]) else { return 0 }
         var total: Int64 = 0
         for case let f as URL in en {
@@ -371,25 +329,14 @@ final class KokoroTTSService: ObservableObject {
     }
 
     func deleteModel() {
-        engine = nil
-        voiceCache.removeAll()
-        MLX.GPU.clearCache()
-        try? FileManager.default.removeItem(at: storageDir)
-        try? FileManager.default.createDirectory(at: storageDir, withIntermediateDirectories: true)
-        downloadProgress = 0
-    }
-
-    // MARK: - Downloader
-
-    private func download(from urlString: String, to dest: URL, onProgress: @escaping (Double) -> Void) async throws {
-        guard let url = URL(string: urlString) else { throw KokoroError.badURL }
-        let (tempURL, response) = try await URLSession.shared.download(for: URLRequest(url: url))
-        guard let http = response as? HTTPURLResponse, (200...299).contains(http.statusCode) else {
-            throw KokoroError.download((response as? HTTPURLResponse)?.statusCode ?? -1)
+        let directory = Self.storageDir
+        Task { [synthesizer] in
+            // Unload first, so the model is not reading files that are being removed.
+            await synthesizer.unload()
+            try? FileManager.default.removeItem(at: directory)
+            try? FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
         }
-        if FileManager.default.fileExists(atPath: dest.path) { try? FileManager.default.removeItem(at: dest) }
-        try FileManager.default.moveItem(at: tempURL, to: dest)
-        onProgress(1)
+        downloadProgress = 0
     }
 
     enum KokoroError: LocalizedError {
@@ -402,5 +349,80 @@ final class KokoroTTSService: ObservableObject {
             case .download(let c): return "Download failed (HTTP \(c))."
             }
         }
+    }
+}
+
+/// Owns the Kokoro model and its voices, and runs synthesis off the main actor.
+///
+/// The model and the MLX voice arrays are not `Sendable`, so they never leave this actor: text
+/// goes in and audio samples come out. Being an actor also means one sentence is synthesised at
+/// a time, which keeps peak memory to a single sentence's worth.
+private actor KokoroSynthesizer {
+    private let modelURL: URL
+    private let voicesDirectory: URL
+    private let voicesAddress: String
+    private var engine: KokoroTTS?
+    private var voices: [String: MLXArray] = [:]
+
+    init(modelURL: URL, voicesDirectory: URL, voicesAddress: String) {
+        self.modelURL = modelURL
+        self.voicesDirectory = voicesDirectory
+        self.voicesAddress = voicesAddress
+    }
+
+    /// Mono 24 kHz samples of `text` spoken in `voice`. Voices starting with "b" are British.
+    func samples(for text: String, voice: String) async throws -> [Float] {
+        let voiceArray = try await self.voice(voice)
+        let engine = try loadedEngine()
+        let language: Language = voice.first == "b" ? .enGB : .enUS
+        let (audio, _) = try engine.generateAudio(voice: voiceArray, language: language, text: text)
+        return audio
+    }
+
+    /// Frees the model and voices.
+    func unload() {
+        engine = nil
+        voices.removeAll()
+        Memory.clearCache()
+    }
+
+    private func loadedEngine() throws -> KokoroTTS {
+        if let engine { return engine }
+        guard FileManager.default.fileExists(atPath: modelURL.path) else {
+            throw KokoroTTSService.KokoroError.modelMissing
+        }
+        let loaded = KokoroTTS(modelPath: modelURL, g2p: .misaki)
+        engine = loaded
+        return loaded
+    }
+
+    private func voice(_ name: String) async throws -> MLXArray {
+        if let cached = voices[name] { return cached }
+        let url = voicesDirectory.appendingPathComponent("\(name).safetensors")
+        if !FileManager.default.fileExists(atPath: url.path) {
+            try FileManager.default.createDirectory(at: voicesDirectory, withIntermediateDirectories: true)
+            try await KokoroDownload.fetch("\(voicesAddress)/\(name).safetensors", to: url)
+        }
+        let arrays = try MLX.loadArrays(url: url)
+        guard let voice = arrays["voice"] ?? arrays.values.first else {
+            throw KokoroTTSService.KokoroError.badVoice(name)
+        }
+        voices[name] = voice
+        return voice
+    }
+}
+
+private enum KokoroDownload {
+    /// Downloads `address` and moves the file to `destination`, replacing what was there.
+    static func fetch(_ address: String, to destination: URL) async throws {
+        guard let url = URL(string: address) else { throw KokoroTTSService.KokoroError.badURL }
+        let (temporary, response) = try await URLSession.shared.download(for: URLRequest(url: url))
+        guard let http = response as? HTTPURLResponse, (200...299).contains(http.statusCode) else {
+            throw KokoroTTSService.KokoroError.download((response as? HTTPURLResponse)?.statusCode ?? -1)
+        }
+        if FileManager.default.fileExists(atPath: destination.path) {
+            try? FileManager.default.removeItem(at: destination)
+        }
+        try FileManager.default.moveItem(at: temporary, to: destination)
     }
 }

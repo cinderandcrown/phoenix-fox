@@ -10,12 +10,18 @@
 
 import Foundation
 
+/// Arguments of one tool call, as the model sent them.
+typealias ToolArguments = [String: JSONValue]
+
 /// A single callable tool. Ships its own JSON Schema so the registry can advertise it to the model.
-protocol NativeTool {
+///
+/// Tools are plain `Sendable` values and their arguments are `JSONValue`, so a backend on any
+/// actor can run one without handing untyped `[String: Any]` across an isolation boundary.
+protocol NativeTool: Sendable {
     var name: String { get }
     var description: String { get }
-    var parametersSchema: [String: Any] { get }
-    func execute(args: [String: Any]) async throws -> String
+    var parametersSchema: JSONValue { get }
+    func execute(args: ToolArguments) async throws -> String
 }
 
 extension NativeTool {
@@ -26,7 +32,7 @@ extension NativeTool {
             "function": [
                 "name": name,
                 "description": description,
-                "parameters": parametersSchema
+                "parameters": parametersSchema.jsonObject
             ]
         ]
     }
@@ -37,20 +43,20 @@ extension NativeTool {
         [
             "name": name,
             "description": description,
-            "parameters": parametersSchema
+            "parameters": parametersSchema.jsonObject
         ]
     }
 }
 
-/// Central registry of the available native tools. Read-only after init, so it's safe to read from
-/// any thread (the backend's request loop runs off the main thread).
-final class NativeToolRegistry {
+/// Central registry of the available native tools. Immutable after init, so any backend can
+/// read it from whatever actor it runs on.
+final class NativeToolRegistry: Sendable {
     static let shared = NativeToolRegistry()
 
-    private let tools: [String: NativeTool]
+    private let tools: [String: any NativeTool]
 
     private init() {
-        let all: [NativeTool] = [
+        let all: [any NativeTool] = [
             TimerTool(),
             PomodoroTool(),
             ReminderTool(),
@@ -59,23 +65,27 @@ final class NativeToolRegistry {
             ClipboardTool(),
             DocumentSearchTool(),
         ]
-        var map: [String: NativeTool] = [:]
+        var map: [String: any NativeTool] = [:]
         for t in all { map[t.name] = t }
         tools = map
     }
 
+    /// Tools in name order. A stable order keeps the request prefix identical from turn to
+    /// turn, which is what lets a provider's prompt cache apply.
+    private var ordered: [any NativeTool] { tools.values.sorted { $0.name < $1.name } }
+
     /// Tool specs to advertise to the model.
-    var openAISpecs: [[String: Any]] { tools.values.map(\.openAISpec) }
+    var openAISpecs: [[String: Any]] { ordered.map { $0.openAISpec } }
 
     /// Gemini function declarations to advertise in the Live API setup message.
-    var geminiDeclarations: [[String: Any]] { tools.values.map(\.geminiDeclaration) }
+    var geminiDeclarations: [[String: Any]] { ordered.map { $0.geminiDeclaration } }
 
     /// Whether a given tool name belongs to a native tool (vs. e.g. web_search).
     func isNativeTool(_ name: String) -> Bool { tools[name] != nil }
 
     /// Run a tool by name. Never throws — returns a spoken-friendly error string so the model can
     /// tell the user gracefully.
-    func execute(name: String, args: [String: Any]) async -> String {
+    func execute(name: String, args: ToolArguments) async -> String {
         guard let tool = tools[name] else { return "I don't have a tool called \(name)." }
         var args = args
         // Time sanity chokepoint (all backends pass through here): if the triggering utterance was

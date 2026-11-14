@@ -1,314 +1,65 @@
-# Contributing to OpenVision
+# Contributing to Phoenix Fox
 
-Thank you for your interest in contributing to OpenVision! This document provides guidelines and information for contributors.
+Phoenix Fox is an iOS companion app for Meta AI glasses, with a small relay in `relay/`. It is open source under the Apache License 2.0. [README.md](README.md) says what it does and how the repository is laid out.
 
-## Code of Conduct
+## Before you start
 
-Be respectful, inclusive, and constructive. We welcome contributors of all skill levels.
+- **Bugs and ideas** go in [issues](https://github.com/cinderandcrown/phoenix-fox/issues). Say what you did, what you expected, what happened, and which iPhone, iOS, and glasses you have.
+- **Security problems** do not go in issues. See [SECURITY.md](SECURITY.md).
+- For anything larger than a fix, open an issue first, so the work is wanted before you do it.
 
-## How to Contribute
+## Rules that do not bend
 
-### Reporting Bugs
+A change that breaks one of these will not be merged.
 
-1. Check [existing issues](https://github.com/rayl15/OpenVision/issues) first
-2. Create a new issue with:
-   - Clear, descriptive title
-   - Steps to reproduce
-   - Expected vs actual behavior
-   - iOS version, device model
-   - Relevant logs (filter by `[OpenClaw]`, `[Gemini]`, etc.)
+1. The camera runs only when the wearer asks, and the glasses' capture light is on whenever it runs. No hidden recording, and no change to the glasses' firmware.
+2. No secret goes in the repository: no key, token, `.p8` file, or filled-in `Config.xcconfig`. Keys entered in the app are stored in the Keychain.
+3. Write your own code. Do not copy code whose license does not allow use under Apache-2.0. A new dependency needs its notice added to [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+4. Keep the cost per user low. A feature that calls a model every few seconds needs a reason.
 
-### Suggesting Features
+## Making a change
 
-1. Check [existing discussions](https://github.com/rayl15/OpenVision/discussions) first
-2. Open a new discussion describing:
-   - The problem you're trying to solve
-   - Your proposed solution
-   - Alternative approaches considered
-
-### Pull Requests
-
-1. Fork the repository
-2. Create a feature branch from `main`:
-   ```bash
-   git checkout -b feature/your-feature-name
-   ```
-3. Make your changes following our code style
-4. Write/update tests as needed
-5. Commit with clear messages:
-   ```bash
-   git commit -m "Add: Description of feature"
-   git commit -m "Fix: Description of bug fix"
-   git commit -m "Refactor: Description of refactoring"
-   ```
-6. Push and open a Pull Request
-
-## Code Style
-
-### Swift Guidelines
-
-Follow [Swift API Design Guidelines](https://swift.org/documentation/api-design-guidelines/).
-
-```swift
-// GOOD: Clear, descriptive names
-func startVoiceSession() async throws
-func capturePhoto() -> Data?
-
-// BAD: Abbreviated, unclear names
-func startVS() async throws
-func capPh() -> Data?
-```
-
-### Architecture Patterns
-
-See [docs/architecture.md](docs/architecture.md) for the full map — layout, MVVM, the
-`AIBackend` seam, and step-by-step guides for adding a backend or a native tool.
-
-- **MVVM**: Views render and forward interactions; ViewModels (`@MainActor ObservableObject`) orchestrate
-- **@MainActor**: Use for all UI-related code and managers
-- **Singleton pattern**: For shared managers (SettingsManager, GlassesManager)
-- **Protocol-oriented**: New backends conform to `AIBackend`; new tools to `NativeTool`
-- **Async/await**: Prefer over completion handlers
-- **Tests**: Pure logic (date math, routing, parsing) belongs in testable enums/functions with unit tests in `OpenVisionTests`
-
-```swift
-// GOOD: @MainActor isolation
-@MainActor
-final class MyService: ObservableObject {
-    @Published var state: ServiceState = .idle
-
-    func performAction() async throws {
-        // Implementation
-    }
-}
-
-// GOOD: Protocol for testability
-protocol CameraServiceProtocol {
-    func capturePhoto() async throws -> Data
-}
-```
-
-### File Organization
-
-```swift
-// MARK: - Properties
-
-@Published var isActive = false
-private var webSocket: URLSessionWebSocketTask?
-
-// MARK: - Initialization
-
-init() {
-    // Setup
-}
-
-// MARK: - Public Methods
-
-func start() async throws {
-    // Implementation
-}
-
-// MARK: - Private Methods
-
-private func setupConnection() {
-    // Implementation
-}
-```
-
-### Documentation
-
-Add documentation to public APIs:
-
-```swift
-/// Starts a voice conversation session.
-///
-/// This method connects to the configured AI backend and begins
-/// listening for voice input.
-///
-/// - Throws: `AIBackendError.notConfigured` if no backend is configured
-/// - Throws: `AIBackendError.connectionFailed` if connection fails
-func startSession() async throws {
-    // Implementation
-}
-```
-
-### Error Handling
-
-Use typed errors with clear cases:
-
-```swift
-enum AIBackendError: LocalizedError {
-    case notConfigured
-    case connectionFailed(Error)
-    case authenticationFailed
-    case timeout
-
-    var errorDescription: String? {
-        switch self {
-        case .notConfigured:
-            return "AI backend is not configured"
-        case .connectionFailed(let error):
-            return "Connection failed: \(error.localizedDescription)"
-        case .authenticationFailed:
-            return "Authentication failed"
-        case .timeout:
-            return "Connection timed out"
-        }
-    }
-}
-```
-
-## Testing
-
-### Running Tests
-
-```bash
-# In Xcode
-Cmd+U
-
-# Or via command line
-xcodebuild test -scheme OpenVision -destination 'platform=iOS Simulator,name=iPhone 15'
-```
-
-### Writing Tests
-
-- Place tests in `Tests/` directory
-- Mirror the source file structure
-- Use mocks for external dependencies
-
-```swift
-final class OpenClawServiceTests: XCTestCase {
-    var sut: OpenClawService!
-    var mockWebSocket: MockWebSocket!
-
-    override func setUp() {
-        super.setUp()
-        mockWebSocket = MockWebSocket()
-        sut = OpenClawService(webSocket: mockWebSocket)
-    }
-
-    func testConnectSendsAuthMessage() async throws {
-        // Given
-        let expectation = expectation(description: "Auth message sent")
-
-        // When
-        try await sut.connect()
-
-        // Then
-        XCTAssertTrue(mockWebSocket.sentMessages.contains { $0.contains("auth") })
-    }
-}
-```
-
-### Test Coverage
-
-Aim for coverage of:
-- Public API methods
-- Error handling paths
-- Edge cases (empty data, network failures)
-
-## Project Structure
-
-```
-OpenVision/
-├── App/                 # App entry point
-├── Config/              # Configuration files
-├── Models/              # Data models
-├── Services/            # Business logic
-│   ├── AIBackend/       # AI protocol & factory
-│   ├── OpenClaw/        # OpenClaw WebSocket client
-│   ├── GeminiLive/      # Gemini Live client
-│   ├── Voice/           # Speech recognition
-│   ├── Audio/           # Audio capture/playback
-│   ├── Camera/          # Camera services
-│   └── TTS/             # Text-to-speech
-├── Managers/            # Singleton managers
-├── Views/               # SwiftUI views
-│   ├── VoiceAgent/      # Voice conversation UI
-│   ├── History/         # Conversation history
-│   ├── Settings/        # Settings panels
-│   └── Components/      # Reusable UI components
-└── Tests/               # Unit tests
-```
-
-## Commit Messages
-
-Use conventional commit format:
-
-```
-Type: Short description (max 72 chars)
-
-Optional longer description explaining the why and how.
-
-Closes #123
-```
-
-Types:
-- `Add`: New feature
-- `Fix`: Bug fix
-- `Refactor`: Code restructuring
-- `Docs`: Documentation only
-- `Test`: Adding/updating tests
-- `Chore`: Maintenance tasks
-
-## Pull Request Process
-
-1. **Title**: Clear, descriptive title
-2. **Description**: Explain what and why
-3. **Testing**: Describe how you tested
-4. **Screenshots**: Include for UI changes
-5. **Breaking changes**: Call out any breaking changes
-
-### PR Checklist
-
-- [ ] Code follows style guidelines
-- [ ] Self-review completed
-- [ ] Comments added for complex logic
-- [ ] Documentation updated if needed
-- [ ] Tests added/updated
-- [ ] No compiler warnings introduced
-- [ ] CI is green
-
-### Continuous integration
-
-Every pull request is compiled by GitHub Actions (`.github/workflows/ci.yml`): the app and its
-test target are built for a generic iOS device with code signing off, on a free macOS runner.
-`main` requires that check to pass before a PR can merge, and that applies to maintainers too.
-
-The workflow copies `Config.xcconfig.example` and `OpenVision/Config/Config.swift.example` into
-place, so no secrets are needed to compile. If CI fails on your PR, open the job's log; the
-`.xcactivitylog` files are attached as an artifact when the build step fails.
-
-## Release Process
-
-Releases are cut by a maintainer. Version numbers follow [Semantic Versioning](https://semver.org/):
-a new backend or feature bumps the minor version, fixes alone bump the patch version.
-
-1. Open a release branch from `main` (for example `release/2.15.0`).
-2. Update `CHANGELOG.md`: move everything merged since the last release under a new
-   `## [x.y.z] - YYYY-MM-DD` heading, grouped as Added / Changed / Fixed, with the PR number
-   on each line.
-3. Bump `MARKETING_VERSION` and `CURRENT_PROJECT_VERSION` in `project.yml`, run `xcodegen generate`,
-   and commit as `Bump version to x.y.z (build N)`.
-4. Open a pull request. `main` is protected, so the release commits go through CI like any
-   other change; direct pushes to `main` are rejected.
-5. After the merge, tag the merge commit and publish the release with narrative notes and a
-   compare link:
+1. Fork the repository and make a branch from `main`.
+2. Copy the two example config files. An empty Meta client token is enough to compile.
 
    ```bash
-   git tag -a vx.y.z -m "OpenVision x.y.z"
-   git push origin vx.y.z
-   gh release create vx.y.z --title "OpenVision x.y.z" --notes-file notes.md
+   cp Config.xcconfig.example Config.xcconfig
+   cp OpenVision/Config/Config.swift.example OpenVision/Config/Config.swift
    ```
 
-The app is distributed as source; there is no App Store or TestFlight step in this repository.
+3. If you add, move, or delete a Swift file, update the Xcode project with the script. Do not edit `project.pbxproj` by hand.
 
-## Questions?
+   ```bash
+   python3 scripts/xcodeproj_sync.py          # update the project
+   python3 scripts/xcodeproj_sync.py --check  # what CI runs
+   ```
 
-- Open a [Discussion](https://github.com/rayl15/OpenVision/discussions)
-- Check existing issues and PRs
-- Read `CLAUDE.md` for technical context
+4. Put decisions in plain types that can be tested without a phone: parsing, routing, timing, limits. Add unit tests for them in `OpenVisionTests/`.
+5. For the relay, run `npm ci`, `npm run check`, and `npm test` in `relay/`.
+6. Open a pull request. Fill in the template, and say plainly what you ran and what you did not. "Not run on glasses" is a fine answer. A wrong "tested" is not.
 
----
+## What CI checks
 
-Thank you for contributing to OpenVision! Your efforts help make AI assistants accessible to everyone.
+Every pull request is built by GitHub Actions on macOS with Xcode 26. No Apple account is needed.
+
+- The project file lists every source file.
+- The app builds for the simulator with complete strict-concurrency checking.
+- There are no warnings in Phoenix Fox's own code. A warning fails the build.
+- The unit tests pass on a simulator.
+- The scripts' own tests pass, and the relay's when `relay/` changes.
+
+The TestFlight workflow signs and uploads the owner's builds. It needs secrets, so it does nothing for a pull request from a fork.
+
+## Style
+
+- Swift 5 language mode with strict concurrency set to complete. UI and shared managers are `@MainActor`.
+- Follow the file you are in: its naming, its comments, and its way of handling errors.
+- Comments say why, not what.
+- Words the wearer hears or reads are short and plain. Say what happened and what to do next.
+- Documentation says what is built, what is only written, and what has not been run on glasses. [docs/FEATURE_PARITY.md](docs/FEATURE_PARITY.md) defines those words.
+
+## License of contributions
+
+By opening a pull request you agree that your contribution is licensed under the [Apache License 2.0](LICENSE), as section 5 of that license describes.
+
+The name Phoenix Fox and its branding are trademarks of Cinder and Crown LLC and are not licensed with the code. A fork that is distributed needs its own name and icon. See [NOTICE](NOTICE).

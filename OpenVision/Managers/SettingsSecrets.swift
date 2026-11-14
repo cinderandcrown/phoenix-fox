@@ -11,8 +11,9 @@ import Security
 
 enum SettingsSecrets {
 
-    /// Every secret field, by its Keychain account.
-    static let fields: [(account: String, keyPath: WritableKeyPath<AppSettings, String>)] = [
+    /// Every secret field, by its Keychain account. Computed, because key paths are not
+    /// `Sendable` and so cannot be held in a global.
+    static var fields: [(account: String, keyPath: WritableKeyPath<AppSettings, String>)] { [
         ("openClawAuthToken", \.openClawAuthToken),
         ("geminiAPIKey", \.geminiAPIKey),
         ("openAIAPIKey", \.openAIAPIKey),
@@ -23,7 +24,7 @@ enum SettingsSecrets {
         ("tavilyAPIKey", \.tavilyAPIKey),
         ("telemetryToken", \.telemetryToken),
         ("telemetryPassword", \.telemetryPassword),
-    ]
+    ] }
 
     /// What the Keychain said about one account: a value, nothing stored, or no answer (it can't
     /// be read before the phone's first unlock).

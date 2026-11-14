@@ -134,6 +134,7 @@ final class CompanionRuntime: ObservableObject {
     }
 
     private var watchTask: Task<Void, Never>?
+    private var islandUpdate: Task<Void, Never>?
     private var lastThumb: [UInt8] = []
     private var watchSends = 0
     private var translating = false
@@ -262,15 +263,21 @@ final class CompanionRuntime: ObservableObject {
 
     func notePush(text: String, from: String, priority: String) {
         let line = "\(from): \(text)"
-        if priority == "urgent" {
-            TTSService.shared.stop()
-            TTSService.shared.speak(line)
-        } else if priority == "low" {
-            GlassesMemory.remember("Later: \(line)")
-        } else if !TTSService.shared.isSpeaking {
-            TTSService.shared.speak(line)
-        }
         statusLine = line
+        switch priority {
+        case "low":
+            // Kept for later. A low alert never interrupts and is never spoken on arrival.
+            GlassesMemory.remember("Later: \(line)")
+            return
+        case "urgent":
+            TTSService.shared.stop()
+        default:
+            // A normal alert waits its turn. It is in the inbox list either way.
+            if TTSService.shared.isSpeaking { return }
+        }
+        CompanionSurface.present(bot: from, text: text, kind: priority == "urgent" ? .alert : .reply) { spoken in
+            TTSService.shared.speak("\(from): \(spoken)")
+        }
     }
 
     private func takeOver(_ request: String) async -> String {
@@ -304,7 +311,7 @@ final class CompanionRuntime: ObservableObject {
         watchTask?.cancel()
         watchSends = 0
         cameraOn = true
-        statusLine = "Camera on at 8 fps. The glasses light is on. I check faster when the scene changes."
+        statusLine = "Camera on at 7 fps. The glasses light is on. I check faster when the scene changes."
         caption = ""
         refreshIsland()
         NotificationCenter.default.post(name: .phoenixKeepListening, object: nil)
@@ -367,8 +374,16 @@ final class CompanionRuntime: ObservableObject {
     private func refreshIsland() {
         let state = PhoenixActivityAttributes.ContentState(line: statusLine, cameraOn: cameraOn)
         let content = ActivityContent(state: state, staleDate: nil)
+        // Each update waits for the one before it, so the island never shows an older line last.
+        islandUpdate = Task { [previous = islandUpdate] in
+            await previous?.value
+            await Self.showIsland(content)
+        }
+    }
+
+    private nonisolated static func showIsland(_ content: ActivityContent<PhoenixActivityAttributes.ContentState>) async {
         if let activity = Activity<PhoenixActivityAttributes>.activities.first {
-            Task { await activity.update(content) }
+            await activity.update(content)
         } else {
             _ = try? Activity.request(attributes: PhoenixActivityAttributes(title: "Phoenix Fox"), content: content, pushType: nil)
         }
@@ -447,7 +462,7 @@ enum TranscriptLog {
     }
 
     static func recent() -> String {
-        guard let text = try? String(contentsOf: file()) else { return "" }
+        guard let text = try? String(contentsOf: file(), encoding: .utf8) else { return "" }
         return text.split(separator: "\n").suffix(40).joined(separator: "\n")
     }
 
@@ -584,20 +599,21 @@ enum Thumbnail {
     }
 }
 
+/// Set when the Jarvis shortcut launched the app, so the voice screen starts listening at once.
+@MainActor
 enum JarvisWake {
     static var pending = false
 }
 
 struct JarvisWakeIntent: AppIntent {
-    static var title: LocalizedStringResource = "Jarvis"
-    static var description = IntentDescription("Wake Phoenix Fox. Jarvis is the spoken name, not the app name.")
-    static var openAppWhenRun = true
+    static let title: LocalizedStringResource = "Jarvis"
+    static let description = IntentDescription("Wake Phoenix Fox. Jarvis is the spoken name, not the app name.")
+    static let openAppWhenRun = true
 
+    @MainActor
     func perform() async throws -> some IntentResult {
         JarvisWake.pending = true
-        await MainActor.run {
-            NotificationCenter.default.post(name: .phoenixWake, object: nil)
-        }
+        NotificationCenter.default.post(name: .phoenixWake, object: nil)
         return .result()
     }
 }
@@ -634,7 +650,10 @@ final class HeardPieces {
 }
 
 /// Arms a circular region after the wearer asks. The system location arrow stays visible.
-final class PlaceReminders: NSObject, CLLocationManagerDelegate {
+///
+/// Main actor: the location manager is created here and calls its delegate back here.
+@MainActor
+final class PlaceReminders: NSObject, @preconcurrency CLLocationManagerDelegate {
     static let shared = PlaceReminders()
     private let manager = CLLocationManager()
     private let defaultsKey = "phoenix.geofence.notes"
@@ -653,37 +672,44 @@ final class PlaceReminders: NSObject, CLLocationManagerDelegate {
         guard status == .authorizedAlways || status == .authorizedWhenInUse else {
             return "Geofenced reminders need location permission. iOS shows the location arrow. Allow it, then say the place again. I have not started watching."
         }
-        let request = MKLocalSearch.Request()
-        request.naturalLanguageQuery = parsed.place
-        let response = try? await MKLocalSearch(request: request).start()
-        guard let item = response?.mapItems.first else {
+        guard let place = await Self.locate(parsed.place) else {
             return "I couldn't find \(parsed.place), so I didn't arm a reminder."
         }
         let id = UUID().uuidString
         var notes = UserDefaults.standard.dictionary(forKey: defaultsKey) as? [String: String] ?? [:]
         notes[id] = parsed.note
         UserDefaults.standard.set(notes, forKey: defaultsKey)
-        let region = CLCircularRegion(center: item.placemark.coordinate, radius: 150, identifier: id)
+        let center = CLLocationCoordinate2D(latitude: place.latitude, longitude: place.longitude)
+        let region = CLCircularRegion(center: center, radius: 150, identifier: id)
         region.notifyOnEntry = true
         region.notifyOnExit = false
         manager.startMonitoring(for: region)
         let scope = status == .authorizedAlways ? "including in the background" : "while Phoenix Fox is open. Allow Always if you want it after you leave the app"
-        return "I'll remind you to \(parsed.note) when you arrive at \(item.name ?? parsed.place), \(scope). The location arrow stays on."
+        return "I'll remind you to \(parsed.note) when you arrive at \(place.name ?? parsed.place), \(scope). The location arrow stays on."
     }
 
     func locationManager(_ manager: CLLocationManager, didEnterRegion region: CLRegion) {
+        let id = region.identifier
         let notes = UserDefaults.standard.dictionary(forKey: defaultsKey) as? [String: String] ?? [:]
-        let note = notes[region.identifier] ?? "You arrived."
-        DispatchQueue.main.async {
-            Task { @MainActor in
-                TTSService.shared.speak(note)
-                let content = UNMutableNotificationContent()
-                content.title = "Phoenix Fox"
-                content.body = note
-                let request = UNNotificationRequest(identifier: region.identifier, content: content, trigger: nil)
-                UNUserNotificationCenter.current().add(request)
-            }
+        let note = notes[id] ?? "You arrived."
+        TTSService.shared.speak(note)
+        Task {
+            let content = UNMutableNotificationContent()
+            content.title = "Phoenix Fox"
+            content.body = note
+            try? await UNUserNotificationCenter.current().add(
+                UNNotificationRequest(identifier: id, content: content, trigger: nil)
+            )
         }
+    }
+
+    /// Looks the place up off the main actor and brings back only plain values.
+    private nonisolated static func locate(_ query: String) async -> PlaceFix? {
+        let request = MKLocalSearch.Request()
+        request.naturalLanguageQuery = query
+        guard let item = try? await MKLocalSearch(request: request).start().mapItems.first else { return nil }
+        let coordinate = item.placemark.coordinate
+        return PlaceFix(latitude: coordinate.latitude, longitude: coordinate.longitude, name: item.name)
     }
 
     private static func parse(_ utterance: String) -> (place: String, note: String)? {
@@ -710,9 +736,10 @@ final class PlaceReminders: NSObject, CLLocationManagerDelegate {
 /// capability and a key the owner has not added. The inbox long-poll is the path that works without it.
 final class PhoenixPushDelegate: NSObject, UIApplicationDelegate {
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil) -> Bool {
-        UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) { _, _ in
-            DispatchQueue.main.async { application.registerForRemoteNotifications() }
-        }
+        // Unit tests run inside this app. They must not register a device with Apple.
+        guard !AppLaunch.isHostingTests else { return true }
+        // Renews the registration if alerts are already allowed. Asking happens in Settings.
+        Task { await PushAlerts.refresh(askIfNeeded: false) }
         return true
     }
 
@@ -721,9 +748,26 @@ final class PhoenixPushDelegate: NSObject, UIApplicationDelegate {
         Task { await OwnAssistantService.shared.registerDevice(hex) }
     }
 
-    func application(_ application: UIApplication, didReceiveRemoteNotification userInfo: [AnyHashable: Any]) async -> UIBackgroundFetchResult {
-        await OwnAssistantService.shared.pullInboxOnce()
-        return .newData
+    /// Without a token there are no pushes. The inbox still delivers while the app is open,
+    /// and the reason is kept in the glasses log so it can be read on the phone.
+    func application(_ application: UIApplication, didFailToRegisterForRemoteNotificationsWithError error: any Error) {
+        let reason = error.localizedDescription
+        Task { @MainActor in
+            GlassesLink.shared.record("Apple did not give this phone a push token: \(reason)")
+        }
+    }
+
+    /// A silent push only says "something is waiting". The message itself is pulled from the
+    /// relay inbox, so nothing private travels through the push payload.
+    func application(
+        _ application: UIApplication,
+        didReceiveRemoteNotification userInfo: [AnyHashable: Any],
+        fetchCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void
+    ) {
+        Task {
+            await OwnAssistantService.shared.pullInboxOnce()
+            completionHandler(.newData)
+        }
     }
 }
 

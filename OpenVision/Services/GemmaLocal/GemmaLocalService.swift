@@ -19,9 +19,6 @@ import MLX
 import MLXLLM            // text LLMs (Qwen 2.5, Gemma 2) via LLMModelFactory
 import MLXVLM            // vision models (Gemma 4, SmolVLM2) via VLMModelFactory
 import MLXLMCommon
-import MLXHuggingFace   // #hubDownloader() / #huggingFaceTokenizerLoader() macros
-import HuggingFace      // the macros expand to HuggingFace.HubClient …
-import Tokenizers       // … and Tokenizers.AutoTokenizer
 
 // MARK: - Selectable on-device models
 
@@ -206,7 +203,7 @@ final class GemmaLocalService: ObservableObject {
     /// (observed: SIGKILL right at "starting generation"). 384 → 1 tile + the global image =
     /// 2 encoder inputs. This is the documented SmolVLM memory knob (lower longest_edge to
     /// trade detail for memory); raise to 768 (5 tiles) if quality needs it and memory allows.
-    private static let smolVLMMaxLongestEdge = 384
+    nonisolated private static let smolVLMMaxLongestEdge = 384
 
     /// Rewrite `preprocessor_config.json` in the downloaded SmolVLM snapshot(s) to cap
     /// `size.longest_edge`. Safe against re-downloads: the HuggingFace cache is existence-checked
@@ -358,7 +355,8 @@ final class GemmaLocalService: ObservableObject {
     }
 
     /// Download a model snapshot to disk (idempotent — skipped if already cached).
-    func download(_ model: GemmaLocalModel, onProgress: @escaping (Double) -> Void) async throws {
+    /// Progress is published through `downloadProgress`.
+    func download(_ model: GemmaLocalModel) async throws {
         downloadProgress = 0
         // The hub's progress callback counts FILES, and a model is mostly one giant safetensors —
         // so it sits at 0% for the whole download, then jumps to done. Poll the bytes actually on
@@ -371,7 +369,7 @@ final class GemmaLocalService: ObservableObject {
             while !Task.isCancelled {
                 let bytes = Self.inFlightDownloadBytes(for: modelId, since: started)
                 let est = min(0.99, Double(bytes) / Double(expected))
-                await MainActor.run { self?.bumpDownloadProgress(est) }
+                await self?.bumpDownloadProgress(est)
                 try? await Task.sleep(nanoseconds: 700_000_000)
             }
         }
@@ -384,14 +382,14 @@ final class GemmaLocalService: ObservableObject {
         // poller above is the single writer until completion.
         Self.patchDownloadedVisionConfigs()
         do {
-            _ = try await loadModelContainer(modelId: model.modelId) { p in onProgress(p) }
+            _ = try await loadModelContainer(modelId: model.modelId)
         } catch {
             // A fresh snapshot's RAW config may be rejected before we can touch it (FastVLM 1.5B
             // ships an empty vision_config). The files are on disk now, so patch and retry once —
             // the existence-checked cache reuses them, so this is a re-parse, not a re-download.
             NSLog("[OV] load failed (%@) — patching downloaded configs and retrying", "\(error)")
             Self.patchDownloadedVisionConfigs()
-            _ = try await loadModelContainer(modelId: model.modelId) { p in onProgress(p) }
+            _ = try await loadModelContainer(modelId: model.modelId)
         }
         Self.patchDownloadedVisionConfigs()
         downloadProgress = 1
@@ -399,19 +397,24 @@ final class GemmaLocalService: ObservableObject {
 
     /// Load (downloading if needed) a model container, using the vision or text factory based on
     /// the model type. Both produce an MLXLMCommon `ModelContainer` that generates identically.
-    private func loadModelContainer(modelId: String, progress: @escaping (Double) -> Void) async throws -> ModelContainer {
+    ///
+    /// The hub's progress callback is ignored on purpose: it reports a fresh 0 to 1 per file,
+    /// which is useless for one multi-gigabyte weight file. `download` measures bytes on disk.
+    private func loadModelContainer(modelId: String) async throws -> ModelContainer {
         let configuration = ModelConfiguration(id: modelId)
-        let handler: (Progress) -> Void = { p in Task { @MainActor in progress(p.fractionCompleted) } }
+        let handler: @Sendable (Progress) -> Void = { _ in }
         // Register the shared-KV-aware Gemma 4 text backbone before loading. The multimodal VLM
         // Gemma 4 wrapper builds its text tower from this same type registry, so E2B needs it too.
         await Self.registerGemma4TextType()
+        let downloader = LocalModelHub.downloader()
+        let tokenizers = LocalModelHub.tokenizerLoader()
         if GemmaLocalModel.isVLM(modelId: modelId) {
             return try await VLMModelFactory.shared.loadContainer(
-                from: #hubDownloader(), using: #huggingFaceTokenizerLoader(),
+                from: downloader, using: tokenizers,
                 configuration: configuration, progressHandler: handler)
         } else {
             return try await LLMModelFactory.shared.loadContainer(
-                from: #hubDownloader(), using: #huggingFaceTokenizerLoader(),
+                from: downloader, using: tokenizers,
                 configuration: configuration, progressHandler: handler)
         }
     }
@@ -422,7 +425,7 @@ final class GemmaLocalService: ObservableObject {
     /// top-level keys and its defaults already equal E2B's text_config (hidden 1536, 35 layers,
     /// 20 kv-shared, 256 per-layer input), so an E2B checkpoint that nests those under `text_config`
     /// still yields correct params. Same fix OpenGlasses applies. Idempotent (map insert).
-    private static func registerGemma4TextType() async {
+    nonisolated private static func registerGemma4TextType() async {
         // Fully qualified: MLXVLM also exports Gemma4TextConfiguration/Gemma4TextModel, so the bare
         // names are ambiguous — the LLM (text) types are the ones that handle shared-KV layers.
         for type in ["gemma4", "gemma4_text"] {
@@ -475,12 +478,12 @@ final class GemmaLocalService: ObservableObject {
                 // NOTE: don't write downloadProgress here — connect() can run concurrently with a
                 // download() (wake word stays live behind Settings), and the hub emits a fresh
                 // 0→1 progress per FILE, so a second writer makes the download bar thrash.
-                container = try await loadModelContainer(modelId: modelId) { _ in }
+                container = try await loadModelContainer(modelId: modelId)
             } catch {
                 // Retry once after re-patching (covers a snapshot whose config wasn't patched yet).
                 NSLog("[OV] connect load failed (%@) — re-patching and retrying", "\(error)")
                 Self.patchDownloadedVisionConfigs()
-                container = try await loadModelContainer(modelId: modelId) { _ in }
+                container = try await loadModelContainer(modelId: modelId)
             }
             modelContainer = container
             loadedModelId = modelId
@@ -782,7 +785,7 @@ final class GemmaLocalService: ObservableObject {
         // document while looking at the frame. (Quality caveat: SmolVLM2 is small; heavy text
         // context alongside an image is a known strain — kept because the grounded use case
         // outweighs it, and the excerpts are bounded.)
-        if let docContext = await DocumentFocus.shared.contextForQuery(text) {
+        if let docContext = DocumentFocus.shared.contextForQuery(text) {
             systemContent += "\n\n" + docContext
         }
 
@@ -843,7 +846,7 @@ final class GemmaLocalService: ObservableObject {
         defer { NotificationCenter.default.removeObserver(bgObserver) }
 
         NSLog("[OV] GemmaLocal: starting generation…")
-        let stream = try await container.perform { (context: ModelContext) in
+        let stream = try await container.perform(nonSendable: userInput) { (context: ModelContext, userInput: UserInput) in
             let lmInput = try await context.processor.prepare(input: userInput)
             // Cap output length — spoken aloud, so keep it to a few sentences (~30s of speech).
             let parameters = GenerateParameters(maxTokens: 170, temperature: 0.4)
@@ -943,7 +946,7 @@ final class GemmaLocalService: ObservableObject {
             ],
             processing: .init(resize: CGSize(width: 512, height: 512))
         )
-        let stream = try await container.perform { (context: ModelContext) in
+        let stream = try await container.perform(nonSendable: userInput) { (context: ModelContext, userInput: UserInput) in
             let lmInput = try await context.processor.prepare(input: userInput)
             // temperature 0 (also per Apple's demo): deterministic captions mean the same scene
             // yields the same words, which is exactly what the chatter gate needs — rephrase
@@ -1173,12 +1176,12 @@ final class GemmaLocalService: ObservableObject {
 
     /// One-shot text generation used by the intent router. Optionally emits the cumulative text
     /// via `onPartial` per token so the caller can pipeline speech (Apple TTS) behind generation.
-    private func rawGenerate(messages: [Chat.Message], maxTokens: Int, temperature: Float,
+    private func rawGenerate(messages: sending [Chat.Message], maxTokens: Int, temperature: Float,
                              onPartial: ((String) -> Void)? = nil) async throws -> String {
         guard let container = modelContainer else { throw GemmaLocalError.modelNotLoaded }
         guard UIApplication.shared.applicationState != .background else { throw GemmaLocalError.backgrounded }
         let userInput = UserInput(chat: messages)
-        let stream = try await container.perform { (context: ModelContext) in
+        let stream = try await container.perform(nonSendable: userInput) { (context: ModelContext, userInput: UserInput) in
             let lmInput = try await context.processor.prepare(input: userInput)
             let params = GenerateParameters(maxTokens: maxTokens, temperature: temperature)
             return try MLXLMCommon.generate(input: lmInput, parameters: params, context: context)

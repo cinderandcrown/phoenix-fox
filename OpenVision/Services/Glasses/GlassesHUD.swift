@@ -80,6 +80,9 @@ final class GlassesHUD {
     }
 
     func present(_ card: HudCard) {
+        // Audio-only glasses never queue cards. A display that is not attached yet
+        // also skips the card; the spoken line already went out.
+        guard displayAvailable, display != nil else { return }
         cards.append(card)
         index = cards.count - 1
         Task { await renderCurrent() }

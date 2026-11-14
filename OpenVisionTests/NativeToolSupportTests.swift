@@ -14,7 +14,7 @@ final class NativeToolSupportTests: XCTestCase {
         let cal = Calendar.current
         let now = Date()
         let hour = 23, minute = 59
-        let date = NativeToolSupport.resolveDate(from: ["hour": hour, "minute": minute])
+        let date = NativeToolSupport.resolveDate(from: ["hour": JSONValue(hour), "minute": JSONValue(minute)])
         XCTAssertNotNil(date)
         let comps = cal.dateComponents([.hour, .minute], from: date!)
         XCTAssertEqual(comps.hour, hour)
@@ -27,7 +27,7 @@ final class NativeToolSupportTests: XCTestCase {
         let now = Date()
         // One hour ago (wrapping at midnight) has always already passed today.
         let pastHour = (cal.component(.hour, from: now) + 23) % 24
-        let date = NativeToolSupport.resolveDate(from: ["hour": pastHour, "minute": 0])
+        let date = NativeToolSupport.resolveDate(from: ["hour": JSONValue(pastHour), "minute": 0])
         XCTAssertNotNil(date)
         XCTAssertGreaterThan(date!, now, "a passed clock time must roll to the next occurrence")
         XCTAssertEqual(cal.component(.hour, from: date!), pastHour)

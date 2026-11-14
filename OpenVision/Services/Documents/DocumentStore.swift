@@ -12,7 +12,7 @@ import PDFKit
 import NaturalLanguage
 
 /// One imported document with its embedded chunks.
-struct StoredDocument: Codable, Identifiable {
+struct StoredDocument: Codable, Identifiable, Sendable {
     let id: String
     let title: String
     /// "pdf", "text", "url", "photo" — how it was imported (drives UI icons; url/photo are Phase 2).
@@ -21,25 +21,27 @@ struct StoredDocument: Codable, Identifiable {
     let chunks: [StoredChunk]
 }
 
-struct StoredChunk: Codable {
+struct StoredChunk: Codable, Sendable {
     let text: String
     let embedding: [Double]
 }
 
 /// A search hit handed back to the tool layer.
-struct DocumentHit {
+struct DocumentHit: Sendable {
     let documentTitle: String
     let text: String
     let score: Double
 }
 
-final class DocumentStore {
+/// Import and search run off the main thread. `cache` is only touched on `queue`, and the
+/// embedder is read-only after init, which is what the unchecked conformance stands on.
+final class DocumentStore: @unchecked Sendable {
     static let shared = DocumentStore()
 
     private let queue = DispatchQueue(label: "com.openvision.document-store")
     private var cache: [StoredDocument]?
-    /// Loaded once — NLEmbedding init reads a model from disk.
-    private lazy var embedder = NLEmbedding.sentenceEmbedding(for: .english)
+    /// Loaded once, when the store is first used — NLEmbedding init reads a model from disk.
+    private let embedder = NLEmbedding.sentenceEmbedding(for: .english)
 
     private var directory: URL {
         let docs = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]

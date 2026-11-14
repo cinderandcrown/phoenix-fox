@@ -19,11 +19,15 @@ import MWDATMotion
 final class GlassesControlSession {
     static let shared = GlassesControlSession()
 
-    private let wearables = Wearables.shared
+    /// Nil when the glasses SDK did not start. See `WearablesSDK`.
+    private var wearables: (any WearablesInterface)? { WearablesSDK.interface }
     private var session: DeviceSession?
     private var eventsTask: Task<Void, Never>?
     private var voice: VoiceInvocationsStream?
+    // A listener lives only as long as its token. A token that is dropped stops the callback.
+    private var voiceTokens: [any AnyListenerToken] = []
     private var speech: Speech?
+    private var speechToken: (any AnyListenerToken)?
     private var motion: Motion?
     private var deviceStateToken: (any AnyListenerToken)?
     private var suspendedForCamera = false
@@ -39,7 +43,7 @@ final class GlassesControlSession {
         // Adventurer (DeviceType.metaGlasses) has no display and no Neural Band.
         // An idle session here would compete with the camera session, which is the v1 path.
         // Display cards and band gestures start only when the hardware reports a display.
-        guard let device = wearables.deviceForIdentifier(id),
+        guard let device = wearables?.deviceForIdentifier(id),
               device.supportsDisplay() || device.deviceType().supportsDisplay else {
             GlassesLink.shared.record("v1 audio and camera only. No display session.")
             return
@@ -61,7 +65,7 @@ final class GlassesControlSession {
     func resumeAfterCamera() {
         suspendedForCamera = false
         guard let deviceId else { return }
-        guard let device = wearables.deviceForIdentifier(deviceId),
+        guard let device = wearables?.deviceForIdentifier(deviceId),
               device.supportsDisplay() || device.deviceType().supportsDisplay else { return }
         Task { await startControlSession(deviceId) }
     }
@@ -69,6 +73,7 @@ final class GlassesControlSession {
     func stop() {
         voice?.stop()
         voice = nil
+        voiceTokens = []
         deviceStateToken = nil
         tearDownSession()
         GlassesHUD.shared.detach()
@@ -78,7 +83,7 @@ final class GlassesControlSession {
 
     private func bindDeviceState(_ id: DeviceIdentifier) {
         deviceStateToken = nil
-        guard let device = wearables.deviceForIdentifier(id) else { return }
+        guard let device = wearables?.deviceForIdentifier(id) else { return }
         deviceStateToken = device.addDeviceStateListener { state in
             Task { @MainActor in
                 GlassesLink.shared.apply(state)
@@ -94,20 +99,26 @@ final class GlassesControlSession {
 
     private func startVoiceInvocations(_ id: DeviceIdentifier) {
         voice?.stop()
+        voiceTokens = []
+        guard let wearables else { return }
         do {
             let stream = try VoiceInvocationsStream(wearables: wearables)
-            _ = stream.invocationsPublisher.listen { invocation in
+            let invocations = stream.invocationsPublisher.listen { invocation in
                 guard let launch = invocation as? LaunchApp else { return }
                 Task { @MainActor in
                     NotificationCenter.default.post(name: .jarvisVoiceLaunch, object: nil)
                     _ = await launch.responseHandle.sendSuccess(actionOutput: nil)
                 }
             }
-            _ = stream.errorPublisher.listen { error in
-                GlassesLink.shared.record("Voice invocation: \(error.description)")
+            let errors = stream.errorPublisher.listen { error in
+                let line = error.description
+                Task { @MainActor in
+                    GlassesLink.shared.record("Voice invocation: \(line)")
+                }
             }
             try stream.start(deviceIdentifier: id)
             voice = stream
+            voiceTokens = [invocations, errors]
         } catch {
             GlassesLink.shared.record("Voice invocations not started: \(error.localizedDescription)")
         }
@@ -117,6 +128,7 @@ final class GlassesControlSession {
 
     private func startControlSession(_ id: DeviceIdentifier) async {
         tearDownSession()
+        guard let wearables else { return }
         let selector = SpecificDeviceSelector(device: id)
         do {
             let session = try wearables.createSession(deviceSelector: selector)
@@ -168,7 +180,7 @@ final class GlassesControlSession {
             guard let inputs = try session.addInputs() else { return }
             eventsTask = Task {
                 for await event in inputs.events {
-                    let signal = Self.signal(from: event)
+                    guard let signal = Self.signal(from: event) else { continue }
                     await MainActor.run {
                         GlassesHUD.shared.handle(signal)
                         if let name = Self.notification(for: signal) {
@@ -185,7 +197,7 @@ final class GlassesControlSession {
     private func attachSpeech(_ session: DeviceSession) {
         do {
             guard let speech = try session.addSpeech() else { return }
-            _ = speech.transcriptionPublisher.listen { result in
+            speechToken = speech.transcriptionPublisher.listen { result in
                 guard result.isFinal, !result.text.isEmpty else { return }
                 NotificationCenter.default.post(name: .jarvisGlassesTranscript, object: result.text)
             }
@@ -212,6 +224,7 @@ final class GlassesControlSession {
         eventsTask = nil
         speech?.stop()
         speech = nil
+        speechToken = nil
         motion?.stop()
         motion = nil
         GlassesHUD.shared.detach()
@@ -219,7 +232,8 @@ final class GlassesControlSession {
         session = nil
     }
 
-    private static func signal(from event: InputEvent) -> GestureSignal {
+    /// Nil for an input kind a later SDK adds, which is ignored until `GestureMap` knows it.
+    private static func signal(from event: InputEvent) -> GestureSignal? {
         let source: GestureSignal.Source
         switch event.source {
         case .captouch: source = .temple
@@ -230,8 +244,10 @@ final class GlassesControlSession {
         case .unknown: source = .unknown
         }
         let kind: GestureSignal.Kind
+        // DAT 1.0.1 InputEvent cases all carry a source and a timestamp.
         switch event {
-        case .select: kind = .select
+        case .select(_, _):
+            kind = .select
         case .nav(let direction, _, _):
             switch direction {
             case .up: kind = .nav(.up)
@@ -239,8 +255,10 @@ final class GlassesControlSession {
             case .left: kind = .nav(.left)
             case .right: kind = .nav(.right)
             }
-        case .back: kind = .back
-        case .button: kind = .action
+        case .back(_, _):
+            kind = .back
+        case .button(_, _, _):
+            kind = .action
         case .capture(let press, _, _):
             switch press {
             case .shortPress: kind = .capture(.short)
@@ -249,6 +267,8 @@ final class GlassesControlSession {
             }
         case .drag(let action, _, _, let dx, _, _, _):
             kind = action == .up ? .dragEnded(dx: dx) : .dragEnded(dx: 0)
+        @unknown default:
+            return nil
         }
         return GestureSignal(source: source, kind: kind)
     }

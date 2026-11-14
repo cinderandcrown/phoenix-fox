@@ -58,7 +58,9 @@ struct SystemMetrics: Sendable {
 
 enum SystemMetricsReader {
 
-    /// Take a reading. Safe from any thread; each field degrades to 0/nil rather than throwing.
+    /// Take a reading. Each field degrades to 0/nil rather than throwing. Main actor only,
+    /// because the battery level comes from UIKit.
+    @MainActor
     static func sample() -> SystemMetrics {
         SystemMetrics(
             memoryFootprintBytes: memoryFootprint(),
@@ -121,6 +123,7 @@ enum SystemMetricsReader {
 
     // MARK: - Battery
 
+    @MainActor
     private static func batteryLevel() -> Float? {
         // Enabling monitoring is idempotent and cheap; without it the level reads -1.
         if !UIDevice.current.isBatteryMonitoringEnabled {
