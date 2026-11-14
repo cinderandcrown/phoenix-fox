@@ -155,6 +155,18 @@ final class CaptionBookTests: XCTestCase {
         XCTAssertTrue(book.lines.isEmpty)
     }
 
+    func testTheAppsOwnVoiceIsNotCaptioned() {
+        var book = CaptionBook()
+        let start = Date(timeIntervalSince1970: 1_000)
+        book.update("see you at noon", at: start)
+        // Phoenix Fox speaks, and the recognizer hears it.
+        book.skip("see you at noon person ahead", at: start.addingTimeInterval(1))
+        book.skip("see you at noon person ahead on your left", at: start.addingTimeInterval(2))
+        book.update("see you at noon person ahead on your left thanks", at: start.addingTimeInterval(3))
+        XCTAssertEqual(book.lines.map(\.text), ["see you at noon"])
+        XCTAssertEqual(book.live, "thanks")
+    }
+
     func testTailWrapsForASmallDisplay() {
         var book = CaptionBook()
         book.update("the quick brown fox jumps over the lazy dog", at: start)
@@ -340,5 +352,26 @@ final class WalkingRouteTests: XCTestCase {
         XCTAssertEqual(Distance.spoken(1500, metric: true), "1.5 kilometers")
         XCTAssertEqual(Distance.spoken(30, metric: false), "100 feet")
         XCTAssertEqual(Distance.spoken(804.672, metric: false), "0.5 miles")
+    }
+}
+
+final class SceneLabelTests: XCTestCase {
+    func testLabelsAreMatchedByWholeWords() {
+        XCTAssertEqual(SceneLabels.sighting(for: "staircase"), Sighting(.stairs, label: "stairs"))
+        XCTAssertEqual(SceneLabels.sighting(for: "sports_car"), Sighting(.vehicle, label: "car"))
+        XCTAssertEqual(SceneLabels.sighting(for: "revolving door"), Sighting(.door, label: "door"))
+        XCTAssertEqual(SceneLabels.sighting(for: "crosswalk"), Sighting(.crossing, label: "crossing"))
+        XCTAssertNil(SceneLabels.sighting(for: "carpet"))
+        XCTAssertNil(SceneLabels.sighting(for: "shopping_cart"))
+        XCTAssertNil(SceneLabels.sighting(for: "sky"))
+    }
+
+    func testTheOfflineSummaryNamesWhatWasDetected() {
+        let summary = SceneSummary.sentence([
+            Sighting(.person, box: FrameBox(x: 0.45, y: 0.2, width: 0.1, height: 0.4)),
+            Sighting(.sign, label: "Platform 2"),
+        ])
+        XCTAssertEqual(summary, "Here is what I can detect on the phone. Person, ahead. Sign: Platform 2.")
+        XCTAssertTrue(SceneSummary.sentence([]).contains("I can't pick out"))
     }
 }

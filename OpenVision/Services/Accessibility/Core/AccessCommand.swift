@@ -112,7 +112,8 @@ enum AccessCommand: Equatable, Sendable {
             if ["back", "go back", "previous", "previous step", "last step"].contains(text) { return .taskBack }
             if ["again", "repeat", "repeat that", "say that again", "what was that", "repeat the step"].contains(text) { return .taskRepeat }
             if ["what step am i on", "which step", "how many steps are left"].contains(text) { return .taskWhere }
-            if ["stop", "quit", "stop the task", "stop task", "cancel the task", "end the task", "i'm stopping"].contains(text) { return .taskStop }
+            // A bare "stop" is left alone: it silences speech, and must not end the task.
+            if ["quit", "stop the task", "stop task", "cancel the task", "end the task", "i'm stopping"].contains(text) { return .taskStop }
         case .none:
             break
         }

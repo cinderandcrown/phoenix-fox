@@ -53,6 +53,14 @@ struct CaptionBook: Sendable {
         if live.count >= maxCharacters { commit(at: now) }
     }
 
+    /// Passes over everything the recognizer has so far, without captioning it. Used while
+    /// Phoenix Fox itself is speaking, so its own voice does not appear as a caption.
+    mutating func skip(_ sessionText: String, at now: Date) {
+        commit(at: now)
+        sessionWords = sessionText.split(whereSeparator: \.isWhitespace).count
+        closedWords = sessionWords
+    }
+
     /// Call on a timer. Ends the line when the speaker has paused.
     mutating func tick(at now: Date) {
         guard !live.isEmpty, let lastChange, now.timeIntervalSince(lastChange) >= pause else { return }

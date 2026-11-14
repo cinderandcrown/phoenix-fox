@@ -90,7 +90,7 @@ struct GuideNarrator: Sendable {
             let side = sighting.box.map { Side(midX: $0.midX) }
             let name = (sighting.label ?? sighting.kind.rawValue).lowercased()
             let key = "\(sighting.kind.rawValue)|\(name)|\(side?.rawValue ?? "")"
-            var group = groups[key] ?? Group(kind: sighting.kind, name: name, side: side)
+            var group = groups[key] ?? Group(kind: sighting.kind, name: name, written: sighting.label ?? name, side: side)
             group.count += 1
             group.near = group.near || Self.isNear(sighting)
             groups[key] = group
@@ -125,6 +125,8 @@ struct GuideNarrator: Sendable {
     private struct Group {
         var kind: Sighting.Kind
         var name: String
+        /// The label as it was written, for a sign, where capitals are part of the text.
+        var written: String
         var side: Side?
         var count = 0
         var near = false
@@ -148,7 +150,7 @@ struct GuideNarrator: Sendable {
             var words: String
             switch kind {
             case .sign:
-                words = "Sign: \(name)"
+                words = "Sign: \(written)"
             case .person where count > 1:
                 words = "\(Self.number(count)) people"
             case .person:
@@ -188,5 +190,47 @@ enum ObjectFinder {
         guard let box = first.box else { return "\(name) is in view, but I can't tell which side. Turn slowly and ask again." }
         let near = box.height > 0.7 || box.width > 0.6
         return "\(name) is \(Side(midX: box.midX).spoken)\(near ? ", close" : "")."
+    }
+}
+
+/// Turns the vision system's whole-frame labels into sightings Guide mode cares about.
+enum SceneLabels {
+    /// - Parameter label: A classifier label such as "staircase" or "sports_car". Labels are
+    ///   matched a word at a time, so "car" does not match "carpet" or "cart".
+    static func sighting(for label: String) -> Sighting? {
+        let words = Set(label.lowercased().split(whereSeparator: { $0 == "_" || $0 == " " || $0 == "-" }).map(String.init))
+        for (kind, names) in table {
+            if let name = names.first(where: { words.contains($0) }) {
+                return Sighting(kind, label: spoken[name] ?? name)
+            }
+        }
+        return nil
+    }
+
+    private static let table: [(Sighting.Kind, [String])] = [
+        (.stairs, ["stairs", "staircase", "stairway", "steps", "escalator"]),
+        (.crossing, ["crosswalk", "intersection", "crossing"]),
+        (.vehicle, ["car", "automobile", "bus", "truck", "van", "taxi", "motorcycle", "bicycle", "scooter", "train", "tram", "vehicle"]),
+        (.door, ["door", "doorway", "gate", "entrance"]),
+        (.obstacle, ["pole", "bollard", "cone", "barrier", "fence", "bench", "hydrant", "scaffolding", "ladder"]),
+    ]
+
+    private static let spoken = [
+        "staircase": "stairs", "stairway": "stairs", "steps": "stairs", "automobile": "car",
+        "doorway": "door", "crosswalk": "crossing", "intersection": "crossing",
+    ]
+}
+
+/// A plain description built only from what the phone detected, for when no model is
+/// available: no signal, no API key, no on-device model loaded.
+enum SceneSummary {
+    static func sentence(_ sightings: [Sighting]) -> String {
+        var narrator = GuideNarrator()
+        narrator.limit = 5
+        let callouts = narrator.callouts(for: sightings, at: Date(timeIntervalSince1970: 0))
+        guard !callouts.isEmpty else {
+            return "I can't pick out people, vehicles, stairs, doors, or signs here. For a fuller description I need a connection to the assistant."
+        }
+        return "Here is what I can detect on the phone. " + callouts.map(\.text).joined(separator: " ")
     }
 }

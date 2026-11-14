@@ -70,8 +70,11 @@ struct AccessibilitySettings: Codable, Equatable, Sendable {
         activityRecall = value(.activityRecall, base.activityRecall)
     }
 
-    /// How much longer than usual to wait through a pause in speech.
+    /// How much longer than usual to wait for a command to start or continue.
     var patience: Double { extraTime ? 2.5 : 1 }
+
+    /// Extra seconds of quiet allowed inside a sentence before it counts as finished.
+    var extraPause: TimeInterval { extraTime ? 2 : 0 }
 }
 
 /// The spoken list of what the suite can do, for "what can I say?".

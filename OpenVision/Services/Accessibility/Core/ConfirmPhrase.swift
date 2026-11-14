@@ -3,10 +3,10 @@
 
 // Understands a short yes or no.
 //
-// Anything that calls someone, saves a face, or deletes data waits for a spoken yes. The
-// answer has to be easy to give for a person whose speech is slow, slurred, or tiring, so
-// one short word is enough, and the recognizer's usual mishearings of those words count.
-// When a reply holds both a yes and a no, it is taken as no.
+// Anything that calls someone, saves a face, or deletes several things at once waits for a
+// spoken yes. The answer has to be easy to give for a person whose speech is slow, slurred,
+// or tiring, so one short word is enough, and the recognizer's usual mishearings of those
+// words count. When a reply holds both a yes and a no, it is taken as no.
 
 import Foundation
 
