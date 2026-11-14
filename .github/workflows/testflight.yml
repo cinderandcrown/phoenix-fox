@@ -59,6 +59,11 @@ jobs:
           EOF
           printf '%s\n' "$ASC_KEY_P8" > "$RUNNER_TEMP/AuthKey.p8"
 
+      - name: Disable SwiftPM prebuilts (swift-syntax prebuilts lack iOS slices)
+        run: |
+          defaults write com.apple.dt.Xcode IDEPackageEnablePrebuilts -bool NO
+          rm -rf .spm/prebuilts
+
       - name: Archive
         if: steps.gate.outputs.ready == 'true'
         env:
@@ -79,7 +84,6 @@ jobs:
             -authenticationKeyIssuerID "$ASC_ISSUER_ID" \
             -skipPackagePluginValidation \
             -skipMacroValidation \
-            SWIFT_ENABLE_EXPLICIT_MODULES=NO \
             DEVELOPMENT_TEAM="$APPLE_TEAM_ID" \
             CODE_SIGN_STYLE=Automatic \
             PRODUCT_BUNDLE_IDENTIFIER=com.cinderandcrown.phoenixfox

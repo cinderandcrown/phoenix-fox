@@ -42,6 +42,11 @@ jobs:
           xcodebuild -version
           xcrun --sdk iphonesimulator --show-sdk-version
 
+      - name: Disable SwiftPM prebuilts (swift-syntax prebuilts lack iOS slices)
+        run: |
+          defaults write com.apple.dt.Xcode IDEPackageEnablePrebuilts -bool NO
+          rm -rf .spm/prebuilts
+
       - name: Build for simulator
         run: |
           set -o pipefail
@@ -54,7 +59,6 @@ jobs:
             -derivedDataPath DerivedData \
             -skipPackagePluginValidation \
             -skipMacroValidation \
-            SWIFT_ENABLE_EXPLICIT_MODULES=NO \
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGN_IDENTITY= \
