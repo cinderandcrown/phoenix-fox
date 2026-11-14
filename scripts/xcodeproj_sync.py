@@ -102,18 +102,37 @@ class Project:
         return listed
 
     def sources_phase(self, target: str) -> str:
-        native = re.search(
-            r"\t\t[0-9A-F]{24} /\* [^*]*? \*/ = \{\n\t\t\tisa = PBXNativeTarget;.*?buildPhases = \((.*?)\);"
-            r".*?\t\t\tname = " + re.escape(target) + ";",
+        """The id of the Sources build phase of the target with this name."""
+        section = self.text[self.text.index("/* Begin PBXNativeTarget section */"):self.text.index("/* End PBXNativeTarget section */")]
+        # One block per target. Matching across the whole section would pair one target's
+        # phases with a later target's name.
+        for block in re.findall(r"\t\t[0-9A-F]{24} /\* [^\n]*? \*/ = \{\n.*?\n\t\t\};\n", section, re.S):
+            if not re.search(r"\n\t\t\tname = " + re.escape(target) + r";\n", block):
+                continue
+            phases = re.search(r"buildPhases = \((.*?)\);", block, re.S)
+            phase = re.search(r"([0-9A-F]{24}) /\* Sources \*/", phases.group(1)) if phases else None
+            if not phase:
+                raise SystemExit(f"Target {target} has no Sources phase.")
+            return phase.group(1)
+        raise SystemExit(f"No target named {target} in the project.")
+
+    def phase_span(self, phase: str) -> tuple[int, int]:
+        """Where the file list of a Sources phase starts and ends in the text."""
+        files = re.search(
+            r"\t\t" + phase + r" /\* Sources \*/ = \{\n\t\t\tisa = PBXSourcesBuildPhase;[^}]*?files = \(\n(.*?)\t\t\t\);",
             self.text,
             re.S,
         )
-        if not native:
-            raise SystemExit(f"No target named {target} in the project.")
-        phase = re.search(r"([0-9A-F]{24}) /\* Sources \*/", native.group(1))
-        if not phase:
-            raise SystemExit(f"Target {target} has no Sources phase.")
-        return phase.group(1)
+        if not files:
+            raise SystemExit(f"Sources phase {phase} is not in the project.")
+        return files.start(1), files.end(1)
+
+    def compiled_references(self, phase: str) -> set[str]:
+        """The file references a Sources phase compiles."""
+        start, end = self.phase_span(phase)
+        build_files = re.findall(r"([0-9A-F]{24}) /\*", self.text[start:end])
+        owners = dict(re.findall(r"\t\t([0-9A-F]{24}) /\* [^\n]*? \*/ = \{isa = PBXBuildFile; fileRef = ([0-9A-F]{24})", self.text))
+        return {owners[item] for item in build_files if item in owners}
 
     # --- writing -------------------------------------------------------------------
 
@@ -156,33 +175,36 @@ class Project:
             f"\t\t{reference} /* {name} */ = {{isa = PBXFileReference; lastKnownFileType = sourcecode.swift; "
             f"path = {name}; sourceTree = \"<group>\"; }};\n",
         )
+        self.append_child(group_id, reference, name)
+        self.compile(reference, build_file, name, target)
+
+    def compile(self, reference: str, build_file: str, name: str, target: str) -> None:
+        """Lists a file reference in the Sources phase of `target`, and in no other."""
+        self.stop_compiling(reference)
         self.insert_before_section_end(
             "PBXBuildFile",
             f"\t\t{build_file} /* {name} in Sources */ = {{isa = PBXBuildFile; fileRef = {reference} /* {name} */; }};\n",
         )
-        self.append_child(group_id, reference, name)
-
-        phase = self.sources_phase(target)
-        files = re.search(
-            r"\t\t" + phase + r" /\* Sources \*/ = \{\n\t\t\tisa = PBXSourcesBuildPhase;.*?files = \(\n(.*?)\t\t\t\);",
-            self.text,
-            re.S,
-        )
-        end = files.end(1)
+        _, end = self.phase_span(self.sources_phase(target))
         self.text = self.text[:end] + f"\t\t\t\t{build_file} /* {name} in Sources */,\n" + self.text[end:]
 
-    def remove_file(self, reference: str) -> None:
+    def stop_compiling(self, reference: str) -> None:
         build_files = re.findall(
             r"\t\t([0-9A-F]{24}) /\* [^\n]*? \*/ = \{isa = PBXBuildFile; fileRef = " + reference + r"[ ;]", self.text
         )
-        for identifier in [reference, *build_files]:
+        for identifier in build_files:
             self.text = re.sub(r"[^\n]*\b" + identifier + r"\b[^\n]*\n", "", self.text)
+
+    def remove_file(self, reference: str) -> None:
+        self.stop_compiling(reference)
+        self.text = re.sub(r"[^\n]*\b" + reference + r"\b[^\n]*\n", "", self.text)
 
 
 def sync(check_only: bool) -> int:
     project = Project(PROJECT.read_text())
     added: list[str] = []
     removed: list[str] = []
+    moved: list[str] = []
 
     for source_root, target in TARGETS.items():
         on_disk = {
@@ -198,18 +220,29 @@ def sync(check_only: bool) -> int:
             removed.append(relative)
             if not check_only:
                 project.remove_file(listed[relative])
+        # A file can be listed and still not be built by its own target.
+        compiled = project.compiled_references(project.sources_phase(target))
+        for relative in sorted(on_disk & listed.keys()):
+            if listed[relative] in compiled:
+                continue
+            moved.append(f"{relative} -> {target}")
+            if not check_only:
+                project.compile(listed[relative], object_id("build", relative), relative.split("/")[-1], target)
 
     for relative in added:
         print(f"{'missing from project' if check_only else 'added'}: {relative}")
     for relative in removed:
         print(f"{'listed but not on disk' if check_only else 'removed'}: {relative}")
+    for entry in moved:
+        print(f"{'not compiled by its target' if check_only else 'now compiled by its target'}: {entry}")
 
+    changed = bool(added or removed or moved)
     if check_only:
-        return 1 if added or removed else 0
-    if added or removed:
+        return 1 if changed else 0
+    if changed:
         PROJECT.write_text(project.text)
     else:
-        print("Project already lists every Swift source.")
+        print("Project already lists every Swift source in its own target.")
     return 0
 
 

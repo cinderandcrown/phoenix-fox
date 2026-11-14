@@ -154,13 +154,13 @@
 		C21AA100000000000000000A /* WhisperTranscriber.swift in Sources */ = {isa = PBXBuildFile; fileRef = C21AA200000000000000000A /* WhisperTranscriber.swift */; };
 		C21AA100000000000000000B /* OwnAssistantSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C21AA200000000000000000B /* OwnAssistantSettingsView.swift */; };
 		E21AA3000000000000000001 /* WhisperKit in Frameworks */ = {isa = PBXBuildFile; productRef = E21AA2000000000000000001 /* WhisperKit */; };
+		1E2FD51A71E410A32EDE2E74 /* JSONValueTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B1BCE95BFCBFB8E8855E0F8 /* JSONValueTests.swift */; };
+		339637E3354B17658B60A4DA /* SpeechPipelineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DE8BB8877F17EC12EE63410A /* SpeechPipelineTests.swift */; };
+		2CA4771EB603F66271733563 /* IncomingLinkTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B04CAE019F2258540EAB3B9 /* IncomingLinkTests.swift */; };
+		35C1B21220F9545774175F08 /* IncomingLink.swift in Sources */ = {isa = PBXBuildFile; fileRef = D721D43D709E9412709ACC90 /* IncomingLink.swift */; };
 		9DD6F1F0D3656875244E01C4 /* PCMConversion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7F04F7FDE8E33F931110B0CF /* PCMConversion.swift */; };
 		CAB72119CBBE5DAE10ECB1B9 /* JSONValue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21B9586BAD796C456BA89265 /* JSONValue.swift */; };
 		8BF888E85180E71C520D45D0 /* ResumeOnce.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07CBBA601F8B713B0B004752 /* ResumeOnce.swift */; };
-		1E2FD51A71E410A32EDE2E74 /* JSONValueTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B1BCE95BFCBFB8E8855E0F8 /* JSONValueTests.swift */; };
-		339637E3354B17658B60A4DA /* SpeechPipelineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DE8BB8877F17EC12EE63410A /* SpeechPipelineTests.swift */; };
-		35C1B21220F9545774175F08 /* IncomingLink.swift in Sources */ = {isa = PBXBuildFile; fileRef = D721D43D709E9412709ACC90 /* IncomingLink.swift */; };
-		2CA4771EB603F66271733563 /* IncomingLinkTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B04CAE019F2258540EAB3B9 /* IncomingLinkTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -990,12 +990,8 @@
 				5A0CE2F7458D3C9E63627724 /* SubscriptionAuthTests.swift in Sources */,
 				361AD2F1AB7C557D47CD125D /* TextChunkingTests.swift in Sources */,
 				D31AA1000000000000000004 /* MindMeldTests.swift in Sources */,
-				9DD6F1F0D3656875244E01C4 /* PCMConversion.swift in Sources */,
-				CAB72119CBBE5DAE10ECB1B9 /* JSONValue.swift in Sources */,
-				8BF888E85180E71C520D45D0 /* ResumeOnce.swift in Sources */,
 				1E2FD51A71E410A32EDE2E74 /* JSONValueTests.swift in Sources */,
 				339637E3354B17658B60A4DA /* SpeechPipelineTests.swift in Sources */,
-				35C1B21220F9545774175F08 /* IncomingLink.swift in Sources */,
 				2CA4771EB603F66271733563 /* IncomingLinkTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1122,6 +1118,10 @@
 				79C519EDCA508C00DAAB1F6E /* VoiceSettingsView.swift in Sources */,
 				1339DF5D7DB28F0048D95846 /* WebSearchService.swift in Sources */,
 				53B484EF0A2017B9718AC548 /* WebSearchSettingsView.swift in Sources */,
+				35C1B21220F9545774175F08 /* IncomingLink.swift in Sources */,
+				9DD6F1F0D3656875244E01C4 /* PCMConversion.swift in Sources */,
+				CAB72119CBBE5DAE10ECB1B9 /* JSONValue.swift in Sources */,
+				8BF888E85180E71C520D45D0 /* ResumeOnce.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

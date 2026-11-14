@@ -177,17 +177,22 @@ final class SessionRecorder: ObservableObject, @unchecked Sendable {
             self.playbackInput?.markAsFinished()
             // Snapshot on the writer queue — the finishWriting completion runs elsewhere.
             let intervals = self.didCapturePlayback ? self.speechIntervals : []
+            // Snapshot the file as well: a new recording may start before this one finishes.
+            let url = self.outputURL
+            // AVAssetWriter is not Sendable, but reading its status inside its own
+            // completion handler is the documented way to learn how the write ended.
+            nonisolated(unsafe) let finishing = writer
             writer.finishWriting {
-                if writer.status == .completed, let url = self.outputURL {
-                    if intervals.isEmpty {
-                        // No assistant speech captured — nothing to merge, ship the raw file.
-                        self.saveToPhotos(url)
-                    } else {
-                        Task { await self.mergeAndSave(rawURL: url, speechIntervals: intervals) }
-                    }
-                } else {
-                    NSLog("[Recorder] finishWriting failed: %@", String(describing: writer.error))
+                guard finishing.status == .completed, let url else {
+                    NSLog("[Recorder] finishWriting failed: %@", String(describing: finishing.error))
                     self.finish(url: nil)
+                    return
+                }
+                if intervals.isEmpty {
+                    // No assistant speech captured — nothing to merge, ship the raw file.
+                    self.saveToPhotos(url)
+                } else {
+                    Task { await self.mergeAndSave(rawURL: url, speechIntervals: intervals) }
                 }
             }
         }
