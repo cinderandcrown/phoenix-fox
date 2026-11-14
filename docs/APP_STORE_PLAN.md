@@ -1,8 +1,8 @@
 # App Store plan
 
 Publisher: **Cinder & Crown LLC** (Texas).  
-Public name: **Phoenix Fox**.  
-Spoken wake word and voice nickname: **Jarvis**. That name is not the App Store name, the home-screen name, or the publisher.  
+Public name: **Phoenix Fox**. Bundle ID: `com.cinderandcrown.phoenixfox`. Meta App ID: `1651172483404286` (Wearables project Phoenix Fox, organization Cinder and Crown LLC).  
+Spoken wake word and voice nickname: **Jarvis**. That name is not the App Store name, the home-screen name, the bundle id, or the publisher.  
 Position: any AI, your glasses. Not a Meta AI client and not tied to one model vendor.
 
 This is a plan, not a filing. Nothing here has been submitted to Apple or Meta.

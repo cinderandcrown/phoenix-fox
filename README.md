@@ -204,7 +204,7 @@ brew install xcodegen                          # one-time
 xcodebuild -downloadComponent MetalToolchain   # one-time (~688 MB, for the on-device AI shaders)
 
 xcodegen generate
-open OpenVision.xcodeproj
+open PhoenixFox.xcodeproj
 ```
 
 1. Enable **Developer Mode** in the Meta AI app (Settings → About → tap the version 5×)
@@ -487,7 +487,7 @@ OpenVision/
 
 ```bash
 # Build for device
-xcodebuild -scheme OpenVision -destination 'platform=iOS,name=iPhone' build
+xcodebuild -scheme PhoenixFox -project PhoenixFox.xcodeproj -destination 'platform=iOS,name=iPhone' build
 
 # Install on connected device
 xcrun devicectl device install app --device <DEVICE_ID> \

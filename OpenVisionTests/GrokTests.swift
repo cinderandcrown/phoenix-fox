@@ -4,7 +4,7 @@
 
 import AVFoundation
 import XCTest
-@testable import OpenVision
+@testable import PhoenixFox
 
 final class GrokTests: XCTestCase {
 

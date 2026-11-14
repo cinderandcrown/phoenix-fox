@@ -16,9 +16,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "9418DE699CD106BA6A8A4B7E"
-               BuildableName = "OpenVision.app"
-               BlueprintName = "OpenVision"
-               ReferencedContainer = "container:OpenVision.xcodeproj">
+               BuildableName = "PhoenixFox.app"
+               BlueprintName = "PhoenixFox"
+               ReferencedContainer = "container:PhoenixFox.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -34,9 +34,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "9418DE699CD106BA6A8A4B7E"
-            BuildableName = "OpenVision.app"
-            BlueprintName = "OpenVision"
-            ReferencedContainer = "container:OpenVision.xcodeproj">
+            BuildableName = "PhoenixFox.app"
+            BlueprintName = "PhoenixFox"
+            ReferencedContainer = "container:PhoenixFox.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
       <Testables>
@@ -46,9 +46,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "60AF4ED566AAE248296380F1"
-               BuildableName = "OpenVisionTests.xctest"
-               BlueprintName = "OpenVisionTests"
-               ReferencedContainer = "container:OpenVision.xcodeproj">
+               BuildableName = "PhoenixFoxTests.xctest"
+               BlueprintName = "PhoenixFoxTests"
+               ReferencedContainer = "container:PhoenixFox.xcodeproj">
             </BuildableReference>
          </TestableReference>
       </Testables>
@@ -70,9 +70,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "9418DE699CD106BA6A8A4B7E"
-            BuildableName = "OpenVision.app"
-            BlueprintName = "OpenVision"
-            ReferencedContainer = "container:OpenVision.xcodeproj">
+            BuildableName = "PhoenixFox.app"
+            BlueprintName = "PhoenixFox"
+            ReferencedContainer = "container:PhoenixFox.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
       <CommandLineArguments>
@@ -93,9 +93,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "9418DE699CD106BA6A8A4B7E"
-            BuildableName = "OpenVision.app"
-            BlueprintName = "OpenVision"
-            ReferencedContainer = "container:OpenVision.xcodeproj">
+            BuildableName = "PhoenixFox.app"
+            BlueprintName = "PhoenixFox"
+            ReferencedContainer = "container:PhoenixFox.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
       <CommandLineArguments>

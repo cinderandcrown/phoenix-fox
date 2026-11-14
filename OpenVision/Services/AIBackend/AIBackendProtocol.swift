@@ -47,7 +47,9 @@ enum AIBackendRegistry {
         case .geminiLive: return GeminiLiveService.shared
         case .openAI: return OpenAIService.shared
         case .grok: return GrokService.shared
+        case .claude: return ClaudeService.shared
         case .hermes: return HermesService.shared
+        case .ownAssistant: return OwnAssistantService.shared
         case .appleFoundation: return AppleFoundationService.shared
         case .localGemma: return GemmaLocalService.shared
         }

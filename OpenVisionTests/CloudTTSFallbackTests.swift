@@ -4,7 +4,7 @@
 // really plays, so these run on a device or simulator with audio output.
 
 import XCTest
-@testable import OpenVision
+@testable import PhoenixFox
 
 @MainActor
 final class CloudTTSFallbackTests: XCTestCase {

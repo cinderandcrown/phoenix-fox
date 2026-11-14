@@ -95,11 +95,11 @@
 
     <!-- Microphone for voice input -->
     <key>NSMicrophoneUsageDescription</key>
-    <string>Phoenix Fox needs the microphone to hear you after you say Jarvis.</string>
+    <string>Phoenix Fox uses the glasses microphone so you can talk to your assistant hands-free.</string>
 
     <!-- Camera for photo capture -->
     <key>NSCameraUsageDescription</key>
-    <string>Phoenix Fox uses the camera when you ask Jarvis to look.</string>
+    <string>Phoenix Fox uses the glasses camera so your assistant can see what you see when you ask it to.</string>
 
     <!-- Speech recognition for wake word detection -->
     <key>NSSpeechRecognitionUsageDescription</key>
@@ -146,11 +146,11 @@
     <key>MWDAT</key>
     <dict>
         <key>MetaAppID</key>
-        <string>$(META_APP_ID)</string>
+        <string>1651172483404286</string>
         <key>AppLinkURLScheme</key>
         <string>$(APP_LINK_URL_SCHEME)://</string>
         <key>ClientToken</key>
-        <string>$(CLIENT_TOKEN)</string>
+        <string>$(META_CLIENT_TOKEN)</string>
         <key>TeamID</key>
         <string>$(DEVELOPMENT_TEAM)</string>
     </dict>

@@ -17,6 +17,8 @@ enum SettingsSecrets {
         ("geminiAPIKey", \.geminiAPIKey),
         ("openAIAPIKey", \.openAIAPIKey),
         ("grokAPIKey", \.grokAPIKey),
+        ("claudeAPIKey", \.claudeAPIKey),
+        ("relayToken", \.relayToken),
         ("hermesAPIKey", \.hermesAPIKey),
         ("tavilyAPIKey", \.tavilyAPIKey),
         ("telemetryToken", \.telemetryToken),

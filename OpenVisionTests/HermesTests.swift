@@ -2,7 +2,7 @@
 // Hermes server address handling, the plain-http warning, and the capabilities check.
 
 import XCTest
-@testable import OpenVision
+@testable import PhoenixFox
 
 final class HermesTests: XCTestCase {
 

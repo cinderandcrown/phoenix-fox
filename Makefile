@@ -44,15 +44,15 @@ check-config:
 
 # Open in Xcode
 open:
-	@if [ -d "OpenVision.xcodeproj" ]; then \
-		open OpenVision.xcodeproj; \
+	@if [ -d "PhoenixFox.xcodeproj" ]; then \
+		open PhoenixFox.xcodeproj; \
 	else \
 		echo "❌ Project not found. Run 'make setup' first."; \
 	fi
 
 # Clean generated files
 clean:
-	@rm -rf OpenVision.xcodeproj
+	@rm -rf PhoenixFox.xcodeproj
 	@rm -rf .build
 	@rm -rf DerivedData
 	@echo "✅ Cleaned!"

@@ -10,6 +10,8 @@ enum AIBackendType: String, Codable, CaseIterable {
     case openAI = "openai"
     case grok = "grok"
     case hermes = "hermes"
+    case claude = "claude"
+    case ownAssistant = "own_assistant"
     case appleFoundation = "apple_foundation"
     case localGemma = "local_gemma"
 
@@ -20,6 +22,8 @@ enum AIBackendType: String, Codable, CaseIterable {
         case .openAI: return "OpenAI"
         case .grok: return "Grok"
         case .hermes: return "Hermes"
+        case .claude: return "Claude"
+        case .ownAssistant: return "Your assistants"
         case .appleFoundation: return "Apple Intelligence"
         case .localGemma: return "Local (MLX)"
         }
@@ -37,6 +41,10 @@ enum AIBackendType: String, Codable, CaseIterable {
             return "xAI Grok — cloud text + vision (API key or SuperGrok)"
         case .hermes:
             return "Your Hermes Agent server — its tools, memory and skills"
+        case .claude:
+            return "Anthropic Claude — cloud text and vision"
+        case .ownAssistant:
+            return "Fire Fox, Indy, Driver, and Rally through your relay"
         case .appleFoundation:
             return "On-device Apple model — private, no download (iOS 26+)"
         case .localGemma:
@@ -51,6 +59,8 @@ enum AIBackendType: String, Codable, CaseIterable {
         case .openAI: return "sparkles"
         case .grok: return "bolt"
         case .hermes: return "server.rack"
+        case .claude: return "sparkle"
+        case .ownAssistant: return "person.2"
         case .appleFoundation: return "apple.logo"
         case .localGemma: return "cpu"
         }
@@ -162,8 +172,8 @@ enum TTSEngineType: String, Codable, CaseIterable, Identifiable {
 struct AppSettings: Codable, Equatable {
     // MARK: - AI Backend Selection
 
-    /// Which AI backend to use
-    var aiBackend: AIBackendType = .openClaw
+    /// Which AI backend to use. Phoenix Fox starts on the owner's relay assistants.
+    var aiBackend: AIBackendType = .ownAssistant
 
     // MARK: - OpenClaw Configuration
 
@@ -219,6 +229,26 @@ struct AppSettings: Codable, Equatable {
 
     /// Voice for the Grok speech engine (xAI TTS voice id, e.g. "ara").
     var grokVoice: String = CloudTTSService.grokDefaultVoice
+
+    // MARK: - Claude
+
+    /// Anthropic API key. Stored in the Keychain, not in settings.json.
+    var claudeAPIKey: String = ""
+    var claudeModel: String = InstantModels.claude
+
+    // MARK: - Own assistants (relay)
+
+    /// Base URL of the relay, no trailing slash. Empty until entered in Settings.
+    var relayURL: String = ""
+    /// Bearer token the app sends to the relay. Keychain only.
+    var relayToken: String = ""
+    /// Short questions use the cheap instant model. Tasks go to the relay.
+    var jarvisFastMode: Bool = true
+    /// Spoken persona may say "sir". Off until turned on.
+    var jarvisAddressAsSir: Bool = false
+    /// Extra frames with "look at this". Off to keep uploads small.
+    var jarvisLookClip: Bool = false
+    var assistantBots: [AssistantBot] = AssistantRoster.seed
 
     // MARK: - Hermes Configuration
 
@@ -365,6 +395,14 @@ struct AppSettings: Codable, Equatable {
         }
     }
 
+    var isClaudeConfigured: Bool { !claudeAPIKey.isEmpty }
+
+    /// Relay URL and app token. The token never lives in the repo.
+    var isOwnAssistantConfigured: Bool {
+        let url = relayURL.trimmingCharacters(in: .whitespacesAndNewlines)
+        return (url.hasPrefix("https://") || url.hasPrefix("http://")) && !relayToken.isEmpty
+    }
+
     /// Whether Hermes is configured (server URL and API key)
     var isHermesConfigured: Bool {
         switch hermesAuthMode {
@@ -389,6 +427,8 @@ struct AppSettings: Codable, Equatable {
         case .openAI: return isOpenAIConfigured
         case .grok: return isGrokConfigured
         case .hermes: return isHermesConfigured
+        case .claude: return isClaudeConfigured
+        case .ownAssistant: return isOwnAssistantConfigured
         case .appleFoundation: return true   // OS-managed; availability checked at connect
         case .localGemma: return isLocalGemmaConfigured
         }

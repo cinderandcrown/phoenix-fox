@@ -58,7 +58,7 @@ final class GrokService: ObservableObject {
     }
 
     /// Send a prompt (optionally with an image) and deliver the reply via `onAgentMessage`.
-    func sendMessage(_ text: String, imageData: Data? = nil) async throws {
+    func sendMessage(_ text: String, imageData: Data? = nil, system: String? = nil) async throws {
         guard settings.isGrokConfigured else { throw GrokError.notConfigured }
         // Record the utterance for the tool registry's relative-time guard.
         NativeToolContext.shared.set(text)
@@ -66,9 +66,9 @@ final class GrokService: ObservableObject {
         onProcessingChanged?(true)
         defer { onProcessingChanged?(false) }
 
-        let model = settings.grokModel.isEmpty ? Self.defaultModel : settings.grokModel
+        let model = InstantModels.id(for: .grok, settings: settings)
         let reply = try await CloudChat.chatCompletionsReply(
-            text: text, imageData: imageData, model: model, label: "Grok"
+            text: text, imageData: imageData, model: model, label: "Grok", system: system
         ) { body in
             try await Self.send { bearer in
                 var request = URLRequest(url: URL(string: "\(Self.baseURL)/chat/completions")!)

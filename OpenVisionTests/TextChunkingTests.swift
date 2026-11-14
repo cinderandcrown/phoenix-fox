@@ -2,7 +2,7 @@
 // Sentence-boundary detection behind streamed TTS (speak completed sentences while generating).
 
 import XCTest
-@testable import OpenVision
+@testable import PhoenixFox
 
 final class TextChunkingTests: XCTestCase {
 

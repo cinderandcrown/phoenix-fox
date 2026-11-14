@@ -136,6 +136,18 @@
 		B11AA1000000000000000002 /* MWDATInputs in Frameworks */ = {isa = PBXBuildFile; productRef = B11AA2000000000000000002 /* MWDATInputs */; };
 		B11AA1000000000000000003 /* MWDATSpeech in Frameworks */ = {isa = PBXBuildFile; productRef = B11AA2000000000000000003 /* MWDATSpeech */; };
 		B11AA1000000000000000004 /* MWDATMotion in Frameworks */ = {isa = PBXBuildFile; productRef = B11AA2000000000000000004 /* MWDATMotion */; };
+		C21AA1000000000000000001 /* AssistantRoster.swift in Sources */ = {isa = PBXBuildFile; fileRef = C21AA2000000000000000001 /* AssistantRoster.swift */; };
+		C21AA1000000000000000002 /* BrainCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = C21AA2000000000000000002 /* BrainCatalog.swift */; };
+		C21AA1000000000000000003 /* ClaudeService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C21AA2000000000000000003 /* ClaudeService.swift */; };
+		C21AA1000000000000000004 /* FastModeRouter.swift in Sources */ = {isa = PBXBuildFile; fileRef = C21AA2000000000000000004 /* FastModeRouter.swift */; };
+		C21AA1000000000000000005 /* ImageBudget.swift in Sources */ = {isa = PBXBuildFile; fileRef = C21AA2000000000000000005 /* ImageBudget.swift */; };
+		C21AA1000000000000000006 /* JarvisPersona.swift in Sources */ = {isa = PBXBuildFile; fileRef = C21AA2000000000000000006 /* JarvisPersona.swift */; };
+		C21AA1000000000000000007 /* OwnAssistantService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C21AA2000000000000000007 /* OwnAssistantService.swift */; };
+		C21AA1000000000000000008 /* PhoenixFoxTurn.swift in Sources */ = {isa = PBXBuildFile; fileRef = C21AA2000000000000000008 /* PhoenixFoxTurn.swift */; };
+		C21AA1000000000000000009 /* UtterancePCMBuffer.swift in Sources */ = {isa = PBXBuildFile; fileRef = C21AA2000000000000000009 /* UtterancePCMBuffer.swift */; };
+		C21AA100000000000000000A /* WhisperTranscriber.swift in Sources */ = {isa = PBXBuildFile; fileRef = C21AA200000000000000000A /* WhisperTranscriber.swift */; };
+		C21AA100000000000000000B /* OwnAssistantSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C21AA200000000000000000B /* OwnAssistantSettingsView.swift */; };
+		E21AA3000000000000000001 /* WhisperKit in Frameworks */ = {isa = PBXBuildFile; productRef = E21AA2000000000000000001 /* WhisperKit */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -144,7 +156,7 @@
 			containerPortal = A599D5BA1E0116337F64521E /* Project object */;
 			proxyType = 1;
 			remoteGlobalIDString = 9418DE699CD106BA6A8A4B7E;
-			remoteInfo = OpenVision;
+			remoteInfo = PhoenixFox;
 		};
 /* End PBXContainerItemProxy section */
 
@@ -204,7 +216,7 @@
 		80C62B272069858FF4763C8E /* DocumentFocus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DocumentFocus.swift; sourceTree = "<group>"; };
 		83CCAB822E3A2D55FB3C338A /* CalendarTool.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarTool.swift; sourceTree = "<group>"; };
 		856B3530E83149C3CA2D2246 /* DocumentChunking.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DocumentChunking.swift; sourceTree = "<group>"; };
-		8601201988376029090B1EAA /* OpenVision.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = OpenVision.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		8601201988376029090B1EAA /* PhoenixFox.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = PhoenixFox.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		8B7B8054D97114E3269E13EC /* HermesGateway.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HermesGateway.swift; sourceTree = "<group>"; };
 		8D8637C15D8F2B68599FA38D /* OpenVision.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = OpenVision.entitlements; sourceTree = "<group>"; };
 		8DD25C635E9A37E7D6CA7677 /* GlassesManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlassesManager.swift; sourceTree = "<group>"; };
@@ -217,7 +229,7 @@
 		A7FD739C48CC956C36A23897 /* SystemMetrics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemMetrics.swift; sourceTree = "<group>"; };
 		A82F52D647139EC398E043BF /* NeuralSpeech.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NeuralSpeech.swift; sourceTree = "<group>"; };
 		A900F00D2451513A29BC4C6F /* AIBackendProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIBackendProtocol.swift; sourceTree = "<group>"; };
-		ACA3BB4BDC73148785327C9A /* OpenVisionTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = OpenVisionTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		ACA3BB4BDC73148785327C9A /* PhoenixFoxTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = PhoenixFoxTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		B50F1F8FB3F5F4D700EA591B /* SettingsSecrets.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsSecrets.swift; sourceTree = "<group>"; };
 		ADC230E2AE44E5132DC5AB01 /* SettingsManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsManager.swift; sourceTree = "<group>"; };
 		ADCFF581A7AE50FBF35EA257 /* GeminiLiveService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeminiLiveService.swift; sourceTree = "<group>"; };
@@ -272,6 +284,17 @@
 		A11AA2000000000000000003 /* GlassesControlSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlassesControlSession.swift; sourceTree = "<group>"; };
 		A11AA2000000000000000004 /* GlassesProductTarget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlassesProductTarget.swift; sourceTree = "<group>"; };
 		A11AA2000000000000000005 /* GlassesLink.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlassesLink.swift; sourceTree = "<group>"; };
+		C21AA2000000000000000001 /* AssistantRoster.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssistantRoster.swift; sourceTree = "<group>"; };
+		C21AA2000000000000000002 /* BrainCatalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BrainCatalog.swift; sourceTree = "<group>"; };
+		C21AA2000000000000000003 /* ClaudeService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClaudeService.swift; sourceTree = "<group>"; };
+		C21AA2000000000000000004 /* FastModeRouter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FastModeRouter.swift; sourceTree = "<group>"; };
+		C21AA2000000000000000005 /* ImageBudget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageBudget.swift; sourceTree = "<group>"; };
+		C21AA2000000000000000006 /* JarvisPersona.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JarvisPersona.swift; sourceTree = "<group>"; };
+		C21AA2000000000000000007 /* OwnAssistantService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OwnAssistantService.swift; sourceTree = "<group>"; };
+		C21AA2000000000000000008 /* PhoenixFoxTurn.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhoenixFoxTurn.swift; sourceTree = "<group>"; };
+		C21AA2000000000000000009 /* UtterancePCMBuffer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UtterancePCMBuffer.swift; sourceTree = "<group>"; };
+		C21AA200000000000000000A /* WhisperTranscriber.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WhisperTranscriber.swift; sourceTree = "<group>"; };
+		C21AA200000000000000000B /* OwnAssistantSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OwnAssistantSettingsView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -293,6 +316,7 @@
 				67FDB8417ED64F0FF8B576F5 /* HuggingFace in Frameworks */,
 				08440F1603742AB28B2B4815 /* Tokenizers in Frameworks */,
 				CE2920AEAD476DFA9953169C /* KokoroSwift in Frameworks */,
+				E21AA3000000000000000001 /* WhisperKit in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -310,6 +334,7 @@
 				C1BFC8380B5BDA0778E04EAB /* GemmaSettingsView.swift */,
 				ED25EC5E800C216965A50F8A /* GlassesSettingsView.swift */,
 				179C0876BB1891478A806702 /* GrokSettingsView.swift */,
+				C21AA200000000000000000B /* OwnAssistantSettingsView.swift */,
 				6102B753E2737E698B780C8E /* HermesSettingsView.swift */,
 				4F363A639A7050AFBDFAF486 /* KokoroSettingsView.swift */,
 				484468B5604EFF4051074762 /* MemoriesView.swift */,
@@ -342,7 +367,7 @@
 			path = Models;
 			sourceTree = "<group>";
 		};
-		09EB633ED6C10098514FA100 /* OpenVision */ = {
+		09EB633ED6C10098514FA100 /* PhoenixFox */ = {
 			isa = PBXGroup;
 			children = (
 				6F88A349C5879912D099B630 /* App */,
@@ -413,8 +438,8 @@
 		36F672D5AB5BCE7D4C73AA30 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				8601201988376029090B1EAA /* OpenVision.app */,
-				ACA3BB4BDC73148785327C9A /* OpenVisionTests.xctest */,
+				8601201988376029090B1EAA /* PhoenixFox.app */,
+				ACA3BB4BDC73148785327C9A /* PhoenixFoxTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -493,6 +518,8 @@
 		73C8E684016E1E082B6511F2 /* Services */ = {
 			isa = PBXGroup;
 			children = (
+				D21AA1000000000000000001 /* Brain */,
+				D21AA1000000000000000002 /* Speech */,
 				C11AA1000000000000000001 /* Glasses */,
 				C11AA1000000000000000002 /* Runtime */,
 				F5B2AD1E1FABED62439F7733 /* AIBackend */,
@@ -517,12 +544,12 @@
 			path = Services;
 			sourceTree = "<group>";
 		};
-		792E8D9249D5790897D4615F /* OpenVision */ = {
+		792E8D9249D5790897D4615F /* PhoenixFox */ = {
 			isa = PBXGroup;
 			children = (
 				C2FFA22452C8901C2424D466 /* Config.xcconfig */,
 			);
-			name = OpenVision;
+			name = PhoenixFox;
 			path = .;
 			sourceTree = "<group>";
 		};
@@ -660,8 +687,8 @@
 		D9DC12520CB3397EA85B9636 = {
 			isa = PBXGroup;
 			children = (
-				09EB633ED6C10098514FA100 /* OpenVision */,
-				792E8D9249D5790897D4615F /* OpenVision */,
+				09EB633ED6C10098514FA100 /* PhoenixFox */,
+				792E8D9249D5790897D4615F /* PhoenixFox */,
 				FA1346C9AC741922A0BF6928 /* OpenVisionTests */,
 				8F12C1169529CE44B11137F4 /* Packages */,
 				36F672D5AB5BCE7D4C73AA30 /* Products */,
@@ -742,12 +769,37 @@
 			path = Runtime;
 			sourceTree = "<group>";
 		};
+
+		D21AA1000000000000000001 /* Brain */ = {
+			isa = PBXGroup;
+			children = (
+				C21AA2000000000000000001 /* AssistantRoster.swift */,
+				C21AA2000000000000000002 /* BrainCatalog.swift */,
+				C21AA2000000000000000003 /* ClaudeService.swift */,
+				C21AA2000000000000000004 /* FastModeRouter.swift */,
+				C21AA2000000000000000005 /* ImageBudget.swift */,
+				C21AA2000000000000000006 /* JarvisPersona.swift */,
+				C21AA2000000000000000007 /* OwnAssistantService.swift */,
+				C21AA2000000000000000008 /* PhoenixFoxTurn.swift */,
+			);
+			path = Brain;
+			sourceTree = "<group>";
+		};
+		D21AA1000000000000000002 /* Speech */ = {
+			isa = PBXGroup;
+			children = (
+				C21AA2000000000000000009 /* UtterancePCMBuffer.swift */,
+				C21AA200000000000000000A /* WhisperTranscriber.swift */,
+			);
+			path = Speech;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
 		60AF4ED566AAE248296380F1 /* OpenVisionTests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = B8FE22B6BC7D413D7FE37269 /* Build configuration list for PBXNativeTarget "OpenVisionTests" */;
+			buildConfigurationList = B8FE22B6BC7D413D7FE37269 /* Build configuration list for PBXNativeTarget "PhoenixFoxTests" */;
 			buildPhases = (
 				4082EAA7B9C9E911E29F7B44 /* Sources */,
 			);
@@ -756,16 +808,16 @@
 			dependencies = (
 				FEE2C9BAC679A38DEB8A254B /* PBXTargetDependency */,
 			);
-			name = OpenVisionTests;
+			name = PhoenixFoxTests;
 			packageProductDependencies = (
 			);
-			productName = OpenVisionTests;
-			productReference = ACA3BB4BDC73148785327C9A /* OpenVisionTests.xctest */;
+			productName = PhoenixFoxTests;
+			productReference = ACA3BB4BDC73148785327C9A /* PhoenixFoxTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
-		9418DE699CD106BA6A8A4B7E /* OpenVision */ = {
+		9418DE699CD106BA6A8A4B7E /* PhoenixFox */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 96E4930B027D16605C94BBD2 /* Build configuration list for PBXNativeTarget "OpenVision" */;
+			buildConfigurationList = 96E4930B027D16605C94BBD2 /* Build configuration list for PBXNativeTarget "PhoenixFox" */;
 			buildPhases = (
 				4BF24C8712D5FCCAA4402D12 /* Check Config Files */,
 				5B369180DFE2DD0B99684491 /* Sources */,
@@ -776,7 +828,7 @@
 			);
 			dependencies = (
 			);
-			name = OpenVision;
+			name = PhoenixFox;
 			packageProductDependencies = (
 				A7FF778329794C28B434EEAA /* MWDATCore */,
 				0DEB724AE3EDB04ABE9E3768 /* MWDATCamera */,
@@ -792,9 +844,10 @@
 				CCBF8A11015C4FD6F78FF103 /* HuggingFace */,
 				8F8A2A9D74F79603F186C7B4 /* Tokenizers */,
 				1DCD8AD4861E50005E48943D /* KokoroSwift */,
+				E21AA2000000000000000001 /* WhisperKit */,
 			);
-			productName = OpenVision;
-			productReference = 8601201988376029090B1EAA /* OpenVision.app */;
+			productName = PhoenixFox;
+			productReference = 8601201988376029090B1EAA /* PhoenixFox.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -816,7 +869,7 @@
 					};
 				};
 			};
-			buildConfigurationList = F2E191267E52B7178955EEDB /* Build configuration list for PBXProject "OpenVision" */;
+			buildConfigurationList = F2E191267E52B7178955EEDB /* Build configuration list for PBXProject "PhoenixFox" */;
 			compatibilityVersion = "Xcode 14.0";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
@@ -834,12 +887,13 @@
 				15C5A08D3F97FF9BA942B321 /* XCRemoteSwiftPackageReference "swift-huggingface" */,
 				922ADEF49EB5DA6AD8635D76 /* XCRemoteSwiftPackageReference "swift-transformers" */,
 				A8456994C4E280FE9D1FCB59 /* XCLocalSwiftPackageReference "Vendor/kokoro-ios" */,
+				E21AA1000000000000000001 /* XCRemoteSwiftPackageReference "WhisperKit" */,
 			);
 			preferredProjectObjectVersion = 77;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				9418DE699CD106BA6A8A4B7E /* OpenVision */,
+				9418DE699CD106BA6A8A4B7E /* PhoenixFox */,
 				60AF4ED566AAE248296380F1 /* OpenVisionTests */,
 			);
 		};
@@ -949,6 +1003,17 @@
 				A11AA1000000000000000005 /* GlassesLink.swift in Sources */,
 				E93E2788532682366707A34D /* GlassesSettingsView.swift in Sources */,
 				FED4796E980F43C3C55F04B0 /* GrokService.swift in Sources */,
+				C21AA1000000000000000001 /* AssistantRoster.swift in Sources */,
+				C21AA1000000000000000002 /* BrainCatalog.swift in Sources */,
+				C21AA1000000000000000003 /* ClaudeService.swift in Sources */,
+				C21AA1000000000000000004 /* FastModeRouter.swift in Sources */,
+				C21AA1000000000000000005 /* ImageBudget.swift in Sources */,
+				C21AA1000000000000000006 /* JarvisPersona.swift in Sources */,
+				C21AA1000000000000000007 /* OwnAssistantService.swift in Sources */,
+				C21AA1000000000000000008 /* PhoenixFoxTurn.swift in Sources */,
+				C21AA1000000000000000009 /* UtterancePCMBuffer.swift in Sources */,
+				C21AA100000000000000000A /* WhisperTranscriber.swift in Sources */,
+				C21AA100000000000000000B /* OwnAssistantSettingsView.swift in Sources */,
 				91FCB6DAB24AAC4CC4CA9A47 /* GrokSettingsView.swift in Sources */,
 				29F56C03229677BC1F157CEC /* HapticFeedback.swift in Sources */,
 				F7B70D8A815C84149A038294 /* HermesGateway.swift in Sources */,
@@ -1012,7 +1077,7 @@
 /* Begin PBXTargetDependency section */
 		FEE2C9BAC679A38DEB8A254B /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 9418DE699CD106BA6A8A4B7E /* OpenVision */;
+			target = 9418DE699CD106BA6A8A4B7E /* PhoenixFox */;
 			targetProxy = 878FCA5E5ACF645CA2719186 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
@@ -1143,7 +1208,7 @@
 				);
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/OpenVision.app/OpenVision";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/PhoenixFox.app/PhoenixFox";
 			};
 			name = Release;
 		};
@@ -1159,7 +1224,7 @@
 				);
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/OpenVision.app/OpenVision";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/PhoenixFox.app/PhoenixFox";
 			};
 			name = Debug;
 		};
@@ -1232,7 +1297,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		96E4930B027D16605C94BBD2 /* Build configuration list for PBXNativeTarget "OpenVision" */ = {
+		96E4930B027D16605C94BBD2 /* Build configuration list for PBXNativeTarget "PhoenixFox" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				E7B1CE542521A664F8D122A2 /* Debug */,
@@ -1241,7 +1306,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;
 		};
-		B8FE22B6BC7D413D7FE37269 /* Build configuration list for PBXNativeTarget "OpenVisionTests" */ = {
+		B8FE22B6BC7D413D7FE37269 /* Build configuration list for PBXNativeTarget "PhoenixFoxTests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				ECF159DE076BC45E2345A3C9 /* Debug */,
@@ -1250,7 +1315,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;
 		};
-		F2E191267E52B7178955EEDB /* Build configuration list for PBXProject "OpenVision" */ = {
+		F2E191267E52B7178955EEDB /* Build configuration list for PBXProject "PhoenixFox" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				8A6B19C8915C29C3977C6E19 /* Debug */,
@@ -1315,6 +1380,14 @@
 			requirement = {
 				kind = exactVersion;
 				version = 1.0.1;
+			};
+		};
+		E21AA1000000000000000001 /* XCRemoteSwiftPackageReference "WhisperKit" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/argmaxinc/WhisperKit";
+			requirement = {
+				kind = exactVersion;
+				version = 1.1.1;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
@@ -1388,6 +1461,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = F7EEA1ED9999A23C56A77DE0 /* XCRemoteSwiftPackageReference "meta-wearables-dat-ios" */;
 			productName = MWDATMotion;
+		};
+		E21AA2000000000000000001 /* WhisperKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = E21AA1000000000000000001 /* XCRemoteSwiftPackageReference "WhisperKit" */;
+			productName = WhisperKit;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

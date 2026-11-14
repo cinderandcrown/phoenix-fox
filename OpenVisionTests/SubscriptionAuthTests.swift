@@ -3,7 +3,7 @@
 // the ChatGPT backend's wire format (SSE items, model list, tool conversion).
 
 import XCTest
-@testable import OpenVision
+@testable import PhoenixFox
 
 final class SubscriptionAuthTests: XCTestCase {
 

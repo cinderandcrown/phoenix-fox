@@ -49,6 +49,7 @@ final class VoiceAgentViewModel: ObservableObject {
     // De-dup: the last command we processed and when (drops duplicate recognizer emissions).
     private var lastProcessedCommand = ""
     private var lastProcessedAt = Date.distantPast
+    private var pendingHeard: HeardTurn?
     private var hasRequestedSpeechAuth = false
 
     /// The live-video backend currently driving audio/video (Gemini or OpenAI Realtime).
@@ -228,7 +229,7 @@ final class VoiceAgentViewModel: ObservableObject {
                         await OpenClawService.shared.disconnect()
                     case .geminiLive:
                         await GeminiLiveService.shared.disconnect()
-                    case .openAI, .grok, .hermes:
+                    case .openAI, .grok, .claude, .hermes, .ownAssistant:
                         break   // stateless HTTP — nothing to disconnect
                     case .appleFoundation:
                         break   // OS-managed — nothing to disconnect
@@ -307,6 +308,12 @@ final class VoiceAgentViewModel: ObservableObject {
                 case .grok:
                     try await GrokService.shared.connect()
                     // Stateless HTTP — photos are captured on-demand like OpenAI.
+
+                case .claude:
+                    try await ClaudeService.shared.connect()
+
+                case .ownAssistant:
+                    try await OwnAssistantService.shared.connect()
 
                 case .hermes:
                     try await HermesService.shared.connect()
@@ -419,7 +426,7 @@ final class VoiceAgentViewModel: ObservableObject {
                 await OpenClawService.shared.disconnect()
             case .geminiLive:
                 await GeminiLiveService.shared.disconnect()
-            case .openAI, .grok:
+            case .openAI, .grok, .claude, .ownAssistant:
                 break   // stateless HTTP — nothing to disconnect
             case .hermes:
                 // Stop the gateway turn too, or the next request finds it still running.
@@ -483,7 +490,8 @@ final class VoiceAgentViewModel: ObservableObject {
             switch settingsManager.settings.aiBackend {
             case .openClaw: await OpenClawService.shared.interrupt()
             case .geminiLive: await GeminiLiveService.shared.interrupt()
-            case .openAI, .grok: break   // single request/response — nothing to interrupt
+            case .openAI, .grok, .claude: break   // single request/response — nothing to interrupt
+            case .ownAssistant: OwnAssistantService.shared.interrupt()
             case .hermes: await HermesGatewayClient.shared.interrupt()   // no-op in API-key mode
             case .appleFoundation: AppleFoundationService.shared.interrupt()
             case .localGemma: GemmaLocalService.shared.interrupt()
@@ -658,12 +666,23 @@ final class VoiceAgentViewModel: ObservableObject {
 
             // History: every captured command is a user message (Meta AI records all glasses
             // prompts to its History tab; same idea, on-device).
-            ConversationManager.shared.addUserMessage(command)
-            self.historyAwaitingReply = true
-
-            // Send command to AI backend
+            // Send command to AI backend. Phoenix Fox re-hears the clip with Whisper first.
             Task {
-                await self.sendCommand(command)
+                var text = command
+                if self.settingsManager.settings.aiBackend == .ownAssistant {
+                    let clip = self.voiceCommandService.consumeUtterance()
+                    let heard = await WhisperTranscriber.shared.resolve(
+                        apple: command,
+                        samples: clip?.samples ?? [],
+                        sampleRate: clip?.rate ?? 16_000
+                    )
+                    text = heard.cleaned
+                    self.pendingHeard = heard
+                    self.userTranscript = text
+                }
+                ConversationManager.shared.addUserMessage(text)
+                self.historyAwaitingReply = true
+                await self.sendCommand(text)
             }
         }
 
@@ -693,8 +712,10 @@ final class VoiceAgentViewModel: ObservableObject {
                     await OpenClawService.shared.interrupt()
                 case .geminiLive:
                     await GeminiLiveService.shared.interrupt()
-                case .openAI, .grok:
+                case .openAI, .grok, .claude:
                     break   // single request/response — nothing to interrupt
+                case .ownAssistant:
+                    OwnAssistantService.shared.interrupt()
                 case .hermes:
                     await HermesGatewayClient.shared.interrupt()   // no-op in API-key mode
                 case .appleFoundation:
@@ -1008,6 +1029,11 @@ final class VoiceAgentViewModel: ObservableObject {
 
         // Drive whichever backend is selected through the AIBackend protocol — capabilities
         // (localLLM, supportsImageInput) decide the path, not concrete service types.
+        if settingsManager.settings.aiBackend == .ownAssistant {
+            await runPhoenixFoxTurn(command)
+            return
+        }
+
         let backend = AIBackendRegistry.backend(for: settingsManager.settings.aiBackend)
         do {
             if let llm = backend.localLLM {
@@ -1023,7 +1049,7 @@ final class VoiceAgentViewModel: ObservableObject {
             // OpenAI, Grok and Hermes are plain request/response with no session to keep "thinking" alive —
             // restore the listening state inline. The others restore via their callbacks.
             // (Not while the reply is playing: speech ending restores it.)
-            if [.openAI, .grok, .hermes].contains(backend.backendType),
+            if [.openAI, .grok, .claude, .hermes].contains(backend.backendType),
                !ttsService.isSpeaking, !NeuralSpeech.isAnySpeaking {
                 agentState = isSessionActive ? .listening : .idle
             }
@@ -1032,6 +1058,40 @@ final class VoiceAgentViewModel: ObservableObject {
             agentState = isSessionActive ? .listening : .idle
         }
     }
+
+    private func runPhoenixFoxTurn(_ command: String) async {
+        let heard = pendingHeard ?? HeardTurn(transcript: command, cleaned: command)
+        pendingHeard = nil
+        await PhoenixFoxTurn.run(
+            cleaned: heard.cleaned,
+            transcript: heard.transcript,
+            settings: settingsManager.settings,
+            snapshot: { [weak self] in
+                guard let self else { return nil }
+                let frame = await self.freshLiveFrame()
+                if self.glassesManager.isStreaming && !self.isLiveVideoMode {
+                    await self.glassesManager.stopStreaming()
+                }
+                return ImageBudget.jpeg(frame)
+            },
+            speakFiller: { [weak self] text in
+                self?.ttsService.speak(text)
+            },
+            speak: { [weak self] text, from, always in
+                guard let self else { return }
+                let line = AssistantRoster.spoken(text: text, fromBot: from, bots: self.settingsManager.settings.assistantBots, alwaysName: always)
+                self.speakResponse(line.text)
+                if self.glassesLinkDisplay {
+                    GlassesHUD.shared.presentReply(bot: from ?? "Fire Fox", text: text)
+                }
+            }
+        )
+        if !ttsService.isSpeaking && !NeuralSpeech.isAnySpeaking {
+            agentState = isSessionActive ? .listening : .idle
+        }
+    }
+
+    private var glassesLinkDisplay: Bool { GlassesLink.shared.displayCapable }
 
     // MARK: - Live Video Mode
 

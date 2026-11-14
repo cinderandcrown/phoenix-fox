@@ -1,22 +1,9 @@
-// Phoenix Fox build configuration
-// Copy this file to Config.xcconfig and fill in your values.
-// The Xcode target is still named OpenVision. The name on the phone is Phoenix Fox.
+// Phoenix Fox build settings.
+// Copy this file to Config.xcconfig. Do not commit the copy.
+// META_CLIENT_TOKEN is a CI secret. Leave it empty for a local unsigned compile.
 
-// Your Apple Developer Team ID
 DEVELOPMENT_TEAM = YOUR_TEAM_ID
-
-// Bundle identifier for the app
-PRODUCT_BUNDLE_IDENTIFIER = llc.cinderandcrown.phoenixfox
-
-// Meta App ID from https://developer.meta.com
-// Required for glasses registration
-META_APP_ID = YOUR_META_APP_ID
-
-// Client Token from Meta Developer Console (FULL FORMAT REQUIRED)
-// Format: AR|YOUR_META_APP_ID|YOUR_CLIENT_TOKEN
-// Example: AR|1234567890|abcdef123456
-CLIENT_TOKEN = AR|YOUR_META_APP_ID|YOUR_CLIENT_TOKEN
-
-// URL scheme for Meta AI app callback
-// Must match bundle identifier (replace dots with hyphens if needed)
+PRODUCT_BUNDLE_IDENTIFIER = com.cinderandcrown.phoenixfox
+META_APP_ID = 1651172483404286
+META_CLIENT_TOKEN =
 APP_LINK_URL_SCHEME = phoenixfox

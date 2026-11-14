@@ -1,0 +1,111 @@
+name: TestFlight
+
+# Signs Phoenix Fox with the App Store Connect API key and uploads a build.
+# Skips cleanly until every secret below exists. No Mac is required.
+# Secrets are documented in SETUP.md.
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+jobs:
+  testflight:
+    name: Sign and upload
+    runs-on: macos-26
+    timeout-minutes: 120
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_26.6.app/Contents/Developer
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Stop if Apple or Meta secrets are missing
+        id: gate
+        env:
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
+          META_CLIENT_TOKEN: ${{ secrets.META_CLIENT_TOKEN }}
+        run: |
+          missing=0
+          for name in APPLE_TEAM_ID ASC_KEY_ID ASC_ISSUER_ID ASC_KEY_P8 META_CLIENT_TOKEN; do
+            if [ -z "${!name}" ]; then
+              echo "Missing secret: $name"
+              missing=1
+            fi
+          done
+          if [ "$missing" = 1 ]; then
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            echo "TestFlight upload skipped. Add the secrets listed in SETUP.md."
+          else
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Write signing config
+        if: steps.gate.outputs.ready == 'true'
+        env:
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          META_CLIENT_TOKEN: ${{ secrets.META_CLIENT_TOKEN }}
+          ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
+        run: |
+          cp OpenVision/Config/Config.swift.example OpenVision/Config/Config.swift
+          cat > Config.xcconfig <<EOF
+          DEVELOPMENT_TEAM = ${APPLE_TEAM_ID}
+          PRODUCT_BUNDLE_IDENTIFIER = com.cinderandcrown.phoenixfox
+          META_APP_ID = 1651172483404286
+          META_CLIENT_TOKEN = ${META_CLIENT_TOKEN}
+          APP_LINK_URL_SCHEME = phoenixfox
+          EOF
+          printf '%s\n' "$ASC_KEY_P8" > "$RUNNER_TEMP/AuthKey.p8"
+
+      - name: Archive
+        if: steps.gate.outputs.ready == 'true'
+        env:
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+        run: |
+          set -o pipefail
+          xcodebuild archive \
+            -project PhoenixFox.xcodeproj \
+            -scheme PhoenixFox \
+            -destination 'generic/platform=iOS' \
+            -archivePath "$RUNNER_TEMP/PhoenixFox.xcarchive" \
+            -clonedSourcePackagesDirPath .spm \
+            -allowProvisioningUpdates \
+            -authenticationKeyPath "$RUNNER_TEMP/AuthKey.p8" \
+            -authenticationKeyID "$ASC_KEY_ID" \
+            -authenticationKeyIssuerID "$ASC_ISSUER_ID" \
+            -skipPackagePluginValidation \
+            -skipMacroValidation \
+            DEVELOPMENT_TEAM="$APPLE_TEAM_ID" \
+            CODE_SIGN_STYLE=Automatic \
+            PRODUCT_BUNDLE_IDENTIFIER=com.cinderandcrown.phoenixfox
+
+      - name: Upload to TestFlight
+        if: steps.gate.outputs.ready == 'true'
+        env:
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+        run: |
+          cat > "$RUNNER_TEMP/ExportOptions.plist" <<EOF
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0"><dict>
+            <key>method</key><string>app-store-connect</string>
+            <key>destination</key><string>upload</string>
+            <key>signingStyle</key><string>automatic</string>
+            <key>teamID</key><string>${APPLE_TEAM_ID}</string>
+            <key>manageAppVersionAndBuildNumber</key><true/>
+          </dict></plist>
+          EOF
+          xcodebuild -exportArchive \
+            -archivePath "$RUNNER_TEMP/PhoenixFox.xcarchive" \
+            -exportPath "$RUNNER_TEMP/export" \
+            -exportOptionsPlist "$RUNNER_TEMP/ExportOptions.plist" \
+            -allowProvisioningUpdates \
+            -authenticationKeyPath "$RUNNER_TEMP/AuthKey.p8" \
+            -authenticationKeyID "$ASC_KEY_ID" \
+            -authenticationKeyIssuerID "$ASC_ISSUER_ID"

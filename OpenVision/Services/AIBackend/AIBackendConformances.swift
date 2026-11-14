@@ -27,6 +27,16 @@ extension GrokService: AIBackend {
     var supportsImageInput: Bool { true }
 }
 
+extension ClaudeService: AIBackend {
+    var backendType: AIBackendType { .claude }
+    var supportsImageInput: Bool { true }
+}
+
+extension OwnAssistantService: AIBackend {
+    var backendType: AIBackendType { .ownAssistant }
+    var supportsImageInput: Bool { true }
+}
+
 // MARK: - Hermes
 
 extension HermesService: AIBackend {

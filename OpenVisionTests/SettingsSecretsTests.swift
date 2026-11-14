@@ -2,7 +2,7 @@
 // API keys move from settings.json to the Keychain without being lost on the way.
 
 import XCTest
-@testable import OpenVision
+@testable import PhoenixFox
 
 final class SettingsSecretsTests: XCTestCase {
 

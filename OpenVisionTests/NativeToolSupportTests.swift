@@ -2,7 +2,7 @@
 // The date-resolution logic behind "remind me at 6 PM" landing at exactly 6:00 PM.
 
 import XCTest
-@testable import OpenVision
+@testable import PhoenixFox
 
 final class NativeToolSupportTests: XCTestCase {
 

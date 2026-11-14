@@ -14,8 +14,12 @@ struct AssistantBot: Codable, Equatable, Identifiable {
 }
 
 enum AssistantRoster {
+    /// The owner's assistants. Names are not secrets. The relay URL and token are.
     static let seed: [AssistantBot] = [
-        AssistantBot(id: "assistant", name: "Assistant", voiceIdentifier: nil, isDefault: true),
+        AssistantBot(id: "fire-fox", name: "Fire Fox", voiceIdentifier: nil, isDefault: true),
+        AssistantBot(id: "indy", name: "Indy", voiceIdentifier: nil, isDefault: false),
+        AssistantBot(id: "driver", name: "Driver", voiceIdentifier: nil, isDefault: false),
+        AssistantBot(id: "rally", name: "Rally", voiceIdentifier: nil, isDefault: false),
     ]
 
     static func normalized(_ bots: [AssistantBot]) -> [AssistantBot] {

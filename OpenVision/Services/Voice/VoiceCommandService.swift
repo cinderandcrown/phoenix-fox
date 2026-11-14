@@ -99,6 +99,8 @@ final class VoiceCommandService: ObservableObject {
     // MARK: - Audio Engine
 
     private var audioEngine: AVAudioEngine?
+    private let utteranceBuffer = UtterancePCMBuffer()
+    private var finishedUtterance: UtteranceClip?
 
     /// Throttle for the wake-word auto-restart. On some audio routes (notably the glasses'
     /// Bluetooth HFP mic) the recognizer finalizes immediately, and restarting with no delay
@@ -243,10 +245,12 @@ final class VoiceCommandService: ObservableObject {
         // must not touch main-actor state. `feed` only converts + buffers, handing full chunks to
         // the detector's own consumer (see SpeechActivityDetector's threading note).
         let detector = speechDetector
+        let captured = utteranceBuffer
         if let reason = OVCatchException({
             inputNode.installTap(onBus: 0, bufferSize: 1024, format: recordingFormat) { buffer, _ in
                 recognitionRequest.append(buffer)
                 detector.feed(buffer)
+                captured.append(buffer)
             }
         }) {
             print("[VoiceCommand] installTap failed: \(reason)")
@@ -435,10 +439,12 @@ final class VoiceCommandService: ObservableObject {
         // cached converter is built for the OLD format and would emit garbage — drop it.
         speechDetector.reset()
         let detector = speechDetector
+        let captured = utteranceBuffer
         if let reason = OVCatchException({
             inputNode.installTap(onBus: 0, bufferSize: 1024, format: recordingFormat) { buffer, _ in
                 recognitionRequest.append(buffer)
                 detector.feed(buffer)
+                captured.append(buffer)
             }
         }) {
             print("[VoiceCommand] installTap (reinstall) failed: \(reason)")
@@ -739,6 +745,7 @@ final class VoiceCommandService: ObservableObject {
         // Transition to listening
         state = .listening
         currentTranscription = ""
+        utteranceBuffer.begin(rate: audioEngine?.inputNode.outputFormat(forBus: 0).sampleRate ?? 48_000)
 
         // Start command timeout
         startCommandTimeout()
@@ -762,6 +769,7 @@ final class VoiceCommandService: ObservableObject {
         guard !command.isEmpty else { return }
 
         print("[VoiceCommand] Command captured: \(command)")
+        finishedUtterance = utteranceBuffer.finish()
         MetricsCollector.shared.count("command_captured")
 
         state = .processing
@@ -781,6 +789,12 @@ final class VoiceCommandService: ObservableObject {
         restartRecognition()
 
         onCommandCaptured?(command)
+    }
+
+    func consumeUtterance() -> UtteranceClip? {
+        let clip = finishedUtterance
+        finishedUtterance = nil
+        return clip
     }
 
     /// Handle barge-in (user interrupts AI)

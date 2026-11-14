@@ -1,8 +1,36 @@
 # Phoenix Fox setup
 
-Phoenix Fox is the app on the phone and the name on the App Store. **Jarvis** is only the wake word and the voice that answers. The Xcode project and module are still named OpenVision, which is the MIT project this build starts from. Do not rename that target.
+Phoenix Fox is the name on the phone and on the App Store. **Jarvis** is only the wake word. The Xcode scheme is PhoenixFox. The source folder is still `OpenVision/` because that is the MIT project this build starts from.
 
-The owner does not use this file. Install steps that stay on the iPhone and in the browser are in [docs/APP_STORE_PLAN.md](docs/APP_STORE_PLAN.md). The rest of this page is for a developer with a Mac.
+You do not need a Mac. GitHub Actions builds the app. TestFlight installs it on the iPhone.
+
+## Secrets the owner still has to add
+
+Open the GitHub repository, then **Settings → Secrets and variables → Actions → New repository secret**. Create one secret per row. Do not paste any of these into chat or into a file that gets committed.
+
+| Secret | What it is | Where to copy it |
+| --- | --- | --- |
+| `APPLE_TEAM_ID` | 10-character Team ID | [developer.apple.com/account](https://developer.apple.com/account) → Membership details. The individual Apple Developer Program is purchased and still processing, so this appears only after Apple emails that the membership is active. |
+| `ASC_KEY_ID` | App Store Connect API key id | [App Store Connect](https://appstoreconnect.apple.com) → Users and Access → Integrations → App Store Connect API → the key's Key ID. Available once the membership is active. |
+| `ASC_ISSUER_ID` | Issuer ID above the keys list | Same App Store Connect API page, the Issuer ID at the top. |
+| `ASC_KEY_P8` | The private key file | Generated once when you click **Generate** on that page. Download `AuthKey_XXXX.p8` and paste the whole file, including the BEGIN and END lines. Apple will not show it again. |
+| `META_CLIENT_TOKEN` | Wearables client token | [Wearables Developer Center](https://wearables.developer.meta.com/) → organization **Cinder and Crown LLC** → project **Phoenix Fox** → the client token. It looks like `AR\|1651172483404286\|…`. |
+
+These are not secrets and are already in the app:
+
+| Value | Where |
+| --- | --- |
+| Meta App ID `1651172483404286` | Info.plist `MWDAT` → `MetaAppID` |
+| Bundle ID `com.cinderandcrown.phoenixfox` | The Xcode target |
+| App name Phoenix Fox | Home screen and App Store |
+
+Until `APPLE_TEAM_ID` exists, the TestFlight workflow runs and skips the upload. The simulator compile does not need any secret.
+
+After a successful upload, install **TestFlight** from the App Store on the iPhone and accept the Phoenix Fox build. Developer Mode on the glasses still pairs through the Meta AI app. The callback scheme is `phoenixfox`.
+
+In the app, Settings → Assistants: enter the relay URL and the relay token. Those stay on the phone. They are not GitHub secrets.
+
+The rest of this page is the upstream OpenVision developer guide. Prefer the table above.
 
 > ## Read this first: you must build from source
 >

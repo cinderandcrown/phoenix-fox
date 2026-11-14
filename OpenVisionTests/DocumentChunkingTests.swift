@@ -2,7 +2,7 @@
 // Pure text math behind the document store (RAG): chunking, cosine similarity, keyword bonus.
 
 import XCTest
-@testable import OpenVision
+@testable import PhoenixFox
 
 final class DocumentChunkingTests: XCTestCase {
 

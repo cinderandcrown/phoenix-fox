@@ -1,6 +1,6 @@
-name: OpenVision
+name: PhoenixFox
 options:
-  bundleIdPrefix: com.openvision
+  bundleIdPrefix: com.cinderandcrown
   # Bumped 16 → 18 for the on-device Gemma 4 (MLX) backend, which needs iOS 18 at runtime.
   # Revert to 16 + gate GemmaLocalService behind `if #available(iOS 18)` to keep older support.
   deploymentTarget:
@@ -17,10 +17,10 @@ settings:
     DEVELOPMENT_TEAM: ${DEVELOPMENT_TEAM}
     CODE_SIGN_STYLE: Automatic
     INFOPLIST_FILE: OpenVision/Resources/Info.plist
-    PRODUCT_BUNDLE_IDENTIFIER: ${PRODUCT_BUNDLE_IDENTIFIER}
-    META_APP_ID: ${META_APP_ID}
-    CLIENT_TOKEN: ${CLIENT_TOKEN}
-    APP_LINK_URL_SCHEME: ${APP_LINK_URL_SCHEME}
+    PRODUCT_BUNDLE_IDENTIFIER: com.cinderandcrown.phoenixfox
+    META_APP_ID: "1651172483404286"
+    META_CLIENT_TOKEN: ${META_CLIENT_TOKEN}
+    APP_LINK_URL_SCHEME: phoenixfox
 
 configs:
   Debug:
@@ -35,18 +35,18 @@ configFiles:
   Release: Config.xcconfig
 
 targets:
-  OpenVisionTests:
+  PhoenixFoxTests:
     type: bundle.unit-test
     platform: iOS
     sources:
       - path: OpenVisionTests
     dependencies:
-      - target: OpenVision
+      - target: PhoenixFox
     settings:
       base:
         GENERATE_INFOPLIST_FILE: YES
 
-  OpenVision:
+  PhoenixFox:
     type: application
     platform: iOS
     sources:
@@ -167,10 +167,10 @@ packages:
     exactVersion: "1.1.1"
 
 schemes:
-  OpenVision:
+  PhoenixFox:
     build:
       targets:
-        OpenVision: all
+        PhoenixFox: all
     run:
       config: Debug
       commandLineArguments:
@@ -179,7 +179,7 @@ schemes:
       config: Debug
       gatherCoverageData: true
       targets:
-        - OpenVisionTests
+        - PhoenixFoxTests
     profile:
       config: Release
     analyze:

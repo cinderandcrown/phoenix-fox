@@ -79,6 +79,16 @@ struct AIBackendSettingsView: View {
                 }
 
                 NavigationLink {
+                    OwnAssistantSettingsView()
+                } label: {
+                    HStack {
+                        Label("Assistants", systemImage: "person.2")
+                        Spacer()
+                        configurationBadge(configured: settingsManager.settings.isOwnAssistantConfigured)
+                    }
+                }
+
+                NavigationLink {
                     GrokSettingsView()
                 } label: {
                     HStack {

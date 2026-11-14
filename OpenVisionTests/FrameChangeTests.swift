@@ -2,7 +2,7 @@
 // Gating for the continuous live-vision loop: frame-difference and speak-worthiness thresholds.
 
 import XCTest
-@testable import OpenVision
+@testable import PhoenixFox
 
 final class FrameChangeTests: XCTestCase {
 
