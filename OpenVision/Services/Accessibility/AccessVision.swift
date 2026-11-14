@@ -36,6 +36,32 @@ enum AccessVision {
         }
     }
 
+    /// What a screen across a desk shows: its text as printed, and any QR codes on it.
+    ///
+    /// The text is not corrected against a dictionary, because an assistant's name is not
+    /// in one. Both are found in one pass over the frame.
+    static func screen(in jpeg: Data) async -> ScreenView {
+        await detached {
+            let words = VNRecognizeTextRequest()
+            words.recognitionLevel = .accurate
+            words.usesLanguageCorrection = false
+            let codes = VNDetectBarcodesRequest()
+            codes.symbologies = [.qr]
+            guard (try? VNImageRequestHandler(data: jpeg, options: [:]).perform([words, codes])) != nil else {
+                return ScreenView()
+            }
+            let text = (words.results ?? []).compactMap { observation -> TextFragment? in
+                guard let candidate = observation.topCandidates(1).first else { return nil }
+                return TextFragment(candidate.string, box: box(observation.boundingBox), confidence: Double(candidate.confidence))
+            }
+            let found = (codes.results ?? []).compactMap { observation -> CodeSighting? in
+                guard let payload = observation.payloadStringValue, !payload.isEmpty else { return nil }
+                return CodeSighting(payload: payload, box: box(observation.boundingBox))
+            }
+            return ScreenView(text: text, codes: found)
+        }
+    }
+
     /// People, animals, and whole-frame hazards such as stairs, plus any large sign text.
     static func sightings(in jpeg: Data) async -> [Sighting] {
         await detached {

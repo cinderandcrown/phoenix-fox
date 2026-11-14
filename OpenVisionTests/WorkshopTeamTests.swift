@@ -595,6 +595,7 @@ final class WorkshopSettingsTests: XCTestCase {
         XCTAssertTrue(settings.walkThrough && settings.tally && settings.ingredientWatch && settings.doseGuard && settings.council
             && settings.relayRace && settings.standingOrders && settings.placeNotes && settings.closeTheDay && settings.skills)
         XCTAssertEqual(settings.doseGapHours, 8)
+        XCTAssertFalse(settings.lookToTalk, "Look to Talk waits for its own switch")
     }
 
     func testNothingRunsOutsideTheOwnerBuild() {

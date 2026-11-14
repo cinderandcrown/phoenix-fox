@@ -28,6 +28,8 @@ enum StreamPurpose: String, Sendable, CaseIterable {
     case liveVideo
     /// A recording saved to Photos.
     case recording
+    /// Look to Talk: a screen across a desk, read about once a second.
+    case lookToTalk
 }
 
 extension StreamPurpose {
@@ -40,7 +42,7 @@ extension StreamPurpose {
     var replacesLesserStream: Bool {
         switch self {
         case .guide, .liveVideo, .recording: return true
-        case .still, .watch, .smartCapture: return false
+        case .still, .watch, .smartCapture, .lookToTalk: return false
         }
     }
 }
@@ -186,6 +188,10 @@ enum StreamPlanner {
             return StreamProfile(resolution: .high, frameRate: 7, sound: nil, imagesPerSecond: 4)
         case .liveVideo:
             return StreamProfile(resolution: .high, frameRate: 15, sound: nil, imagesPerSecond: 15)
+        case .lookToTalk:
+            // A window's name is small from across a desk, and it does not move. The
+            // largest size at a slow rate gives each frame the most of the link.
+            return StreamProfile(resolution: .high, frameRate: 7, sound: nil, imagesPerSecond: 2)
         case .recording:
             // The most the toolkit offers. Every frame goes to the file; the phone's
             // preview needs only half of them.

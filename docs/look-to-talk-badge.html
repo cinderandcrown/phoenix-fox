@@ -1,0 +1,70 @@
+<!doctype html>
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<!-- Copyright 2026 Cinder and Crown LLC -->
+<!--
+  A Look to Talk badge: the words TALK TO and an assistant's name, in large letters, for
+  the glasses camera to read. See docs/LOOK_TO_TALK.md.
+
+  Save this file to your computer and open it in a browser. It works offline, loads
+  nothing, and sends nothing. Put the name after a # in the address to skip the box:
+  look-to-talk-badge.html#Indy
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'">
+<title>Talk to</title>
+<style>
+  html, body { height: 100%; margin: 0; }
+  body {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    background: #fff; color: #000;
+    font-family: "Arial Black", "Helvetica Neue", Arial, sans-serif;
+  }
+  #badge {
+    font-weight: 900; font-size: 13vw; line-height: 1.05; letter-spacing: 0.02em;
+    text-align: center; text-transform: uppercase; white-space: nowrap;
+  }
+  form { margin-top: 5vh; font: 16px system-ui, sans-serif; color: #444; }
+  input { font: inherit; padding: 6px 8px; width: 14em; }
+  @media print { form { display: none; } }
+</style>
+</head>
+<body>
+<div id="badge" role="img" aria-label="Badge">TALK TO</div>
+<form id="form">
+  <label for="name">Assistant's name</label>
+  <input id="name" maxlength="24" autocomplete="off" spellcheck="false">
+</form>
+<script>
+  // Letters, digits, and single spaces only, and no more than 24 of them. The name is
+  // set as text, never as markup.
+  function clean(text) {
+    return text.replace(/[^\p{L}\p{N}]+/gu, " ").trim().slice(0, 24);
+  }
+  var badge = document.getElementById("badge");
+  var box = document.getElementById("name");
+  function show(name) {
+    var kept = clean(name);
+    badge.textContent = kept ? "TALK TO " + kept : "TALK TO";
+    // One line, as wide as the window allows: a badge on two lines takes two looks.
+    badge.style.fontSize = Math.min(14, 125 / badge.textContent.length) + "vw";
+    document.title = kept ? "Talk to " + kept : "Talk to";
+  }
+  function fromAddress() {
+    var name = "";
+    try { name = decodeURIComponent(location.hash.slice(1)); } catch (error) { name = ""; }
+    box.value = clean(name);
+    show(name);
+  }
+  box.addEventListener("input", function () { show(box.value); });
+  document.getElementById("form").addEventListener("submit", function (event) {
+    event.preventDefault();
+    location.hash = encodeURIComponent(clean(box.value));
+  });
+  window.addEventListener("hashchange", fromAddress);
+  fromAddress();
+</script>
+</body>
+</html>

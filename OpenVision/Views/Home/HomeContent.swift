@@ -35,6 +35,10 @@ struct HomeContent: View {
                         NoteRow(symbol: "record.circle", text: note)
                             .transition(.opacity)
                     }
+                    if let look = model.look {
+                        LookRow(note: look, onRelease: actions.releaseLook)
+                            .transition(.opacity)
+                    }
                     if let document = model.document {
                         DocumentRow(title: document, onClose: actions.closeDocument)
                             .transition(.opacity)
@@ -75,6 +79,7 @@ struct HomeContent: View {
         .animation(Theme.Motion.state, value: model.signals.cameraOn)
         .animation(Theme.Motion.state, value: model.trouble)
         .animation(Theme.Motion.state, value: model.document)
+        .animation(Theme.Motion.state, value: model.look)
         .animation(Theme.Motion.state, value: model.recordingNote)
         .animation(Theme.Motion.state, value: model.heard.isEmpty && model.reply.isEmpty)
     }
@@ -245,6 +250,41 @@ struct DocumentRow: View {
     }
 }
 
+/// Who Look to Talk holds, or that it is looking. The button lets go.
+struct LookRow: View {
+    let note: LookNote
+    let onRelease: () -> Void
+
+    var body: some View {
+        HStack(spacing: Theme.Space.snug) {
+            Image(systemName: note.symbol)
+                .foregroundStyle(Theme.emberInk)
+                .accessibilityHidden(true)
+            VStack(alignment: .leading, spacing: 2) {
+                Text("Look to Talk")
+                    .font(.caption)
+                    .foregroundStyle(Theme.inkFaint)
+                Text(note.title)
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(Theme.ink)
+                    .lineLimit(2)
+            }
+            .accessibilityElement(children: .combine)
+            .accessibilityHint(note.name.map { "What you say next goes to \($0)." } ?? "")
+            Spacer(minLength: 0)
+            Button(action: onRelease) {
+                Image(systemName: "xmark.circle.fill")
+                    .font(.title3)
+                    .foregroundStyle(Theme.inkFaint)
+                    .frame(minWidth: Theme.tapTarget, minHeight: Theme.tapTarget)
+                    .contentShape(Rectangle())
+            }
+            .accessibilityLabel(note.name.map { "Let go of \($0)" } ?? "Stop Look to Talk")
+        }
+        .card(padding: Theme.Space.snug)
+    }
+}
+
 /// The companion's status line and, when live captions are on, what is being said nearby.
 struct CaptionCard: View {
     let status: String
@@ -397,6 +437,10 @@ struct TroubleBanner: View {
 #Preview("Home, replying, light") {
     HomeContent(model: HomeSamples.replying)
         .preferredColorScheme(.light)
+}
+
+#Preview("Home, locked on to Indy") {
+    HomeContent(model: HomeSamples.lockedOn)
 }
 
 #Preview("Home, first launch") {

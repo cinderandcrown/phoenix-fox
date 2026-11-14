@@ -13,6 +13,14 @@ final class HomeModelTests: XCTestCase {
         XCTAssertNil(model.trouble)
     }
 
+    func testLookToTalkIsNotShownUntilItIsDoingSomething() {
+        XCTAssertNil(HomeModel().look)
+        XCTAssertTrue(HomeSamples.all.allSatisfy { $0.model.look == nil }, "The first release's screens do not change")
+        XCTAssertEqual(HomeSamples.lockedOn.look?.name, "Indy")
+        XCTAssertEqual(HomeSamples.lockedOn.look?.title, LookStatus.locked("Indy").title)
+        XCTAssertEqual(HomeSamples.lockedOn.look?.symbol, LookStatus.locked("Indy").symbol)
+    }
+
     func testThePhaseFollowsTheSignals() {
         var model = HomeModel()
         model.signals.activity = .listening
