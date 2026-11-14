@@ -17,6 +17,11 @@ struct SettingsView: View {
             Form {
                 Section {
                     NavigationLink {
+                        PrivacyAndDataView()
+                    } label: {
+                        Label("Privacy & Data", systemImage: "hand.raised.fill")
+                    }
+                    NavigationLink {
                         PhoenixLogView()
                     } label: {
                         Label("Task history and notes", systemImage: "list.bullet.rectangle")

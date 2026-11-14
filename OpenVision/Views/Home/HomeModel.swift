@@ -53,6 +53,9 @@ struct HomeModel: Equatable, Sendable {
     /// Glasses are not registered yet. Home keeps a Register banner until they are.
     var needsGlassesRegister = false
 
+    /// App Review demo is on — phone path, no glasses required.
+    var reviewerDemo = false
+
     /// Where speech is going right now, e.g. "Speaking through Ray-Ban Meta".
     var speakingThrough: String?
 

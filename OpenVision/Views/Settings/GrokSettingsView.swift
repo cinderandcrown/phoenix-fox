@@ -102,14 +102,14 @@ struct GrokSettingsView: View {
             Text("Authentication")
         } footer: {
             if apiKey.isEmpty {
-                Label("Paste your xAI key here — this is the default brain.", systemImage: "exclamationmark.triangle.fill")
+                Label("Paste your xAI key. \(CloudAIConsent.keyEntryDisclosure)", systemImage: "exclamationmark.triangle.fill")
                     .foregroundColor(.orange).font(.caption)
             } else if let errorMessage {
                 // The key is saved but xAI rejected it (or couldn't be reached). Never log the key.
                 Label(errorMessage, systemImage: "exclamationmark.triangle.fill")
                     .foregroundColor(.orange).font(.caption)
             } else {
-                Label("API key on this phone (Keychain). Default provider.", systemImage: "checkmark.circle.fill")
+                Label(CloudAIConsent.keyEntryDisclosure, systemImage: "checkmark.circle.fill")
                     .foregroundColor(.green).font(.caption)
             }
         }

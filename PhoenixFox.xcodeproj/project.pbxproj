@@ -288,6 +288,12 @@
 		876B670BF350C504B0B276B5 /* AIProviderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C1B2E8F44C4F8E9DF4497E0 /* AIProviderTests.swift */; };
 		51DC379730E532EDC5A9FD24 /* ClaudeSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEC14BA021F1D9079985414D /* ClaudeSettingsView.swift */; };
 		53668B6AD58B7F2F8D2C4FF5 /* ProviderKeyTestButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D2890A98299C4B809AE20C7 /* ProviderKeyTestButton.swift */; };
+		84D481B843CA4C94A84187CE /* CloudAIConsent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43888648E0FD49CFF7793308 /* CloudAIConsent.swift */; };
+		2978C6498C1EA0F53231AFA0 /* PrivacyPolicyDocument.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDDF3E8C821CEA857745C757 /* PrivacyPolicyDocument.swift */; };
+		557CEA97F0FE894F83BE445D /* ReviewerDemo.swift in Sources */ = {isa = PBXBuildFile; fileRef = DE18061DE7524747F34FA8D7 /* ReviewerDemo.swift */; };
+		7AFAC26977620684EB9078C1 /* PrivacyAndDataView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F0E6C19BF9C3E8A3568B8D8 /* PrivacyAndDataView.swift */; };
+		F46ABBDFDE8ACB8D5FFBBAC3 /* CloudAIConsentTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1DD126B78DF82255450B27BE /* CloudAIConsentTests.swift */; };
+		49AF7C157E39CFCA21E5DD47 /* ReviewerDemoTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 077CE796BCDADE174BDEBA3C /* ReviewerDemoTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -576,6 +582,12 @@
 		0C1B2E8F44C4F8E9DF4497E0 /* AIProviderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIProviderTests.swift; sourceTree = "<group>"; };
 		CEC14BA021F1D9079985414D /* ClaudeSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClaudeSettingsView.swift; sourceTree = "<group>"; };
 		4D2890A98299C4B809AE20C7 /* ProviderKeyTestButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProviderKeyTestButton.swift; sourceTree = "<group>"; };
+		43888648E0FD49CFF7793308 /* CloudAIConsent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudAIConsent.swift; sourceTree = "<group>"; };
+		BDDF3E8C821CEA857745C757 /* PrivacyPolicyDocument.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrivacyPolicyDocument.swift; sourceTree = "<group>"; };
+		DE18061DE7524747F34FA8D7 /* ReviewerDemo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReviewerDemo.swift; sourceTree = "<group>"; };
+		0F0E6C19BF9C3E8A3568B8D8 /* PrivacyAndDataView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrivacyAndDataView.swift; sourceTree = "<group>"; };
+		1DD126B78DF82255450B27BE /* CloudAIConsentTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudAIConsentTests.swift; sourceTree = "<group>"; };
+		077CE796BCDADE174BDEBA3C /* ReviewerDemoTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReviewerDemoTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -636,6 +648,7 @@
 				B89165C6810545BD34CDC61B /* GlassesCheckView.swift */,
 				CEC14BA021F1D9079985414D /* ClaudeSettingsView.swift */,
 				4D2890A98299C4B809AE20C7 /* ProviderKeyTestButton.swift */,
+				0F0E6C19BF9C3E8A3568B8D8 /* PrivacyAndDataView.swift */,
 			);
 			path = Settings;
 			sourceTree = "<group>";
@@ -842,6 +855,8 @@
 				55F747B2BBB8A220AAFC4394 /* Workshop */,
 				FE855D9BEED3D4DA13019523 /* Store */,
 				CDAAE118E2421360DD17DBB9 /* LookToTalk */,
+				2354BDB5FDB2E20890E9B591 /* Privacy */,
+				A54BEC3D7B3009B75ACD0F9E /* Review */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -1070,6 +1085,8 @@
 				1E5E803A1AAD693F3F59E29F /* AudioRoutePolicyTests.swift */,
 				57995089192F8CA478B88A6B /* OnDeviceLookTests.swift */,
 				0C1B2E8F44C4F8E9DF4497E0 /* AIProviderTests.swift */,
+				1DD126B78DF82255450B27BE /* CloudAIConsentTests.swift */,
+				077CE796BCDADE174BDEBA3C /* ReviewerDemoTests.swift */,
 			);
 			path = OpenVisionTests;
 			sourceTree = "<group>";
@@ -1359,6 +1376,23 @@
 			path = Providers;
 			sourceTree = "<group>";
 		};
+		2354BDB5FDB2E20890E9B591 /* Privacy */ = {
+			isa = PBXGroup;
+			children = (
+				43888648E0FD49CFF7793308 /* CloudAIConsent.swift */,
+				BDDF3E8C821CEA857745C757 /* PrivacyPolicyDocument.swift */,
+			);
+			path = Privacy;
+			sourceTree = "<group>";
+		};
+		A54BEC3D7B3009B75ACD0F9E /* Review */ = {
+			isa = PBXGroup;
+			children = (
+				DE18061DE7524747F34FA8D7 /* ReviewerDemo.swift */,
+			);
+			path = Review;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -1556,6 +1590,8 @@
 				8BCE34AD6CBF565DB24FFBC6 /* AudioRoutePolicyTests.swift in Sources */,
 				F09B402FB088F7C971E19F3A /* OnDeviceLookTests.swift in Sources */,
 				876B670BF350C504B0B276B5 /* AIProviderTests.swift in Sources */,
+				F46ABBDFDE8ACB8D5FFBBAC3 /* CloudAIConsentTests.swift in Sources */,
+				49AF7C157E39CFCA21E5DD47 /* ReviewerDemoTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1774,6 +1810,10 @@
 				FA1DC6774294E547C8DF9A2F /* ProviderRouter.swift in Sources */,
 				51DC379730E532EDC5A9FD24 /* ClaudeSettingsView.swift in Sources */,
 				53668B6AD58B7F2F8D2C4FF5 /* ProviderKeyTestButton.swift in Sources */,
+				84D481B843CA4C94A84187CE /* CloudAIConsent.swift in Sources */,
+				2978C6498C1EA0F53231AFA0 /* PrivacyPolicyDocument.swift in Sources */,
+				557CEA97F0FE894F83BE445D /* ReviewerDemo.swift in Sources */,
+				7AFAC26977620684EB9078C1 /* PrivacyAndDataView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

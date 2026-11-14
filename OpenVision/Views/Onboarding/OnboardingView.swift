@@ -118,7 +118,7 @@ struct OnboardingView: View {
                 VStack(alignment: .leading, spacing: Theme.Space.tight) {
                     Text("Grok key — default brain")
                         .font(.subheadline.weight(.semibold))
-                    Text("Paste your xAI key. Grok is the default cloud brain; you can switch to Claude or ChatGPT later in Settings.")
+                    Text("Paste your xAI key. Grok is the default cloud brain; you can switch to Claude or ChatGPT later in Settings. \(CloudAIConsent.keyEntryDisclosure)")
                         .font(.footnote)
                         .foregroundStyle(.secondary)
                     SecureField("xai-…", text: $grokKey)

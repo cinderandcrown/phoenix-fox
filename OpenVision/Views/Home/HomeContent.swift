@@ -31,6 +31,10 @@ struct HomeContent: View {
                         OfflineBanner()
                             .transition(.opacity)
                     }
+                    if model.reviewerDemo {
+                        ReviewerDemoBanner()
+                            .transition(.opacity)
+                    }
                     if model.needsGlassesRegister {
                         GlassesRegisterBanner(onRegister: actions.glasses)
                             .transition(.opacity)
@@ -216,6 +220,18 @@ struct OfflineBanner: View {
 }
 
 /// Shown until the glasses are registered — including after onboarding skip.
+struct ReviewerDemoBanner: View {
+    var body: some View {
+        Label(ReviewerDemo.banner, systemImage: "checkmark.seal")
+            .font(.footnote.weight(.semibold))
+            .foregroundStyle(Theme.ink)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(Theme.Space.snug)
+            .background(Theme.good.opacity(0.15), in: RoundedRectangle(cornerRadius: Theme.Radius.card, style: .continuous))
+            .accessibilityLabel(ReviewerDemo.banner)
+    }
+}
+
 struct GlassesRegisterBanner: View {
     var onRegister: () -> Void
 
