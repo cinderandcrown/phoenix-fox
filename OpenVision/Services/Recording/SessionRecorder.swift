@@ -113,7 +113,7 @@ final class SessionRecorder: ObservableObject {
         guard !isRecording else { return }
 
         let dir = FileManager.default.temporaryDirectory
-        let name = "OpenVision-\(Int(CMClockGetTime(hostClock).seconds * 1000)).mp4"
+        let name = "PhoenixFox-\(Int(CMClockGetTime(hostClock).seconds * 1000)).mp4"
         let url = dir.appendingPathComponent(name)
         try? FileManager.default.removeItem(at: url)
 

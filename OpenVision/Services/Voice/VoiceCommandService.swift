@@ -291,7 +291,7 @@ final class VoiceCommandService: ObservableObject {
     private func configureRecognitionRequest(_ request: SFSpeechAudioBufferRecognitionRequest) {
         request.shouldReportPartialResults = true
         request.taskHint = .search
-        var phrases = ["Ok Vision", "Okay Vision", "Hey Vision", "Vision"]
+        var phrases = ["Jarvis", "Hey Jarvis", "Ok Jarvis", "Ok Vision", "Okay Vision", "Hey Vision", "Vision"]
         if !wakeWord.isEmpty { phrases.insert(wakeWord, at: 0) }
         request.contextualStrings = phrases
     }
@@ -539,7 +539,7 @@ final class VoiceCommandService: ObservableObject {
         case .listening, .conversationMode:
             // Strip wake word from transcription (like xmeta does)
             var command = transcription
-            for ww in [wakeWord.lowercased(), "ok vision", "okay vision", "hey vision", "hi vision"] {
+            for ww in [wakeWord.lowercased(), "jarvis", "hey jarvis", "ok jarvis", "ok vision", "okay vision", "hey vision", "hi vision"] {
                 if let range = command.lowercased().range(of: ww) {
                     command = String(command[range.upperBound...]).trimmingCharacters(in: .whitespaces)
                     break
@@ -648,6 +648,7 @@ final class VoiceCommandService: ObservableObject {
         let lower = text.lowercased()
         let variations = [
             wakeWord.lowercased(),
+            "jarvis", "hey jarvis", "ok jarvis", "okay jarvis",
             "ok vision", "okay vision", "o.k. vision", "o k vision",
             "hey vision", "hi vision",
             "a vision", "heavy vision", "have vision", "obey vision", "oak vision"
@@ -672,6 +673,7 @@ final class VoiceCommandService: ObservableObject {
         // Check for exact match or common variations/misrecognitions
         let variations = [
             wakeWordLower,
+            "jarvis", "hey jarvis", "ok jarvis", "okay jarvis",
             // OK Vision variants (most reliable)
             "ok vision",
             "okay vision",
@@ -702,6 +704,7 @@ final class VoiceCommandService: ObservableObject {
 
         let variations = [
             wakeWordLower,
+            "jarvis", "hey jarvis", "ok jarvis", "okay jarvis",
             "ok vision", "okay vision", "o.k. vision", "o k vision",
             "hey vision", "hi vision",
             "a vision", "heavy vision", "have vision", "obey vision", "oak vision"
@@ -749,7 +752,7 @@ final class VoiceCommandService: ObservableObject {
         var command = text
         let wakeWordLower = wakeWord.lowercased()
 
-        for prefix in [wakeWordLower, "hey vision", "ok vision", "okay vision"] {
+        for prefix in [wakeWordLower, "hey jarvis", "ok jarvis", "okay jarvis", "hey vision", "ok vision", "okay vision"] {
             if command.lowercased().hasPrefix(prefix) {
                 command = String(command.dropFirst(prefix.count)).trimmingCharacters(in: .whitespaces)
                 break

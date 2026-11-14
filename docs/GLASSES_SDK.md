@@ -1,6 +1,6 @@
 # Glasses and the official toolkit
 
-Jarvis talks to the glasses only through Meta's Wearables Device Access Toolkit for iOS.
+Phoenix Fox talks to the glasses only through Meta's Wearables Device Access Toolkit for iOS. The wearer says Jarvis. That is the wake word, not the product name.
 
 - Package: `https://github.com/facebook/meta-wearables-dat-ios`
 - Version pinned in this repo: **1.0.1** (9 October 2026). No developer-facing changes from 1.0.0.
@@ -46,4 +46,4 @@ Meta Ray-Ban Display and the Meta Neural Band are a different product (in-lens d
 - Draw text cards with `Display.send` (`MWDATDisplay`) when `DeviceType.supportsDisplay` is true (`metaRayBanDisplay`).
 - Deliver band input as semantic events (`select`, `nav`, `drag`) tagged `neuralBand` or `neuralBandDrag`. It does **not** give a third-party app the raw EMG waveform, and it does not document a distinct "pinch" event. A pinch shows up as a select or a nav, if the band is connected.
 
-Jarvis already checks `supportsDisplay` before drawing anything, and it treats band events as optional. If either call fails, speech continues. Adventurer never enters that path. Shipping v1 does not depend on Display hardware, a band, or those experimental modules being allowed in a public build.
+Phoenix Fox checks `supportsDisplay` before drawing anything, and it treats band events as optional. If either call fails, Jarvis keeps speaking. Adventurer never enters that path. Shipping v1 does not depend on Display hardware, a band, or those experimental modules being allowed in a public build.

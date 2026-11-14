@@ -130,7 +130,7 @@ struct ParticleEffect: View {
         ParticleEffect(particleCount: 50)
 
         VStack {
-            Text("OpenVision")
+            Text("Phoenix Fox")
                 .font(.largeTitle)
                 .fontWeight(.bold)
                 .foregroundColor(.white)

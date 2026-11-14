@@ -2,7 +2,11 @@
   <img src="docs/images/banner.png" alt="OpenVision Banner" width="100%"/>
 </p>
 
-<h1 align="center">OpenVision</h1>
+<h1 align="center">Phoenix Fox</h1>
+
+<p align="center">Any AI. Your glasses. Say <strong>Jarvis</strong> to wake the voice.</p>
+
+<p align="center">Phoenix Fox is Cinder &amp; Crown’s build on the MIT project OpenVision. The home-screen name is Phoenix Fox. Jarvis is the spoken nickname only.</p>
 
 <p align="center">
   The open-source iOS app connecting Meta Ray-Ban smart glasses to AI assistants — cloud or fully on-device.

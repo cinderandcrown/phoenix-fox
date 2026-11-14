@@ -1,6 +1,8 @@
-# OpenVision Setup Guide
+# Phoenix Fox setup
 
-Complete step-by-step guide to set up and run OpenVision.
+Phoenix Fox is the app on the phone and the name on the App Store. **Jarvis** is only the wake word and the voice that answers. The Xcode project and module are still named OpenVision, which is the MIT project this build starts from. Do not rename that target.
+
+The owner does not use this file. Install steps that stay on the iPhone and in the browser are in [docs/APP_STORE_PLAN.md](docs/APP_STORE_PLAN.md). The rest of this page is for a developer with a Mac.
 
 > ## Read this first: you must build from source
 >

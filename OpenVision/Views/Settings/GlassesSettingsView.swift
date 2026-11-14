@@ -73,7 +73,7 @@ struct GlassesSettingsView: View {
             } header: {
                 Text("Registration")
             } footer: {
-                Text("Registration opens the Meta AI app where you'll grant OpenVision access to your glasses.")
+                Text("Registration opens the Meta AI app, where you grant Phoenix Fox access to your glasses.")
             }
 
             // Device Status Section
@@ -200,7 +200,7 @@ struct GlassesSettingsView: View {
             }
             Button("Cancel", role: .cancel) {}
         } message: {
-            Text("This will disconnect your glasses from OpenVision. You'll need to re-register to use them again.")
+            Text("This disconnects your glasses from Phoenix Fox. You will need to pair them again to use them.")
         }
         .alert("Error", isPresented: .constant(glassesManager.errorMessage != nil)) {
             Button("OK") {

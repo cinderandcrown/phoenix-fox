@@ -757,7 +757,7 @@ final class HermesGatewayClient {
         }
     }
 
-    nonisolated static let titlePrefix = "OpenVision: "
+    nonisolated static let titlePrefix = "Phoenix Fox: "
 
     /// Hermes' title with our prefix, or nil if it already has it (our own rename echoing back).
     /// Hermes' auto-titler reads the model input, which on the voice surface starts with Hermes'

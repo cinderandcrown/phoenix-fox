@@ -141,11 +141,11 @@ private struct WelcomePage: View {
 
             // Title
             VStack(spacing: 8) {
-                Text("OpenVision")
+                Text("Phoenix Fox")
                     .font(.system(size: 42, weight: .bold))
                     .foregroundColor(.white)
 
-                Text("Your glasses. Your AI. Your rules.")
+                Text("Any AI. Your glasses.")
                     .font(.title3)
                     .foregroundColor(.white.opacity(0.7))
             }
@@ -180,7 +180,7 @@ private struct FeaturesPage: View {
                     icon: "mic.fill",
                     color: .blue,
                     title: "Voice Control",
-                    description: "Say \"Ok Vision\" to activate. Hands-free interaction."
+                    description: "Say \"Jarvis\" to wake the voice. The app is Phoenix Fox."
                 )
 
                 FeatureRow(
@@ -285,13 +285,13 @@ private struct SetupPage: View {
                 SetupStep(
                     number: 3,
                     title: "Connect Glasses",
-                    description: "Register your Meta Ray-Bans (or use iPhone camera)"
+                    description: "Pair your AI glasses in the Meta AI app, or use the iPhone camera"
                 )
 
                 SetupStep(
                     number: 4,
                     title: "Start Talking",
-                    description: "Say \"Ok Vision\" and ask anything"
+                    description: "Say \"Jarvis\" and ask anything"
                 )
             }
             .padding(.horizontal, 24)

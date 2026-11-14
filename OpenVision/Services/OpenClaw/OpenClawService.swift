@@ -366,7 +366,7 @@ final class OpenClawService: ObservableObject {
             "maxProtocol": 3,
             "client": [
                 "id": "cli",
-                "displayName": "OpenVision",
+                "displayName": "Phoenix Fox",
                 "version": "1.0.0",
                 "platform": "ios",
                 "mode": "cli"
@@ -374,7 +374,7 @@ final class OpenClawService: ObservableObject {
             "caps": [String](), // Empty array like xmeta
             "auth": ["token": authToken],
             "locale": "en-US",
-            "userAgent": "OpenVision/1.0.0"
+            "userAgent": "PhoenixFox/1.0.0"
         ]
 
         let response = try await sendRequest(method: .connect, params: params)

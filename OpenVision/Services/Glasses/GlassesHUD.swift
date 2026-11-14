@@ -136,7 +136,7 @@ final class GlassesHUD {
         let position = cards.count > 1 ? "\(index + 1)/\(cards.count)" : ""
         let view = FlexBox(direction: .column, spacing: 6, alignment: .start, crossAlignment: .start) {
             Icon(name: icon, style: .outline)
-            Text(card.kind == .alert ? "Alert" : "Jarvis", style: .heading)
+            Text(card.kind == .alert ? "Alert" : "Phoenix Fox", style: .heading)
             lines[0]
             lines[1]
         }

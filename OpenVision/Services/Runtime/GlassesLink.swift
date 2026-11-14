@@ -41,7 +41,7 @@ final class GlassesLink: ObservableObject {
     @Published private(set) var displayCapable = false
     @Published private(set) var logs: [String] = []
 
-    private let log = Logger(subsystem: "llc.cinderandcrown.jarvis", category: "glasses")
+    private let log = Logger(subsystem: "llc.cinderandcrown.phoenixfox", category: "glasses")
     private var sawDevice = false
     private var attempt = 0
 

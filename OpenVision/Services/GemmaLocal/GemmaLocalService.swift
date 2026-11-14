@@ -1242,7 +1242,7 @@ final class GemmaLocalService: ObservableObject {
             case .modelNotLoaded:
                 return "The local Gemma model isn't loaded. Download it in Settings → AI Backend → Local (Gemma 4)."
             case .backgrounded:
-                return "On-device AI can't run while the app is in the background. Bring OpenVision to the foreground."
+                return "On-device AI can't run while the app is in the background. Bring Phoenix Fox to the foreground."
             case .badFrame:
                 return "The camera frame couldn't be decoded."
             }

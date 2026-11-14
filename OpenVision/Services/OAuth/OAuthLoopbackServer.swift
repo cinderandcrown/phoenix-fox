@@ -92,7 +92,7 @@ final class OAuthLoopbackServer: @unchecked Sendable {
         case .callback(let query):
             status = "200 OK"
             body = "<html><body style=\"font-family:-apple-system;text-align:center;padding-top:30vh\">"
-                + "<h2>Signed in</h2><p>You can return to OpenVision.</p></body></html>"
+                + "<h2>Signed in</h2><p>You can return to Phoenix Fox.</p></body></html>"
             if !delivered {
                 delivered = true
                 onCallback?(query)

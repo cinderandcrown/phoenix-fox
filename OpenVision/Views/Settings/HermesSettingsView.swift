@@ -178,7 +178,7 @@ struct HermesSettingsView: View {
                 Label(signInError, systemImage: "exclamationmark.triangle.fill")
                     .foregroundColor(.orange).font(.caption)
             } else {
-                Text("You sign in on your Hermes login page with its username and password; OpenVision only keeps the tokens Hermes issues, in the Keychain. Approvals Hermes asks for are read out, and you answer yes or no. Requests for passwords or secrets are always declined.")
+                Text("You sign in on your Hermes login page with its username and password. Phoenix Fox keeps only the tokens Hermes issues, in the Keychain. Approvals Hermes asks for are read out, and you answer yes or no. Requests for passwords or secrets are always declined.")
             }
         }
     }

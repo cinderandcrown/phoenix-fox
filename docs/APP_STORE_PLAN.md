@@ -1,7 +1,8 @@
 # App Store plan
 
 Publisher: **Cinder & Crown LLC** (Texas).  
-Working name in the app: **Jarvis**.  
+Public name: **Phoenix Fox**.  
+Spoken wake word and voice nickname: **Jarvis**. That name is not the App Store name, the home-screen name, or the publisher.  
 Position: any AI, your glasses. Not a Meta AI client and not tied to one model vendor.
 
 This is a plan, not a filing. Nothing here has been submitted to Apple or Meta.
@@ -29,7 +30,7 @@ The Wearables Device Access Toolkit supports it.
 Two independent blockers:
 
 1. **Meta will not let this binary into the public App Store yet.** The iOS integration guide still says publishing to the App Store is not supported, because the SDK uses `ExternalAccessory` / `com.meta.ar.wearable` and Apple then requires MFi authorization that only Meta can grant. Meta staff said in August 2026 they will not add third-party bundle ids to that plan or issue a PPID, and there is no waitlist. Toolkit 1.0 shipped as a stable SDK in September 2026, and Meta's FAQ says discovery and submission are "soon", but the iOS page and the MFi answer have not been lifted. The allowed path today is a Wearables Developer Center release channel plus TestFlight for invited testers.
-2. **The name "Jarvis"** collides with Marvel's J.A.R.V.I.S. Do not ship a paid app under that name without a clearance. The product also must not put **Meta** or **Ray-Ban** in the app name, icon, or subtitle. Meta's developer terms do not grant use of their brand features beyond a factual description of compatibility. Say "works with compatible AI glasses", not "the official Meta Ray-Ban app".
+2. **Store listing name.** The public product is Phoenix Fox, from Cinder & Crown LLC. Do not put **Meta** or **Ray-Ban** in the app name, icon, or subtitle. Meta's developer terms do not grant use of their brand features beyond a factual description of compatibility. Say "works with compatible AI glasses", not "the official Meta Ray-Ban app". Jarvis is only the word he says and the voice that answers. It is not on the App Store page.
 
 OpenVision's MIT license allows a commercial derivative if the copyright and license notice stay in the app and repo. Vendored Kokoro is MIT. Misaki is Apache-2.0. WhisperKit is MIT. The Meta SDK is not open source. Using it means accepting the [Meta Wearables Developer Terms](https://wearables.developer.meta.com/terms) (updated 6 October 2025): a limited license to build integrations for Meta-approved glasses, Integration Review before a general release, and no implication of sponsorship. Experimental toolkit features (on-glasses speech, motion, and the newer display and input modules where Meta still labels them experimental) cannot be the thing a production build depends on.
 
@@ -75,7 +76,7 @@ Figures are order-of-magnitude for a cheap vision model in late 2026, not a quot
 
 ## Launch steps, when Meta opens the store
 
-1. Rename the app if "Jarvis" is not cleared. No Meta or Ray-Ban in the name.
+1. Ship the listing as Phoenix Fox. No Meta or Ray-Ban in the name. Jarvis stays the wake word inside the app.
 2. Confirm the iOS guide no longer blocks App Store submission, and that Meta has either dropped the MFi protocol or authorized this bundle id.
 3. Pass Meta Integration Review for this app id. Adventurer (Meta glasses, firmware on the 1.0.1 table) is the hardware named in the review notes.
 4. Enroll Cinder & Crown's Apple Developer account, create the App Store Connect API key, and let GitHub Actions upload. He does not need a Mac. Steps are in SETUP.md.

@@ -6,7 +6,7 @@
     <key>CFBundleDevelopmentRegion</key>
     <string>$(DEVELOPMENT_LANGUAGE)</string>
     <key>CFBundleDisplayName</key>
-    <string>OpenVision</string>
+    <string>Phoenix Fox</string>
     <key>CFBundleExecutable</key>
     <string>$(EXECUTABLE_NAME)</string>
     <key>CFBundleIdentifier</key>
@@ -95,43 +95,43 @@
 
     <!-- Microphone for voice input -->
     <key>NSMicrophoneUsageDescription</key>
-    <string>OpenVision needs microphone access to hear your voice commands and have conversations with the AI assistant.</string>
+    <string>Phoenix Fox needs the microphone to hear you after you say Jarvis.</string>
 
     <!-- Camera for photo capture -->
     <key>NSCameraUsageDescription</key>
-    <string>OpenVision uses the camera to capture photos that the AI can analyze and describe.</string>
+    <string>Phoenix Fox uses the camera when you ask Jarvis to look.</string>
 
     <!-- Speech recognition for wake word detection -->
     <key>NSSpeechRecognitionUsageDescription</key>
-    <string>OpenVision uses speech recognition to detect your wake word ("Ok Vision") and transcribe your voice commands.</string>
+    <string>Phoenix Fox uses speech recognition to hear the wake word Jarvis and to transcribe what you say.</string>
 
     <!-- Bluetooth for glasses connection -->
     <key>NSBluetoothAlwaysUsageDescription</key>
-    <string>OpenVision connects to your Meta Ray-Ban glasses via Bluetooth to access the camera and microphone.</string>
+    <string>Phoenix Fox connects to your AI glasses over Bluetooth for the camera and microphone.</string>
 
     <key>NSBluetoothPeripheralUsageDescription</key>
-    <string>OpenVision connects to your Meta Ray-Ban glasses via Bluetooth.</string>
+    <string>Phoenix Fox connects to your AI glasses over Bluetooth.</string>
 
     <!-- Photo Library for saving captured images -->
     <key>NSPhotoLibraryAddUsageDescription</key>
-    <string>OpenVision can save captured photos to your photo library.</string>
+    <string>Phoenix Fox can save a photo from the glasses to your library.</string>
 
     <key>NSPhotoLibraryUsageDescription</key>
-    <string>OpenVision can access your photo library to share images with the AI.</string>
+    <string>Phoenix Fox can use a photo from your library when you ask Jarvis about it.</string>
 
     <!-- Location (if needed for context) -->
     <key>NSLocationWhenInUseUsageDescription</key>
-    <string>OpenVision can use your location to provide location-aware responses.</string>
+    <string>Phoenix Fox can use your location when you turn that on, so Jarvis can answer with where you are.</string>
 
     <!-- Productivity tools -->
     <key>NSCalendarsUsageDescription</key>
-    <string>OpenVision reads and adds calendar events when you ask by voice.</string>
+    <string>Phoenix Fox reads and adds calendar events when you ask Jarvis.</string>
     <key>NSCalendarsFullAccessUsageDescription</key>
-    <string>OpenVision reads and adds calendar events when you ask by voice.</string>
+    <string>Phoenix Fox reads and adds calendar events when you ask Jarvis.</string>
     <key>NSRemindersUsageDescription</key>
-    <string>OpenVision creates reminders when you ask by voice.</string>
+    <string>Phoenix Fox creates reminders when you ask Jarvis.</string>
     <key>NSRemindersFullAccessUsageDescription</key>
-    <string>OpenVision creates reminders when you ask by voice.</string>
+    <string>Phoenix Fox creates reminders when you ask Jarvis.</string>
 
     <!-- App Transport Security (allow WebSocket connections) -->
     <key>NSAppTransportSecurity</key>

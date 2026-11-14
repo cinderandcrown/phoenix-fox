@@ -160,8 +160,8 @@ final class HermesTests: XCTestCase {
     }
 
     func testChatTitlesGetThePrefixOnce() {
-        XCTAssertEqual(HermesGatewayClient.prefixedTitle("Checking server disk space"), "OpenVision: Checking server disk space")
-        XCTAssertNil(HermesGatewayClient.prefixedTitle("OpenVision: Checking server disk space"), "our own rename echoing back")
+        XCTAssertEqual(HermesGatewayClient.prefixedTitle("Checking server disk space"), "Phoenix Fox: Checking server disk space")
+        XCTAssertNil(HermesGatewayClient.prefixedTitle("Phoenix Fox: Checking server disk space"), "our own rename echoing back")
         XCTAssertNil(HermesGatewayClient.prefixedTitle("  "))
     }
 
@@ -169,10 +169,10 @@ final class HermesTests: XCTestCase {
         // What a Hermes server actually titled a voice-surface chat.
         let leaked = "[Note: this message is a delegation from a live spoken conversation."
         XCTAssertEqual(HermesGatewayClient.prefixedTitle(leaked, fallback: "What's the capital of Portugal"),
-                       "OpenVision: What's the capital of Portugal")
+                       "Phoenix Fox: What's the capital of Portugal")
         XCTAssertNil(HermesGatewayClient.prefixedTitle(leaked, fallback: nil), "keep Hermes' title rather than invent one")
         XCTAssertEqual(HermesGatewayClient.prefixedTitle("Capital of Portugal", fallback: "What's the capital"),
-                       "OpenVision: Capital of Portugal", "a real Hermes title wins")
+                       "Phoenix Fox: Capital of Portugal", "a real Hermes title wins")
     }
 
     // MARK: - Slash commands
