@@ -92,6 +92,27 @@ final class TTSService: NSObject, ObservableObject {
         enqueue(text)
     }
 
+    /// True when the line last started was one the wearer did not ask for: a Guide mode
+    /// callout, a sound alert, a turn on a walk. The voice screen reads this when speech
+    /// ends, because such a line is not part of a conversation and must not open one.
+    private(set) var announcing = false
+
+    /// Says a line the wearer did not ask for.
+    ///
+    /// - Parameter urgent: An urgent line interrupts whatever is being said. Any other line
+    ///   is dropped if something is already being said.
+    func announce(_ text: String, urgent: Bool) {
+        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+        if urgent {
+            stop()
+        } else if isSpeaking || streamingActive {
+            return
+        }
+        announcing = true
+        enqueue(trimmed)
+    }
+
     /// Ambient narration (watch loop): speaks only into silence and never preempts — `speak`
     /// stops the synthesizer first, which cut replies off mid-sentence when a watch line landed
     /// during one. Dropped lines are fine; the next scene change describes again.
@@ -99,6 +120,7 @@ final class TTSService: NSObject, ObservableObject {
         guard !isSpeaking, !streamingActive else { return }
         let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return }
+        announcing = false
         enqueue(trimmed)
     }
 
@@ -118,6 +140,7 @@ final class TTSService: NSObject, ObservableObject {
     func speakChunk(_ text: String) {
         let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return }
+        announcing = false
         enqueue(trimmed)
     }
 
@@ -134,7 +157,9 @@ final class TTSService: NSObject, ObservableObject {
     private func enqueue(_ text: String) {
         let utterance = AVSpeechUtterance(string: text)
         utterance.voice = selectedVoice
-        utterance.rate = AVSpeechUtteranceDefaultSpeechRate
+        // The wearer's "speak slower" or "speak faster" choice.
+        let pace = SettingsManager.shared.settings.accessibility.pace.rate
+        utterance.rate = min(max(AVSpeechUtteranceDefaultSpeechRate * pace, AVSpeechUtteranceMinimumSpeechRate), AVSpeechUtteranceMaximumSpeechRate)
         utterance.pitchMultiplier = 1.0
         utterance.volume = 1.0
         pendingUtterances += 1
@@ -144,6 +169,7 @@ final class TTSService: NSObject, ObservableObject {
     /// Stop speaking and clear the queue.
     func stop() {
         synthesizer.stopSpeaking(at: .immediate)
+        announcing = false
         streamingActive = false
         pendingUtterances = 0
         isSpeaking = false

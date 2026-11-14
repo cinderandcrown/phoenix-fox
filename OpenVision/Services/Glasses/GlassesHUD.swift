@@ -167,6 +167,28 @@ final class GlassesHUD {
         }
     }
 
+    /// Shows live caption lines. They replace what is on the lens and are not queued as
+    /// cards: a caption is only useful while it is being said.
+    func presentCaption(_ lines: [String]) {
+        guard displayAvailable, display != nil, !lines.isEmpty else { return }
+        let text = lines.joined(separator: "\n")
+        Task { await renderCaption(text) }
+    }
+
+    private func renderCaption(_ text: String) async {
+        guard displayAvailable, let display else { return }
+        let view = FlexBox(direction: .column, spacing: 4, alignment: .start, crossAlignment: .start) {
+            Text(text, style: .body)
+        }
+        .padding(10)
+        .background(.card)
+        do {
+            try await display.send(view)
+        } catch {
+            GlassesLink.shared.record("Caption send failed: \(error.localizedDescription)")
+        }
+    }
+
     private func clear() async {
         guard let display else { return }
         try? await display.clearDisplay()

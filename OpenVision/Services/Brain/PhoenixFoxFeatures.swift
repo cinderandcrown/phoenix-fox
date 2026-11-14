@@ -219,7 +219,7 @@ enum PhoenixFoxFeatures {
         await MessageHandoff.send(text)
     }
 
-    private static func contactNumber(matching name: String) async -> String? {
+    static func contactNumber(matching name: String) async -> String? {
         let store = CNContactStore()
         let granted = await withCheckedContinuation { continuation in
             store.requestAccess(for: .contacts) { ok, _ in

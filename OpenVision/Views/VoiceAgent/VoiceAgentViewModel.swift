@@ -50,6 +50,8 @@ final class VoiceAgentViewModel: ObservableObject {
     private var lastProcessedCommand = ""
     private var lastProcessedAt = Date.distantPast
     private var pendingHeard: HeardTurn?
+    private var lastAccessCommand = ""
+    private var lastAccessAt = Date.distantPast
     private var hasRequestedSpeechAuth = false
 
     /// The live-video backend currently driving audio/video (Gemini or OpenAI Realtime).
@@ -271,7 +273,12 @@ final class VoiceAgentViewModel: ObservableObject {
 
             if isSessionActive {
                 agentState = .listening
-                resumeListeningAfterSpeaking()
+                // A line the wearer did not ask for, such as a Guide mode callout, is not a
+                // turn in a conversation. Opening one after it would take the next thing a
+                // passer-by says as a command. Only a reply that was cut off still resumes.
+                if !ttsService.announcing || voiceCommandService.state == .processing {
+                    resumeListeningAfterSpeaking()
+                }
             } else {
                 agentState = .idle
             }
@@ -735,6 +742,25 @@ final class VoiceAgentViewModel: ObservableObject {
             await self?.askUser(prompt)
         }
 
+        // Accessibility: live captions read what the recognizer hears while it waits for the
+        // wake word, and the wearer's timing choices set how long it waits.
+        voiceCommandService.onAmbientSpeech = { text in
+            LiveCaptions.shared.heard(text)
+        }
+        voiceCommandService.onRecognitionRestarted = {
+            LiveCaptions.shared.recognizerRestarted()
+        }
+        LiveCaptions.shared.setOnDeviceRecognition = { [weak self] wanted in
+            guard let self else { return false }
+            self.voiceCommandService.prefersOnDeviceRecognition = wanted
+            return wanted && self.voiceCommandService.supportsOnDeviceRecognition
+        }
+        AccessibilityCoordinator.shared.applyTiming = { [weak self] settings in
+            self?.voiceCommandService.patience = settings.patience
+            self?.voiceCommandService.extraPause = settings.extraPause
+        }
+        AccessibilityCoordinator.shared.apply()
+
         // Command captured
         voiceCommandService.onCommandCaptured = { [weak self] (command: String) in
             guard let self else { return }
@@ -1023,6 +1049,11 @@ final class VoiceAgentViewModel: ObservableObject {
 
     /// Send command to AI backend
     private func sendCommand(_ command: String) async {
+        // The accessibility suite hears the sentence first. Its commands are fixed phrases
+        // worked out on the phone, so "stop guide mode" or "read this" never reach the
+        // general stop handling or a bot.
+        if await handleAccessibilityCommand(command) { return }
+
         let lowerCommand = command.lowercased()
 
         // Check for "stop" command - stops TTS and waits for next command.
@@ -1182,6 +1213,39 @@ final class VoiceAgentViewModel: ObservableObject {
         }
     }
 
+    /// Offers a sentence to the accessibility suite. True when the suite handled it.
+    private func handleAccessibilityCommand(_ command: String) async -> Bool {
+        // In the cloud live modes the audio goes straight to the model and never comes here.
+        guard !isLiveVideoMode || activeLiveService == nil else { return false }
+        // The recognizer can deliver one phrase twice. A second "next" must not skip a step.
+        if command == lastAccessCommand, Date().timeIntervalSince(lastAccessAt) < 4 { return true }
+        let reply = await AccessibilityCoordinator.shared.handle(command) { [weak self] in
+            await self?.accessibilityFrame()
+        }
+        guard let reply else { return false }
+        lastAccessCommand = command
+        lastAccessAt = Date()
+        pendingHeard = nil
+        CompanionSurface.present(bot: nil, text: reply) { self.speakResponse($0) }
+        if !ttsService.isSpeaking && !NeuralSpeech.isAnySpeaking {
+            agentState = isSessionActive ? .listening : .idle
+        }
+        return true
+    }
+
+    /// A full-size frame for reading text, colors, and faces on the phone. The camera goes
+    /// off again afterwards unless something else the wearer started is using it.
+    private func accessibilityFrame() async -> Data? {
+        agentState = .thinking
+        let frame = await freshLiveFrame()
+        let cameraWanted = isLiveVideoMode || GuideMode.shared.isOn || CompanionRuntime.shared.isWatching
+            || SmartCapture.shared.isRunning
+        if glassesManager.isStreaming && !cameraWanted {
+            await glassesManager.stopStreaming()
+        }
+        return frame
+    }
+
     private func runPhoenixFoxTurn(_ command: String) async {
         let heard = pendingHeard ?? HeardTurn(transcript: command, cleaned: command)
         pendingHeard = nil
@@ -1192,7 +1256,7 @@ final class VoiceAgentViewModel: ObservableObject {
             snapshot: { [weak self] in
                 guard let self else { return nil }
                 let frame = await self.freshLiveFrame()
-                if self.glassesManager.isStreaming && !self.isLiveVideoMode {
+                if self.glassesManager.isStreaming && !self.isLiveVideoMode && !GuideMode.shared.isOn {
                     await self.glassesManager.stopStreaming()
                 }
                 return ImageBudget.jpeg(frame)
@@ -2032,59 +2096,34 @@ final class VoiceAgentViewModel: ObservableObject {
     /// Carry out a face action (camera capture + Apple Vision), shared by the cloud-backend
     /// classifier path and the Local-backend single-pass router.
     private func handleFaceIntent(_ intent: GemmaLocalService.FaceIntent) async {
-        let face = FaceRecognitionService.shared
+        // Faces go through the accessibility suite, which keeps them sealed on this phone
+        // and asks for the person's permission before saving one.
+        let command: AccessCommand
         switch intent.action {
         case "identify":
-            agentState = .thinking
-            guard let image = await currentGlassesImage() else {
-                speakResponse("I couldn't get a picture from the glasses. Make sure they're connected.")
-                return
-            }
-            speakResponse(await face.identify(in: image))
+            command = .whoIsThis
         case "remember":
-            agentState = .thinking
             guard !intent.name.isEmpty else {
-                speakResponse("Sure — what's their name?")
+                speakResponse("Say remember this person as, then their name.")
                 return
             }
-            guard let image = await currentGlassesImage() else {
-                speakResponse("I couldn't get a picture from the glasses. Make sure they're connected.")
-                return
-            }
-            speakResponse(await face.rememberFace(name: intent.name, from: image))
+            command = .rememberFace(name: intent.name)
         case "forget":
-            speakResponse(face.forgetFace(name: intent.name))
+            command = .forgetFace(name: intent.name)
         case "list":
-            speakResponse(face.listKnownFaces())
+            speakResponse(AccessFaces.shared.listSpoken())
+            return
         default:
-            break
+            return
         }
+        agentState = .thinking
+        let reply = await AccessibilityCoordinator.shared.perform(command) { [weak self] in
+            await self?.accessibilityFrame()
+        }
+        if let reply { speakResponse(reply) }
     }
 
     // MARK: - Photo capture
-
-    /// Get a fresh UIImage frame from the glasses camera, then turn the camera off
-    /// ("click and go") — unless we're in live video mode.
-    private func currentGlassesImage() async -> UIImage? {
-        guard glassesManager.isRegistered else { return nil }
-        if !glassesManager.isStreaming { await glassesManager.startStreaming() }
-        var frame: UIImage?
-        for _ in 0..<40 {   // up to ~4s for a fresh frame
-            if let f = glassesManager.lastFrame { frame = f; break }
-            try? await Task.sleep(nanoseconds: 100_000_000)
-        }
-        if frame == nil { frame = glassesManager.lastFrame }
-        if glassesManager.isStreaming && !isLiveVideoMode {
-            await glassesManager.stopStreaming()
-        }
-        // Do NOT touch the audio stack here. Tearing down / rebuilding the recognizer around the
-        // camera is what broke the HFP mic: every rebuild forces a fresh Bluetooth SCO negotiation,
-        // which the glasses can't service right after streaming (mic stays deaf for tens of seconds,
-        // with an audible reconnect chirp per attempt). OpenGlasses keeps its wake-word engine + mic
-        // tap alive straight through photo capture — audio just gaps during the stream and resumes
-        // into the same running engine. We now do the same; see restartRecognition()'s engine check.
-        return frame
-    }
 
     /// Send a prompt (optionally with a photo) to whichever backend is currently selected.
     private func sendPromptToActiveBackend(_ prompt: String, imageData: Data?) async throws {
@@ -2124,7 +2163,7 @@ final class VoiceAgentViewModel: ObservableObject {
         // "Click and go": now that we have the photo, turn the glasses camera off immediately —
         // before the (multi-second) model inference — so the LED doesn't stay on. Repeat photo
         // commands restart the camera reliably via freshLiveFrame(). Skip in live video mode.
-        if imageData != nil && glassesManager.isStreaming && !isLiveVideoMode {
+        if imageData != nil && glassesManager.isStreaming && !isLiveVideoMode && !GuideMode.shared.isOn {
             NSLog("[OV] photo captured — stopping camera (click and go)")
             await glassesManager.stopStreaming()
         }
@@ -2343,7 +2382,9 @@ final class VoiceAgentViewModel: ObservableObject {
         // synthesis time, making TTS TTFB structurally zero and perceived latency optimistic.
         MetricsCollector.shared.markTTSRequested()
         // A neural voice (Kokoro on-device; Grok, OpenAI cloud) when selected + ready; otherwise Apple's.
-        if let neuralTTS {
+        // The neural voices have one speed, so a wearer who asked for slower or faster speech
+        // gets the built-in voice, which can do it.
+        if let neuralTTS, settingsManager.settings.accessibility.pace == .normal {
             Task { await neuralTTS.speak(text) }
         } else {
             ttsService.speak(text)

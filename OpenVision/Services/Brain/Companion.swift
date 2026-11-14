@@ -129,7 +129,30 @@ final class CompanionRuntime: ObservableObject {
 
     func showCamera(on: Bool, line: String) {
         cameraOn = on
-        statusLine = line
+        // The light stays on while Guide mode runs, and the status must keep saying so.
+        statusLine = !on && guideOn ? Self.guideLine : line
+        refreshIsland()
+    }
+
+    private static let guideLine = "Guide mode. The glasses camera light is on."
+
+    /// True while Guide mode has the glasses camera on.
+    ///
+    /// Kept apart from `cameraOn`, which also holds the conversation open. Guide mode runs
+    /// on a street, where overheard speech must not be taken as a command.
+    @Published private(set) var guideOn = false
+
+    /// The capture light on the glasses is on for either reason.
+    var cameraLightOn: Bool { cameraOn || guideOn }
+
+    func showGuide(on: Bool) {
+        guideOn = on
+        if on {
+            statusLine = Self.guideLine
+        } else if !cameraOn {
+            statusLine = "Listening for Jarvis. The mic indicator stays visible."
+            caption = ""
+        }
         refreshIsland()
     }
 
@@ -350,7 +373,7 @@ final class CompanionRuntime: ObservableObject {
                     statusLine = "Watching. Camera light is on. The scene is steady, so I'm checking every couple of seconds."
                 }
             }
-            if GlassesManager.shared.isStreaming {
+            if GlassesManager.shared.isStreaming, !GuideMode.shared.isOn {
                 await GlassesManager.shared.stopStreaming()
             }
         }
@@ -366,13 +389,17 @@ final class CompanionRuntime: ObservableObject {
             return
         }
         cameraOn = false
-        Task { await GlassesManager.shared.stopStreaming() }
-        statusLine = "Listening for Jarvis. The mic indicator stays visible."
+        if GuideMode.shared.isOn {
+            statusLine = Self.guideLine
+        } else {
+            Task { await GlassesManager.shared.stopStreaming() }
+            statusLine = "Listening for Jarvis. The mic indicator stays visible."
+        }
         refreshIsland()
     }
 
     private func refreshIsland() {
-        let state = PhoenixActivityAttributes.ContentState(line: statusLine, cameraOn: cameraOn)
+        let state = PhoenixActivityAttributes.ContentState(line: statusLine, cameraOn: cameraLightOn)
         let content = ActivityContent(state: state, staleDate: nil)
         // Each update waits for the one before it, so the island never shows an older line last.
         islandUpdate = Task { [previous = islandUpdate] in

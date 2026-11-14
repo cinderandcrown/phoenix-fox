@@ -162,6 +162,10 @@ final class ConfirmationTests: XCTestCase {
         XCTAssertNil(Confirmation.parse("yes I think the weather is going to be nice tomorrow"))
         XCTAssertNil(Confirmation.parse("read this"))
         XCTAssertNil(Confirmation.parse(""))
+        // Short enough to be an answer, but a yes or a "what?" inside a command is not one.
+        XCTAssertNil(Confirmation.parse("turn right at the next door"))
+        XCTAssertNil(Confirmation.parse("what can I say"))
+        XCTAssertEqual(Confirmation.parse("no I said the other one"), .no)
     }
 
     func testAQuestionLapses() {

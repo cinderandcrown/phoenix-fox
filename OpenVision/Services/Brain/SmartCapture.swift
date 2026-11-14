@@ -193,7 +193,7 @@ final class SmartCapture: ObservableObject {
 
     private func releaseCamera() async {
         if CompanionRuntime.shared.isWatching { return }
-        if GlassesManager.shared.isStreaming {
+        if GlassesManager.shared.isStreaming, !GuideMode.shared.isOn {
             await GlassesManager.shared.stopStreaming()
         }
         CompanionRuntime.shared.showCamera(on: false, line: "Listening for Jarvis. The mic indicator stays visible.")

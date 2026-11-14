@@ -20,8 +20,10 @@ enum Confirmation: Equatable, Sendable {
         guard !words.isEmpty, words.count <= 6 else { return nil }
         let phrase = " " + words.joined(separator: " ") + " "
         if noWords.contains(where: { phrase.contains(" \($0) ") }) { return .no }
-        if againWords.contains(where: { phrase.contains(" \($0) ") }) { return .again }
-        if yesWords.contains(where: { phrase.contains(" \($0) ") }) { return .yes }
+        // A yes acts, so it has to be short: "turn right at the door" is not consent.
+        // Declining is safe at any length up to the limit above.
+        if words.count <= 3, againWords.contains(where: { phrase.contains(" \($0) ") }) { return .again }
+        if words.count <= 4, yesWords.contains(where: { phrase.contains(" \($0) ") }) { return .yes }
         return nil
     }
 
