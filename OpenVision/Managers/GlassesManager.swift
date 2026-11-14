@@ -23,8 +23,18 @@ final class GlassesManager: ObservableObject {
     /// Currently connected device identifier
     @Published var connectedDevice: DeviceIdentifier?
 
-    /// Number of connected devices
+    /// Number of devices the SDK lists (registered / discovered). Not the same as link up.
     @Published var connectedDeviceCount: Int = 0
+
+    /// DAT `LinkState.connected` for the active device. Required before camera permission
+    /// checks succeed (`PermissionError.noDeviceWithConnection` otherwise).
+    @Published private(set) var deviceLinkConnected = false
+
+    /// Human-readable DAT link state for Glasses check (`disconnected` / `connecting` / `connected`).
+    @Published private(set) var deviceLinkStateLabel = "none"
+
+    /// Last SDK / camera error line for Glasses check (no tokens).
+    @Published private(set) var lastSDKError: String?
 
     /// Whether camera streaming is active
     @Published var isStreaming: Bool = false
@@ -83,6 +93,7 @@ final class GlassesManager: ObservableObject {
     private var registrationTask: Task<Void, Never>?
     private var registrationWait: Task<Void, Never>?
     private var devicesTask: Task<Void, Never>?
+    private var linkStateToken: (any AnyListenerToken)?
     private var stateListenerToken: (any AnyListenerToken)?
     private var videoFrameListenerToken: (any AnyListenerToken)?
     private var photoDataListenerToken: (any AnyListenerToken)?
@@ -234,6 +245,9 @@ final class GlassesManager: ObservableObject {
             isRegistered = false
             connectedDevice = nil
             connectedDeviceCount = 0
+            deviceLinkConnected = false
+            deviceLinkStateLabel = "none"
+            linkStateToken = nil
             errorMessage = nil
             print("[GlassesManager] Unregistration successful")
         } catch {
@@ -380,9 +394,10 @@ final class GlassesManager: ObservableObject {
         }
         // HFP must settle before the camera stream, or glasses audio can fail silently.
         await AudioSessionManager.shared.waitUntilCameraSafe()
-        guard let deviceId = connectedDevice else {
-            errorMessage = "No glasses connected"
-            print("[GlassesManager] Cannot start streaming - no device connected")
+
+        // DAT lists a device as soon as registration succeeds; camera APIs need
+        // LinkState.connected. CameraAccess starts a session first, then checks permission.
+        guard let deviceId = await waitForLinkedDevice(wearables: wearables) else {
             return
         }
         guard var profile = plan(for: purpose) else {
@@ -411,7 +426,9 @@ final class GlassesManager: ObservableObject {
         // The SDK's own verdict on whether it can drive this hardware. A mismatch
         // otherwise fails as an opaque "Device unavailable" when the session starts.
         if let device = wearables.deviceForIdentifier(deviceId) {
-            print("[GlassesManager] Device \(device.nameOrId()): type=\(device.deviceType()) link=\(device.linkState) compatibility=\(device.compatibility())")
+            let line = "Device \(device.nameOrId()): type=\(device.deviceType()) link=\(device.linkState) compatibility=\(device.compatibility())"
+            print("[GlassesManager] \(line)")
+            GlassesLink.shared.record(line)
             if device.compatibility() == .deviceUpdateRequired {
                 errorMessage = SessionTrouble.firmwareUpdateRequired.advice
             } else if device.compatibility() == .sdkUpdateRequired {
@@ -420,8 +437,6 @@ final class GlassesManager: ObservableObject {
         } else {
             print("[GlassesManager] deviceForIdentifier returned nil")
         }
-
-        guard await cameraPermitted(wearables) else { return }
 
         let outcome = await open(profile, for: purpose, on: deviceId, wearables: wearables)
         // If the glasses will not take the larger stream, the one every build has always
@@ -449,27 +464,106 @@ final class GlassesManager: ObservableObject {
         )
     }
 
+    /// CameraAccess order: DeviceSession must be `.started` before checkPermissionStatus.
+    /// Calling permission while LinkState is disconnected returns
+    /// `PermissionError.noDeviceWithConnection` ("All discovered devices are powered off…").
     private func cameraPermitted(_ wearables: any WearablesInterface) async -> Bool {
         do {
             var status = try await wearables.checkPermissionStatus(.camera)
             if status != .granted {
                 print("[GlassesManager] Requesting camera permission...")
+                GlassesLink.shared.record("Requesting DAT camera permission (opens Meta AI).")
                 status = try await wearables.requestPermission(.camera)
             }
             guard status == .granted else {
-                errorMessage = "Camera permission denied"
+                noteSDKError("Camera permission denied")
                 print("[GlassesManager] Camera permission not granted")
                 return false
             }
             return true
         } catch {
-            errorMessage = "Permission error: \(error.localizedDescription)"
+            noteSDKError(Self.describePermissionFailure(error))
             print("[GlassesManager] Permission error: \(error)")
             return false
         }
     }
 
-    /// Opens a session if one is needed, adds the camera, and starts the stream.
+    /// Wearer-facing text for DAT permission failures. `noDeviceWithConnection` is a
+    /// device-link problem, not a denied camera grant.
+    private static func describePermissionFailure(_ error: any Error) -> String {
+        if let permission = error as? PermissionError {
+            switch permission {
+            case .noDeviceWithConnection:
+                return "Glasses are listed but the Device Access link is not connected. Wear them, unfold the arms, keep Meta AI connected, then try again. (DAT: noDeviceWithConnection)"
+            case .noDevice:
+                return "No glasses found for this app yet. Register in Meta AI, then try again. (DAT: noDevice)"
+            case .connectionError:
+                return "Could not reach the glasses for camera permission. (DAT: connectionError)"
+            case .metaAINotInstalled:
+                return "Meta AI is not installed."
+            case .requestInProgress:
+                return "A camera permission request is already open in Meta AI."
+            case .requestTimeout:
+                return "Camera permission timed out in Meta AI. Try again."
+            case .internalError:
+                return "Meta AI reported an internal permission error."
+            @unknown default:
+                break
+            }
+        }
+        return "Permission error: \(error.localizedDescription)"
+    }
+
+    private func noteSDKError(_ message: String) {
+        lastSDKError = message
+        errorMessage = message
+        GlassesLink.shared.record(message)
+    }
+
+    /// Waits until a listed device reports `LinkState.connected`, matching Meta guidance
+    /// that checkPermissionStatus fails with noDeviceWithConnection until then.
+    private func waitForLinkedDevice(
+        wearables: any WearablesInterface,
+        timeoutSeconds: Double = 12
+    ) async -> DeviceIdentifier? {
+        if let ready = linkedDeviceID(in: wearables) {
+            return ready
+        }
+        let listed = wearables.devices
+        if listed.isEmpty {
+            noteSDKError("No glasses connected")
+            GlassesLink.shared.record("Camera refused: devicesStream empty.")
+            return nil
+        }
+        GlassesLink.shared.record(
+            "Waiting for DAT link (devices=\(listed.count), link=\(deviceLinkStateLabel))."
+        )
+        let deadline = Date().addingTimeInterval(timeoutSeconds)
+        while Date() < deadline {
+            refreshDeviceLink(from: wearables)
+            if let ready = linkedDeviceID(in: wearables) {
+                GlassesLink.shared.record("DAT link connected.")
+                return ready
+            }
+            try? await Task.sleep(for: .milliseconds(250))
+        }
+        noteSDKError(
+            "Glasses are registered but not linked yet (link=\(deviceLinkStateLabel)). Wear them, unfold the arms, and keep Meta AI connected. (DAT: LinkState not connected)"
+        )
+        return nil
+    }
+
+    private func linkedDeviceID(in wearables: any WearablesInterface) -> DeviceIdentifier? {
+        for id in wearables.devices {
+            if let device = wearables.deviceForIdentifier(id), device.linkState == .connected {
+                return id
+            }
+        }
+        return nil
+    }
+
+    /// Opens a session if one is needed, checks DAT camera permission (after session),
+    /// adds the camera, and starts the stream — CameraAccess order.
     private func open(
         _ profile: StreamProfile,
         for purpose: StreamPurpose,
@@ -478,6 +572,11 @@ final class GlassesManager: ObservableObject {
     ) async -> Opening {
         trouble = nil
         guard let session = await acquireSession(on: deviceId, wearables: wearables) else { return .noSession }
+        // Permission after session start — same as CameraAccess `startStreaming`.
+        guard await cameraPermitted(wearables) else {
+            await closeCamera()
+            return .noSession
+        }
         let config = Self.configuration(for: profile)
         var cam: Camera?
         do {
@@ -772,7 +871,8 @@ final class GlassesManager: ObservableObject {
     }
 
     private func still(_ use: StillUse) async -> Data? {
-        guard let wearables, isRegistered, let deviceId = connectedDevice else { return nil }
+        guard let wearables, isRegistered else { return nil }
+        guard let deviceId = await waitForLinkedDevice(wearables: wearables) else { return nil }
         // The stream and the photo capability cannot both have the camera.
         guard !isStreaming, camera == nil else { return nil }
         // The large transfer is the hottest thing the glasses do for this app.
@@ -781,10 +881,10 @@ final class GlassesManager: ObservableObject {
         // back to the stream, and whatever was on screen before stays.
         let shown = errorMessage
         defer { errorMessage = shown }
-        guard await cameraPermitted(wearables) else { return nil }
 
         trouble = nil
         guard let session = await acquireSession(on: deviceId, wearables: wearables) else { return nil }
+        guard await cameraPermitted(wearables) else { return nil }
         var data: Data?
         // Meta's guidance: the photo capability sometimes fails to start and works the
         // next time. One more try with a new camera, and then the stream.
@@ -891,7 +991,11 @@ final class GlassesManager: ObservableObject {
     private func note(_ error: any Error, doing what: String) {
         let found = Self.trouble(for: error)
         trouble = found
-        errorMessage = found == .other ? "Could not \(what). \(error.localizedDescription)" : found.advice
+        let message = found == .other
+            ? "Could not \(what). \(error.localizedDescription)"
+            : found.advice
+        lastSDKError = "\(what): \(error.localizedDescription)"
+        errorMessage = message
         GlassesLink.shared.record("Could not \(what): \(error.localizedDescription)")
     }
 
@@ -954,14 +1058,65 @@ final class GlassesManager: ObservableObject {
             for await devices in wearables.devicesStream() {
                 await MainActor.run {
                     self.connectedDeviceCount = devices.count
-                    self.connectedDevice = devices.first
+                    self.refreshDeviceLink(from: wearables)
+                    // Prefer a linked device for session/camera work.
+                    self.connectedDevice = self.linkedDeviceID(in: wearables) ?? devices.first
                     GlassesLink.shared.noteDeviceCount(devices.count)
-                    if let id = devices.first {
+                    if let id = self.connectedDevice {
                         GlassesControlSession.shared.deviceAppeared(id)
                     } else {
                         GlassesControlSession.shared.deviceDisappeared()
                     }
-                    print("[GlassesManager] Devices updated: \(devices.count) connected")
+                    print(
+                        "[GlassesManager] Devices updated: \(devices.count) listed, link=\(self.deviceLinkStateLabel)"
+                    )
+                }
+            }
+        }
+    }
+
+    /// Updates published link labels and listens for LinkState changes on the first device.
+    private func refreshDeviceLink(from wearables: any WearablesInterface) {
+        let devices = wearables.devices
+        guard let id = devices.first, let device = wearables.deviceForIdentifier(id) else {
+            linkStateToken = nil
+            deviceLinkConnected = false
+            deviceLinkStateLabel = devices.isEmpty ? "none" : "unknown"
+            return
+        }
+        applyLinkState(device.linkState, deviceName: device.nameOrId())
+        linkStateToken = device.addLinkStateListener { [weak self] state in
+            Task { @MainActor in
+                guard let self else { return }
+                self.applyLinkState(state, deviceName: device.nameOrId())
+            }
+        }
+    }
+
+    private func applyLinkState(_ state: LinkState, deviceName: String) {
+        let wasConnected = deviceLinkConnected
+        switch state {
+        case .connected:
+            deviceLinkConnected = true
+            deviceLinkStateLabel = "connected"
+        case .connecting:
+            deviceLinkConnected = false
+            deviceLinkStateLabel = "connecting"
+        case .disconnected:
+            deviceLinkConnected = false
+            deviceLinkStateLabel = "disconnected"
+        @unknown default:
+            deviceLinkConnected = false
+            deviceLinkStateLabel = String(describing: state)
+        }
+        if deviceLinkConnected != wasConnected {
+            GlassesLink.shared.record("DAT link \(deviceLinkStateLabel) (\(deviceName)).")
+            if deviceLinkConnected {
+                // Activate HFP/A2DP options so Home can route speech to the glasses.
+                do {
+                    _ = try AudioSessionManager.shared.configureForGlasses()
+                } catch {
+                    GlassesLink.shared.record("Audio route after link: \(error.localizedDescription)")
                 }
             }
         }

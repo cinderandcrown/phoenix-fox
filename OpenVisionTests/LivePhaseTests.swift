@@ -144,8 +144,10 @@ final class LivePhaseTests: XCTestCase {
     func testTheGlassesChip() {
         XCTAssertEqual(GlassesStatus(registered: false, devicesInReach: 0, cameraOn: false), .notConnected)
         XCTAssertEqual(GlassesStatus(registered: true, devicesInReach: 0, cameraOn: false), .away)
-        XCTAssertEqual(GlassesStatus(registered: true, devicesInReach: 1, cameraOn: false), .ready)
-        XCTAssertEqual(GlassesStatus(registered: true, devicesInReach: 1, cameraOn: true), .cameraOn)
+        // Listed but not linked ≠ ready (DAT PermissionError.noDeviceWithConnection).
+        XCTAssertEqual(GlassesStatus(registered: true, devicesInReach: 1, cameraOn: false, linkConnected: false), .away)
+        XCTAssertEqual(GlassesStatus(registered: true, devicesInReach: 1, cameraOn: false, linkConnected: true), .ready)
+        XCTAssertEqual(GlassesStatus(registered: true, devicesInReach: 1, cameraOn: true, linkConnected: true), .cameraOn)
         // Without a connection there is no camera to be on.
         XCTAssertEqual(GlassesStatus(registered: false, devicesInReach: 0, cameraOn: true), .notConnected)
         for status in [GlassesStatus.notConnected, .away, .ready, .cameraOn] {

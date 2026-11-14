@@ -88,6 +88,9 @@ final class AudioRoutePolicyTests: XCTestCase {
             cameraStreaming: false
         )
         XCTAssertEqual(plan.destination, .glasses(name: "Meta Glasses", link: .hfpConversation))
-        XCTAssertTrue(plan.destination.title.contains("Meta Glasses"))
+        XCTAssertEqual(plan.destination.title, "Meta Glasses (voice link)")
+        // Home prefixes once — title must not already say "Speaking through".
+        XCTAssertFalse(plan.destination.title.contains("Speaking through"))
+        XCTAssertEqual(AudioDestination.phoneSpeaker.title, "iPhone speaker")
     }
 }

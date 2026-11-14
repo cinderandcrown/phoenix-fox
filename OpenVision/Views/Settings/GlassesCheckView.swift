@@ -24,11 +24,19 @@ struct GlassesCheckView: View {
     var body: some View {
         List {
             Section {
-                row("Registration", glassesManager.isRegistered ? "Connected" : "Not connected")
+                row("Registration", glassesManager.isRegistered ? "Registered" : "Not registered")
                 row("SDK stage", glassesManager.registrationStage.rawValue)
                 row("Attempt", attemptPhaseLabel)
-                row("Devices in reach", "\(glassesManager.connectedDeviceCount)")
+                row("Devices listed", "\(glassesManager.connectedDeviceCount)")
+                row("DAT link", glassesManager.deviceLinkStateLabel)
+                row("Link ready", glassesManager.deviceLinkConnected ? "yes" : "no")
                 row("Network", network.status.title)
+                if let sdkError = glassesManager.lastSDKError {
+                    Text(sdkError)
+                        .font(.footnote)
+                        .foregroundStyle(.red)
+                        .textSelection(.enabled)
+                }
                 if let stall = glassesManager.registration.stall {
                     Text(stall.title)
                         .foregroundStyle(.red)
@@ -41,6 +49,8 @@ struct GlassesCheckView: View {
             } footer: {
                 if !glassesManager.isRegistered {
                     Text("Pair the glasses in Meta AI, turn on Developer Mode, then Register. Details: \(glassesManager.registrationDetails)")
+                } else if !glassesManager.deviceLinkConnected {
+                    Text("Registered is not enough for the camera. DAT needs LinkState.connected. Wear the glasses, unfold the arms, and keep Meta AI connected.")
                 }
             }
 
@@ -156,7 +166,12 @@ struct GlassesCheckView: View {
             "Phoenix Fox glasses log",
             glassesManager.registrationDetails,
             "Registered: \(glassesManager.isRegistered)",
-            "Devices: \(glassesManager.connectedDeviceCount)",
+            "Devices listed: \(glassesManager.connectedDeviceCount)",
+            "DAT link: \(glassesManager.deviceLinkStateLabel)",
+            "Link ready: \(glassesManager.deviceLinkConnected)",
+            "Last SDK error: \(glassesManager.lastSDKError ?? "(none)")",
+            "Audio: \(audio.destination.title)",
+            "Link mode: \(audio.linkMode.title)",
             "---",
         ].joined(separator: "\n")
         UIPasteboard.general.string = header + "\n" + link.logs.joined(separator: "\n")

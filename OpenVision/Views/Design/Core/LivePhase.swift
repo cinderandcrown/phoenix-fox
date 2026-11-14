@@ -220,13 +220,17 @@ enum GlassesStatus: Equatable, Sendable {
     /// The camera is on.
     case cameraOn
 
-    init(registered: Bool, devicesInReach: Int, cameraOn: Bool) {
+    /// - Parameter linkConnected: DAT `LinkState.connected` — devices listed ≠ reachable.
+    init(registered: Bool, devicesInReach: Int, cameraOn: Bool, linkConnected: Bool = false) {
         if !registered {
             self = .notConnected
         } else if cameraOn {
             self = .cameraOn
+        } else if linkConnected, devicesInReach > 0 {
+            self = .ready
         } else {
-            self = devicesInReach > 0 ? .ready : .away
+            // Registered but DAT link not up, or no device listed yet.
+            self = .away
         }
     }
 
@@ -243,7 +247,7 @@ enum GlassesStatus: Equatable, Sendable {
     var spoken: String {
         switch self {
         case .notConnected: return "Glasses are not connected."
-        case .away: return "Glasses are connected but not in reach. They may be in the case or switched off."
+        case .away: return "Glasses are registered but the Device Access link is not up. Wear them, unfold the arms, and keep Meta AI connected."
         case .ready: return "Glasses are connected and ready."
         case .cameraOn: return "The camera on your glasses is on."
         }
