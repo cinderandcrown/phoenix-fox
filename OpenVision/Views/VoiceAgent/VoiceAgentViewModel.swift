@@ -1132,17 +1132,13 @@ final class VoiceAgentViewModel: ObservableObject {
                 guard let self else { return }
                 let line = AssistantRoster.spoken(text: text, fromBot: from, bots: self.settingsManager.settings.assistantBots, alwaysName: always)
                 self.speakResponse(line.text)
-                if self.glassesLinkDisplay {
-                    GlassesHUD.shared.presentReply(bot: from ?? "Fire Fox", text: text)
-                }
+                CompanionSurface.showOnLens(text: text, bot: from)
             }
         )
         if !ttsService.isSpeaking && !NeuralSpeech.isAnySpeaking {
             agentState = isSessionActive ? .listening : .idle
         }
     }
-
-    private var glassesLinkDisplay: Bool { GlassesLink.shared.displayCapable }
 
     // MARK: - Live Video Mode
 

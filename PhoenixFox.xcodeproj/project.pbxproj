@@ -126,8 +126,11 @@
 		FCA8B46A222A0C469FF7873B /* KokoroTTSService.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE848862D72446F7BBDD3D89 /* KokoroTTSService.swift */; };
 		FCFECBF332943E64812DC931 /* AIBackendSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57A8327E5265287A0C89DE3D /* AIBackendSettingsView.swift */; };
 		FED4796E980F43C3C55F04B0 /* GrokService.swift in Sources */ = {isa = PBXBuildFile; fileRef = D2D074291D5EC56FE593A962 /* GrokService.swift */; };
-		FFFDF7E8B3F8E6A194E1571E /* MLXHuggingFace in Frameworks */ = {isa = PBXBuildFile; productRef = 4169E6A87853A9ECECC3C6E4 /* MLXHuggingFace */; };
 		A11AA1000000000000000001 /* GestureMap.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11AA2000000000000000001 /* GestureMap.swift */; };
+		D31AA1000000000000000001 /* LocalModelHub.swift in Sources */ = {isa = PBXBuildFile; fileRef = D31AA2000000000000000001 /* LocalModelHub.swift */; };
+		D31AA1000000000000000002 /* MindMeld.swift in Sources */ = {isa = PBXBuildFile; fileRef = D31AA2000000000000000002 /* MindMeld.swift */; };
+		D31AA1000000000000000003 /* CompanionSurface.swift in Sources */ = {isa = PBXBuildFile; fileRef = D31AA2000000000000000003 /* CompanionSurface.swift */; };
+		D31AA1000000000000000004 /* MindMeldTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D31AA2000000000000000004 /* MindMeldTests.swift */; };
 		A11AA1000000000000000002 /* GlassesHUD.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11AA2000000000000000002 /* GlassesHUD.swift */; };
 		A11AA1000000000000000003 /* GlassesControlSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11AA2000000000000000003 /* GlassesControlSession.swift */; };
 		A11AA1000000000000000004 /* GlassesProductTarget.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11AA2000000000000000004 /* GlassesProductTarget.swift */; };
@@ -298,6 +301,10 @@
 		C21AA200000000000000000C /* PhoenixFoxFeatures.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhoenixFoxFeatures.swift; sourceTree = "<group>"; };
 		C21AA200000000000000000D /* Companion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Companion.swift; sourceTree = "<group>"; };
 		C21AA200000000000000000E /* SmartCapture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmartCapture.swift; sourceTree = "<group>"; };
+		D31AA2000000000000000001 /* LocalModelHub.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalModelHub.swift; sourceTree = "<group>"; };
+		D31AA2000000000000000002 /* MindMeld.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MindMeld.swift; sourceTree = "<group>"; };
+		D31AA2000000000000000003 /* CompanionSurface.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompanionSurface.swift; sourceTree = "<group>"; };
+		D31AA2000000000000000004 /* MindMeldTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MindMeldTests.swift; sourceTree = "<group>"; };
 		C21AA2000000000000000009 /* UtterancePCMBuffer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UtterancePCMBuffer.swift; sourceTree = "<group>"; };
 		C21AA200000000000000000A /* WhisperTranscriber.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WhisperTranscriber.swift; sourceTree = "<group>"; };
 		C21AA200000000000000000B /* OwnAssistantSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OwnAssistantSettingsView.swift; sourceTree = "<group>"; };
@@ -318,7 +325,6 @@
 				408073C736E7EB74442648EF /* MLXLLM in Frameworks */,
 				B82C3BB7AED7C2367F729678 /* MLXVLM in Frameworks */,
 				6E678BA570E5148EE9D9B4FE /* MLXLMCommon in Frameworks */,
-				FFFDF7E8B3F8E6A194E1571E /* MLXHuggingFace in Frameworks */,
 				67FDB8417ED64F0FF8B576F5 /* HuggingFace in Frameworks */,
 				08440F1603742AB28B2B4815 /* Tokenizers in Frameworks */,
 				CE2920AEAD476DFA9953169C /* KokoroSwift in Frameworks */,
@@ -639,6 +645,7 @@
 			isa = PBXGroup;
 			children = (
 				DFBB8B07B4970CA5F63B3B2A /* GemmaLocalService.swift */,
+				D31AA2000000000000000001 /* LocalModelHub.swift */,
 			);
 			path = GemmaLocal;
 			sourceTree = "<group>";
@@ -729,6 +736,7 @@
 				BE4D7E31C137C29246EB9281 /* NativeToolSupportTests.swift */,
 				E7752EDE12666E6361064A9F /* SubscriptionAuthTests.swift */,
 				C05A9A6876CC108B7CEDFDFC /* TextChunkingTests.swift */,
+				D31AA2000000000000000004 /* MindMeldTests.swift */,
 			);
 			path = OpenVisionTests;
 			sourceTree = "<group>";
@@ -760,6 +768,7 @@
 			isa = PBXGroup;
 			children = (
 				A11AA2000000000000000001 /* GestureMap.swift */,
+				D31AA2000000000000000003 /* CompanionSurface.swift */,
 				A11AA2000000000000000002 /* GlassesHUD.swift */,
 				A11AA2000000000000000003 /* GlassesControlSession.swift */,
 				A11AA2000000000000000004 /* GlassesProductTarget.swift */,
@@ -790,6 +799,7 @@
 				C21AA200000000000000000C /* PhoenixFoxFeatures.swift */,
 				C21AA200000000000000000D /* Companion.swift */,
 				C21AA200000000000000000E /* SmartCapture.swift */,
+				D31AA2000000000000000002 /* MindMeld.swift */,
 			);
 			path = Brain;
 			sourceTree = "<group>";
@@ -849,7 +859,6 @@
 				0DB70D0CA14C70A3B9547241 /* MLXLLM */,
 				FEDC861C14CDA73BBCF6CCFD /* MLXVLM */,
 				6ADFD2818BFD4713F6BDA7F7 /* MLXLMCommon */,
-				4169E6A87853A9ECECC3C6E4 /* MLXHuggingFace */,
 				CCBF8A11015C4FD6F78FF103 /* HuggingFace */,
 				8F8A2A9D74F79603F186C7B4 /* Tokenizers */,
 				1DCD8AD4861E50005E48943D /* KokoroSwift */,
@@ -959,6 +968,7 @@
 				5F19226406CF5B705B57BACF /* NativeToolSupportTests.swift in Sources */,
 				5A0CE2F7458D3C9E63627724 /* SubscriptionAuthTests.swift in Sources */,
 				361AD2F1AB7C557D47CD125D /* TextChunkingTests.swift in Sources */,
+				D31AA1000000000000000004 /* MindMeldTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1002,6 +1012,7 @@
 				F1D86E9A3AB2A994A205AB83 /* GeminiSettingsView.swift in Sources */,
 				BFC445B65C5C0BE610EC719E /* GeminiVisionService.swift in Sources */,
 				62B472287A9628E0E6FB377D /* GemmaLocalService.swift in Sources */,
+				D31AA1000000000000000001 /* LocalModelHub.swift in Sources */,
 				313177DDBE794549925682FA /* GemmaSettingsView.swift in Sources */,
 				587295A93FA82DEBB18139BB /* GlassCard.swift in Sources */,
 				BE99A2B1118292BBC7E1FC59 /* GlassesManager.swift in Sources */,
@@ -1023,6 +1034,8 @@
 				C21AA100000000000000000C /* PhoenixFoxFeatures.swift in Sources */,
 				C21AA100000000000000000D /* Companion.swift in Sources */,
 				C21AA100000000000000000E /* SmartCapture.swift in Sources */,
+				D31AA1000000000000000002 /* MindMeld.swift in Sources */,
+				D31AA1000000000000000003 /* CompanionSurface.swift in Sources */,
 				C21AA1000000000000000009 /* UtterancePCMBuffer.swift in Sources */,
 				C21AA100000000000000000A /* WhisperTranscriber.swift in Sources */,
 				C21AA100000000000000000B /* OwnAssistantSettingsView.swift in Sources */,
@@ -1184,6 +1197,7 @@
 				SDKROOT = iphoneos;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_STRICT_CONCURRENCY = complete;
 				SWIFT_VERSION = 5.9;
 			};
 			name = Debug;
@@ -1302,6 +1316,7 @@
 				SDKROOT = iphoneos;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_STRICT_CONCURRENCY = complete;
 				SWIFT_VERSION = 5.9;
 			};
 			name = Release;
@@ -1350,16 +1365,16 @@
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/huggingface/swift-huggingface.git";
 			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 0.1.0;
+				kind = exactVersion;
+				version = 1.0.0;
 			};
 		};
 		922ADEF49EB5DA6AD8635D76 /* XCRemoteSwiftPackageReference "swift-transformers" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/huggingface/swift-transformers.git";
 			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 1.0.0;
+				kind = exactVersion;
+				version = 1.4.0;
 			};
 		};
 		A5A141D31B148DEEEB11F94D /* XCRemoteSwiftPackageReference "FluidAudio" */ = {
@@ -1418,11 +1433,6 @@
 		1DCD8AD4861E50005E48943D /* KokoroSwift */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = KokoroSwift;
-		};
-		4169E6A87853A9ECECC3C6E4 /* MLXHuggingFace */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = ECA8A07B405261A27FD7625B /* XCRemoteSwiftPackageReference "mlx-swift-lm" */;
-			productName = MLXHuggingFace;
 		};
 		6ADFD2818BFD4713F6BDA7F7 /* MLXLMCommon */ = {
 			isa = XCSwiftPackageProductDependency;

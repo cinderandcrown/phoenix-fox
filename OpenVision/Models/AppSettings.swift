@@ -246,6 +246,8 @@ struct AppSettings: Codable, Equatable {
     var jarvisFastMode: Bool = true
     /// Spoken persona may say "sir". Off until turned on.
     var jarvisAddressAsSir: Bool = false
+    /// On-phone log of what he says. Off until he says "mind meld on". Never stores camera bytes.
+    var mindMeldEnabled: Bool = false
     /// Extra frames with "look at this". Off to keep uploads small.
     var jarvisLookClip: Bool = false
     var assistantBots: [AssistantBot] = AssistantRoster.seed

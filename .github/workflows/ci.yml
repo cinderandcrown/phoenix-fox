@@ -44,6 +44,9 @@ jobs:
 
       - name: Disable SwiftPM prebuilts (swift-syntax prebuilts lack iOS slices)
         run: |
+          # The app does not link MLXHuggingFace, so the SwiftCompilerPlugin macro
+          # is not in the build. This stays as a backstop if another package still
+          # compiles a macro against the macOS-only prebuilt.
           defaults write com.apple.dt.Xcode IDEPackageEnablePrebuilts -bool NO
           rm -rf .spm/prebuilts
 

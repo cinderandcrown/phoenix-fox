@@ -1,8 +1,30 @@
 # Phoenix Fox setup
 
-Phoenix Fox is the name on the phone and on the App Store. **Jarvis** is only the wake word. The Xcode scheme is PhoenixFox. The source folder is still `OpenVision/` because that is the MIT project this build starts from.
+Phoenix Fox is the name on the phone and on the App Store. **Jarvis** is only the wake word. You cannot replace "Hey Meta"; that wake word stays Meta's. The Xcode scheme is PhoenixFox. The source folder is still `OpenVision/` because that is the MIT project this build starts from.
 
-You do not need a Mac. GitHub Actions builds the app. TestFlight installs it on the iPhone.
+You do not need a Mac. GitHub Actions compiles the app. TestFlight installs it on the iPhone. The simulator compile does not need any secret. The signed upload waits until the secrets below exist, and the TestFlight workflow skips cleanly until they do.
+
+## What you do on the iPhone
+
+Do these in order. The glasses under test are Meta Glasses Adventurer (no lens display).
+
+1. Wait until Apple emails that the Developer Program membership is active. Until then there is no Team ID and no TestFlight build.
+2. Add the five GitHub Actions secrets in the table below. Do not paste them into chat or into a file that gets committed.
+3. After the TestFlight workflow goes green, install **TestFlight** from the App Store and accept the Phoenix Fox build. The bundle id is `com.cinderandcrown.phoenixfox`.
+4. On the iPhone, open the **Meta AI** app, Settings → About, tap the version number 5 times, and turn **Developer Mode** on. Pair the Adventurer glasses in Meta AI first. Phoenix Fox does not replace that pairing.
+5. Open Phoenix Fox. Allow the microphone, speech recognition, notifications, and, when you take a picture or say remember, Photos. Contacts, location, and reminders are asked only when you use those commands. The orange mic indicator stays on while Jarvis is listening. That is intentional.
+6. Tap Connect. Meta AI opens and sends you back through the `phoenixfox` link. If Connect does nothing, the signed build is missing `META_CLIENT_TOKEN` or Developer Mode is off.
+7. Settings → Assistants. Enter the relay URL and the relay token. They stay on the phone. They are not GitHub secrets. Deploy the worker from `relay/` with the same token (`docs/RELAY_API.md`). Without it, local commands still work and "ask Indy" says the relay is not configured.
+8. Optional: a Grok API key in Settings makes a short look use the cheap model. Tasks still go to the relay.
+9. Put the glasses on. Say **Jarvis**, then one of:
+   - "What time is it" (no network)
+   - "Ask Indy about the gate"
+   - "Take a picture" (the glasses capture light comes on, then the camera turns off)
+   - "Mind meld on", then later "What should I do" and "Do that"
+10. Allow notifications when asked. The app registers its push token with the relay. Pushes speak only after the worker has the APNs secrets. Until then the phone still long-polls the inbox while it is open.
+11. Mind meld is off until you turn it on in Settings or say "mind meld on". It stores what you say on the phone. It does not store a photo. "Remember this" is the only path that keeps a picture, and the capture light is on for that shot.
+
+The sections under "Read this first" are the upstream OpenVision Mac guide. They are not how this repository is built. Ignore the claim that there is no TestFlight: that was true for the public Meta developer preview, and this project uses your own Apple team and your own Meta app instead.
 
 ## Secrets the owner still has to add
 

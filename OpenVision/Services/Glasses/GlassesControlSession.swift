@@ -104,7 +104,10 @@ final class GlassesControlSession {
                 }
             }
             _ = stream.errorPublisher.listen { error in
-                GlassesLink.shared.record("Voice invocation: \(error.description)")
+                let line = error.description
+                Task { @MainActor in
+                    GlassesLink.shared.record("Voice invocation: \(line)")
+                }
             }
             try stream.start(deviceIdentifier: id)
             voice = stream
@@ -230,8 +233,10 @@ final class GlassesControlSession {
         case .unknown: source = .unknown
         }
         let kind: GestureSignal.Kind
+        // DAT 1.0.1 InputEvent cases all carry a source and a timestamp.
         switch event {
-        case .select: kind = .select
+        case .select(_, _):
+            kind = .select
         case .nav(let direction, _, _):
             switch direction {
             case .up: kind = .nav(.up)
@@ -239,8 +244,10 @@ final class GlassesControlSession {
             case .left: kind = .nav(.left)
             case .right: kind = .nav(.right)
             }
-        case .back: kind = .back
-        case .button: kind = .action
+        case .back(_, _):
+            kind = .back
+        case .button(_, _, _):
+            kind = .action
         case .capture(let press, _, _):
             switch press {
             case .shortPress: kind = .capture(.short)

@@ -19,9 +19,6 @@ import MLX
 import MLXLLM            // text LLMs (Qwen 2.5, Gemma 2) via LLMModelFactory
 import MLXVLM            // vision models (Gemma 4, SmolVLM2) via VLMModelFactory
 import MLXLMCommon
-import MLXHuggingFace   // #hubDownloader() / #huggingFaceTokenizerLoader() macros
-import HuggingFace      // the macros expand to HuggingFace.HubClient …
-import Tokenizers       // … and Tokenizers.AutoTokenizer
 
 // MARK: - Selectable on-device models
 
@@ -405,13 +402,15 @@ final class GemmaLocalService: ObservableObject {
         // Register the shared-KV-aware Gemma 4 text backbone before loading. The multimodal VLM
         // Gemma 4 wrapper builds its text tower from this same type registry, so E2B needs it too.
         await Self.registerGemma4TextType()
+        let downloader = LocalModelHub.downloader()
+        let tokenizers = LocalModelHub.tokenizerLoader()
         if GemmaLocalModel.isVLM(modelId: modelId) {
             return try await VLMModelFactory.shared.loadContainer(
-                from: #hubDownloader(), using: #huggingFaceTokenizerLoader(),
+                from: downloader, using: tokenizers,
                 configuration: configuration, progressHandler: handler)
         } else {
             return try await LLMModelFactory.shared.loadContainer(
-                from: #hubDownloader(), using: #huggingFaceTokenizerLoader(),
+                from: downloader, using: tokenizers,
                 configuration: configuration, progressHandler: handler)
         }
     }

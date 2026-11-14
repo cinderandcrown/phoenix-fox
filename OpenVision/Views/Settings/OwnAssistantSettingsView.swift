@@ -27,11 +27,12 @@ struct OwnAssistantSettingsView: View {
 
             Section {
                 Toggle("Fast answers on Grok", isOn: $settingsManager.settings.jarvisFastMode)
+                Toggle("Mind meld", isOn: $settingsManager.settings.mindMeldEnabled)
                 TextField("Wake word", text: $settingsManager.settings.wakeWord)
             } header: {
                 Text("Voice")
             } footer: {
-                Text("The app is Phoenix Fox. Jarvis is only the wake word.")
+                Text("The app is Phoenix Fox. Jarvis is only the wake word. Mind meld keeps what you say on this phone. It does not keep a photo unless you say remember, and the capture light is on for that shot.")
             }
 
             Section("Assistants") {
