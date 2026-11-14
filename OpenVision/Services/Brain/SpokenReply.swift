@@ -242,11 +242,28 @@ enum SpokenReply {
     }
 }
 
-/// The quick word Jarvis says the moment it has the request, before the answer exists.
+/// How Jarvis acknowledges a request before the answer exists.
 ///
-/// It says where the request went, because that is the one thing the wearer cannot see.
+/// Named routes ("Asking Indy.") are spoken — the wearer can't see where it went.
+/// Generic boilerplate ("On it.") is a short earcon instead, so the voice stays calm
+/// and human when the real answer arrives.
 enum Acknowledgement {
+    /// Legacy spoken fillers kept for tests of the naming rules. Production uses `cue`.
     static let plain = ["On it.", "One moment.", "Right away."]
+
+    enum Cue: Equatable, Sendable {
+        /// Short chime — request accepted, no spoken boilerplate.
+        case earcon
+        /// Spoken acknowledgment with useful information (who was asked, looking).
+        case speak(String)
+    }
+
+    /// Prefer this over `line` for the live path.
+    static func cue(targetBot: String?, bots: [AssistantBot], photo: Bool, turn: Int) -> Cue {
+        let spoken = line(targetBot: targetBot, bots: bots, photo: photo, turn: turn)
+        if plain.contains(spoken) { return .earcon }
+        return .speak(spoken)
+    }
 
     /// - Parameters:
     ///   - targetBot: the assistant the wearer named, `AssistantBot.allBots`, or nil.

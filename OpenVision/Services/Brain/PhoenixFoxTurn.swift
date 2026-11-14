@@ -20,7 +20,7 @@ enum PhoenixFoxTurn {
         transcript: String,
         settings: AppSettings,
         snapshot: () async -> Data?,
-        speakFiller: (String) -> Void,
+        acknowledge: (Acknowledgement.Cue) -> Void,
         speak: (String, String?, Bool) -> Void,
         record: (String) -> Void = { _ in }
     ) async {
@@ -68,9 +68,9 @@ enum PhoenixFoxTurn {
         case .instant(let text, let photo, _):
             await instant(text: text, photo: photo, settings: settings, snapshot: snapshot)
         case .relay(let turn):
-            await relay(turn, transcript: transcript, settings: settings, snapshot: snapshot, speakFiller: speakFiller, speak: speak, record: record)
+            await relay(turn, transcript: transcript, settings: settings, snapshot: snapshot, acknowledge: acknowledge, speak: speak, record: record)
         case .mind(let command):
-            await mind(command, transcript: transcript, settings: settings, snapshot: snapshot, speakFiller: speakFiller, speak: speak, record: record)
+            await mind(command, transcript: transcript, settings: settings, snapshot: snapshot, acknowledge: acknowledge, speak: speak, record: record)
         }
     }
 
@@ -79,7 +79,7 @@ enum PhoenixFoxTurn {
         transcript: String,
         settings: AppSettings,
         snapshot: () async -> Data?,
-        speakFiller: (String) -> Void,
+        acknowledge: (Acknowledgement.Cue) -> Void,
         speak: (String, String?, Bool) -> Void,
         record: (String) -> Void
     ) async {
@@ -113,7 +113,7 @@ enum PhoenixFoxTurn {
                 transcript: transcript,
                 settings: settings,
                 snapshot: snapshot,
-                speakFiller: speakFiller,
+                acknowledge: acknowledge,
                 speak: speak,
                 record: record
             )
@@ -144,13 +144,13 @@ enum PhoenixFoxTurn {
         transcript: String,
         settings: AppSettings,
         snapshot: () async -> Data?,
-        speakFiller: (String) -> Void,
+        acknowledge: (Acknowledgement.Cue) -> Void,
         speak: (String, String?, Bool) -> Void,
         record: (String) -> Void
     ) async {
-        // The quick word comes first, before the photo is taken, so the wearer hears at once
-        // that the request landed and where it went.
-        speakFiller(Acknowledgement.line(targetBot: turn.targetBot, bots: settings.assistantBots, photo: turn.photo, turn: acknowledged))
+        // Acknowledge first, before the photo is taken: a short earcon for generic turns,
+        // or a spoken name when the request went to a specific assistant.
+        acknowledge(Acknowledgement.cue(targetBot: turn.targetBot, bots: settings.assistantBots, photo: turn.photo, turn: acknowledged))
         acknowledged += 1
         var images: [Data] = []
         if turn.photo, let frame = await snapshot() { images.append(frame) }

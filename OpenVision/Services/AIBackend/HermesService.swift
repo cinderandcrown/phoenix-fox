@@ -215,7 +215,8 @@ final class HermesService: ObservableObject {
 
     nonisolated static func systemPrompt(custom: String) -> String {
         var parts = ["The user is talking to you through OpenVision, a voice assistant on smart glasses. "
-            + "Your reply is spoken aloud: answer conversationally in 1-3 short sentences, with no "
+            + "Your reply is spoken aloud: answer conversationally in 1-3 short sentences, with "
+            + "contractions and everyday phrasing (I'm, you're, don't) — not stiff or robotic. No "
             + "markdown, lists or links. If they share a photo, it's what they're looking at."]
         let custom = custom.trimmingCharacters(in: .whitespacesAndNewlines)
         if !custom.isEmpty { parts.append(custom) }

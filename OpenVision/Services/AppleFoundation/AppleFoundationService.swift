@@ -249,7 +249,7 @@ final class AppleFoundationService: ObservableObject, LocalTextLLM {
     func sendMessage(_ text: String) async {
         onProcessingChanged?(true)
         defer { onProcessingChanged?(false) }
-        let system = "You are OpenVision, a helpful voice assistant for smart glasses. Answer conversationally and briefly (1-3 short sentences) since your reply is spoken aloud."
+        let system = "You are OpenVision, a helpful voice assistant for smart glasses. Answer conversationally and briefly (1-3 short sentences) since your reply is spoken aloud. Use contractions and everyday phrasing so you sound like a calm person, not a robot."
         let reply = await generate(system: system, user: text) ?? "Sorry, I couldn't answer that right now."
         onAgentMessage?(reply)
     }

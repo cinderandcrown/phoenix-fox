@@ -1449,8 +1449,13 @@ final class VoiceAgentViewModel: ObservableObject {
                 }
                 return ImageBudget.jpeg(frame)
             },
-            speakFiller: { [weak self] text in
-                self?.ttsService.speak(text)
+            acknowledge: { [weak self] cue in
+                switch cue {
+                case .earcon:
+                    SoundService.shared.playAckEarcon()
+                case .speak(let text):
+                    self?.ttsService.speak(text)
+                }
             },
             speak: { [weak self] text, from, always in
                 guard let self else { return }

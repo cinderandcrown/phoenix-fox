@@ -92,6 +92,18 @@ final class SoundService: ObservableObject {
         }
     }
 
+    /// Short "got it" earcon when a request is accepted — replaces spoken boilerplate like "On it."
+    /// Same route-aware player as the wake chime so it comes from the glasses when connected.
+    func playAckEarcon() {
+        guard soundEnabled else { return }
+        ensureSoundsReady()
+        if let player = wakeWordPlayer {
+            player.currentTime = 0
+            player.volume = 0.7
+            player.play()
+        }
+    }
+
     /// Play an alert chime for timers/alarms — via the app's active AVAudioPlayer session, so it's
     /// audible even in silent mode and routes to the glasses. Notification sounds get suppressed while
     /// our audio session is active, so we play our own. Unconditional (a timer must be heard).

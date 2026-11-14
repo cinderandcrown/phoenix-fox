@@ -108,6 +108,34 @@ final class TTSService: NSObject, ObservableObject {
         AVSpeechSynthesizer.requestPersonalVoiceAuthorization { _ in }
     }
 
+    /// One-shot notice when the only installed English voices are compact/default.
+    /// Never silently settle on a robotic voice without telling the wearer once.
+    private static let compactWarnKey = "ov.didWarnCompactVoice"
+
+    static func warnOnceIfOnlyCompactVoices() {
+        guard needsBetterVoicesHint else { return }
+        guard !UserDefaults.standard.bool(forKey: compactWarnKey) else { return }
+        UserDefaults.standard.set(true, forKey: compactWarnKey)
+        AccessBanner.shared.show(
+            "Using a basic system voice. Download a Premium English voice in iOS Settings → Accessibility → Spoken Content for a more natural sound.",
+            urgent: false
+        )
+    }
+
+    /// Sample line for Settings preview and the onboarding glasses voice check.
+    static let glassesSample = "Hi — I'm Jarvis. This is how I sound on your glasses."
+
+    /// Speak the glasses sample on the active audio route (glasses speakers when connected).
+    static func playGlassesSample() {
+        requestPersonalVoiceAccessIfNeeded()
+        let settings = SettingsManager.shared.settings
+        if let neural = NeuralSpeech.active(settings) {
+            Task { await neural.speak(glassesSample) }
+        } else {
+            shared.speak(glassesSample)
+        }
+    }
+
     // MARK: - Initialization
 
     private override init() {
@@ -189,6 +217,7 @@ final class TTSService: NSObject, ObservableObject {
         // Strip markup / emoji / URLs so the ear never hears "asterisk asterisk".
         let spoken = SpokenReply.plain(text)
         guard !spoken.isEmpty else { return }
+        Self.warnOnceIfOnlyCompactVoices()
         let utterance = AVSpeechUtterance(string: spoken)
         utterance.voice = selectedVoice
         // Natural rate: AVSpeechUtteranceDefaultSpeechRate × Voice speed × accessibility pace.

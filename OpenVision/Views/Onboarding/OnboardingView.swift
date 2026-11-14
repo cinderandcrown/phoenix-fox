@@ -304,6 +304,7 @@ struct RelayFields: View {
 
 struct ReadyChecklist: View {
     let summary: OnboardingSummary
+    @State private var isPreviewingVoice = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: Theme.Space.normal) {
@@ -314,10 +315,25 @@ struct ReadyChecklist: View {
             }
             .card()
 
+            Button {
+                isPreviewingVoice = true
+                TTSService.playGlassesSample()
+                DispatchQueue.main.asyncAfter(deadline: .now() + 4) { isPreviewingVoice = false }
+            } label: {
+                Label(
+                    isPreviewingVoice ? "Playing…" : "Hear how I sound on the glasses",
+                    systemImage: "speaker.wave.2.fill"
+                )
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            .disabled(isPreviewingVoice)
+            .accessibilityHint("Plays a short sample through the glasses speakers when they are the audio route.")
+
             Text(summary.tryThis)
                 .font(Theme.display(.title3))
                 .foregroundStyle(Theme.ink)
         }
+        .onAppear { TTSService.requestPersonalVoiceAccessIfNeeded() }
     }
 }
 

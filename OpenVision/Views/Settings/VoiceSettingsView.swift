@@ -28,13 +28,7 @@ struct VoiceSettingsView: View {
 
     private func previewCurrentVoice() {
         isPreviewing = true
-        let sample = "Hi — I'm Jarvis. This is how I sound on your glasses."
-        // Same path as replies: neural when ready, else Apple's best installed voice.
-        if let neural = NeuralSpeech.active(settingsManager.settings) {
-            Task { await neural.speak(sample) }
-        } else {
-            TTSService.shared.speak(sample)
-        }
+        TTSService.playGlassesSample()
         DispatchQueue.main.asyncAfter(deadline: .now() + 4) { isPreviewing = false }
     }
 

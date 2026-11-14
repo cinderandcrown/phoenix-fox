@@ -268,6 +268,29 @@ final class SpokenReplyTests: XCTestCase {
         XCTAssertEqual(Acknowledgement.line(targetBot: nil, bots: bots, photo: false, turn: -1), "Right away.")
     }
 
+    func testGenericAcknowledgementsBecomeEarcons() {
+        XCTAssertEqual(
+            Acknowledgement.cue(targetBot: nil, bots: bots, photo: false, turn: 0),
+            .earcon
+        )
+        let fallback = AssistantRoster.defaultBot(in: bots).name
+        XCTAssertEqual(
+            Acknowledgement.cue(targetBot: fallback, bots: bots, photo: false, turn: 1),
+            .earcon
+        )
+    }
+
+    func testNamedAndLookAcknowledgementsStaySpoken() {
+        XCTAssertEqual(
+            Acknowledgement.cue(targetBot: "Indy", bots: bots, photo: false, turn: 0),
+            .speak("Asking Indy.")
+        )
+        XCTAssertEqual(
+            Acknowledgement.cue(targetBot: nil, bots: bots, photo: true, turn: 0),
+            .speak("Taking a look.")
+        )
+    }
+
     func testEveryAcknowledgementIsThreeWordsOrFewer() {
         var lines = Acknowledgement.plain
         lines.append(Acknowledgement.line(targetBot: "Indy", bots: bots, photo: false, turn: 0))
