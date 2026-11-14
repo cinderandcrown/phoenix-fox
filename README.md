@@ -67,7 +67,7 @@ The app is built in Swift 5 language mode with complete strict-concurrency check
 
 ## Contributing
 
-[CONTRIBUTING.md](CONTRIBUTING.md) and [SECURITY.md](SECURITY.md) are still the upstream OpenVision texts and have not been rewritten for this project. Write your own code. Do not copy code whose license does not allow Apache-2.0 use, and add a notice for any new dependency to [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+[CONTRIBUTING.md](CONTRIBUTING.md) says how to make a change and what CI checks. Security problems are reported privately, as [SECURITY.md](SECURITY.md) describes. Write your own code. Do not copy code whose license does not allow Apache-2.0 use, and add a notice for any new dependency to [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 
 ## License and credits
 
