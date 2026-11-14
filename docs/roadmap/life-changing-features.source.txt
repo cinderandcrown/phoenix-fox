@@ -1,0 +1,483 @@
+<cursor_untrusted_data_1337 source="ReadCanvas">
+
+Canvas "Phoenix Fox: Life-Changing Features" (https://cursor.com/canvas/store-f0dfaef1-646f-4cb3-b3a2-4edd43f95165/bfce87cd-b51a-465b-9b9f-9a1c38191b19):
+
+import { Page, Section, Text, Table, Rows, Callout, Checklist, Properties, Select, Segmented, Toggle, TableOfContents, LinkCards, useState, useMemo } from "grok/canvas";
+
+type Feas = "now" | "workaround" | "display";
+type Effort = "S" | "M" | "L";
+type Area = "Work and business" | "Memory and life log" | "People and social" | "Health and body" | "Home and errands" | "Accessibility" | "Creator tools" | "Jarvis mode";
+
+interface Idea {
+  id: string;
+  name: string;
+  area: Area;
+  pitch: string;
+  example: string;
+  how: string;
+  feas: Feas;
+  why: string;
+  effort: Effort;
+  impact: number;
+  bots: boolean;
+  privacy: string;
+  unverified?: string;
+  buildsOn?: string;
+  wave?: number;
+}
+
+const AREAS: Area[] = ["Work and business", "Memory and life log", "People and social", "Health and body", "Home and errands", "Accessibility", "Creator tools", "Jarvis mode"];
+
+const FEAS_LABEL: Record<Feas, string> = { now: "Works now", workaround: "Needs workaround", display: "Display glasses" };
+const EFFORT_RANK: Record<Effort, number> = { S: 1, M: 2, L: 3 };
+
+const IDEAS: Idea[] = [
+  {
+    id: "W1", name: "Store pulse", area: "Work and business",
+    pitch: "Your Shopify and TikTok Shop heartbeat as small sounds in your ear, with one line of detail when you ask.",
+    example: "Walking the dog at 8 pm, a soft two-note chime means a Rowel sale. \"Details?\" gets \"Pizza cutter, $24, Austin.\" Later a low tone: \"Order 1005 has been unfulfilled three days. Want Driver to chase the supplier?\"",
+    how: "A Shopify webhook goes to Fire Fox (no polling routine). Fire Fox sends POST /push to the relay with a priority. APNs wakes the app, or the app's inbox poll picks it up, and the app plays an earcon on the glasses. The model is called only when he asks for details.",
+    feas: "workaround", why: "An instant sound needs the app running with its background audio session up. A push to a suspended app is best effort, because iOS throttles silent pushes. Urgent alert pushes always show on the phone.",
+    effort: "S", impact: 4, bots: true,
+    privacy: "Open-ear speakers can be overheard, so customer names and addresses are never spoken by default. Only the item and the city are.",
+    unverified: "Whether an APNs wake can start audio on the glasses while the app is in the background.",
+    buildsOn: "Earcon language (J1), Interrupt manager (J3)",
+  },
+  {
+    id: "W2", name: "Call it for me", area: "Work and business",
+    pitch: "Say what you need, a bot makes the phone call, and you hear how it went.",
+    example: "In the truck: \"Jarvis, have Rally call the print shop and ask if the 40 hoodies ship by Friday.\" Ten minutes later: \"They said Thursday, with tracking by email tonight. Put it on the calendar?\"",
+    how: "Speech goes to Grok, which writes a call brief. The brief goes through relay /ask to the bot that has the phone-call tool. That bot places the call and posts the outcome back with POST /reply, and Jarvis speaks it. The glasses are the voice in and the ear out. The call itself runs on the bot's side.",
+    feas: "now", why: "Nothing new is needed from DAT, only the HFP mic and the speaker. It does depend on the relay wiring in Foundations.",
+    effort: "M", impact: 5, bots: true,
+    privacy: "The callee is talking to an AI. The bot says so at the start and never poses as Nicholas. Recording rules differ by state (Texas is one-party, some states need everyone's consent), so calls are not recorded unless that is disclosed.",
+    unverified: "Which bot has the phone-call tool configured, and how its call transcript comes back.",
+    wave: 2,
+  },
+  {
+    id: "W3", name: "Walk my inbox", area: "Work and business",
+    pitch: "Clear your email on a walk: one line per message, answered by voice.",
+    example: "\"Walk my inbox.\" Jarvis: \"Seven new. One: Shopify payout, $312.\" He shakes his head to skip. \"Two: a wholesale inquiry from a Plano boutique.\" \"Reply: send the wholesale sheet and ask for their resale certificate.\" The draft is read back, and it goes out only when he says \"send\".",
+    how: "Fire Fox reads Gmail through its own tools over the relay and returns one-line summaries. The phone speaks them. While the session is open, a shake means skip and two nods mean next. Replies are drafted by Fire Fox, read back, and sent only after a spoken \"send\".",
+    feas: "now", why: "It is audio only. Head gestures work because a session is open for the whole walk-through.",
+    effort: "S", impact: 4, bots: true,
+    privacy: "Email can be overheard through open-ear speakers. A \"public mode\" reads only senders and subjects. Nothing is captured from people nearby.",
+    wave: 3,
+  },
+  {
+    id: "W4", name: "Badge brief", area: "Work and business",
+    pitch: "Glance at a name badge at a mixer and hear who they are, plus an opener, before you say hi.",
+    example: "At a Dallas AI meetup he glances at \"Priya S., Acme Logistics\" and taps. \"Ops director at a 3PL. Her company posted about support chatbots last week. Opener: ask about their returns volume.\"",
+    how: "One frame from the stream, or a whole-sensor photo in the owner build. Text recognition on the phone reads only the badge. Indy runs a web search on the name and company and returns a two-line brief to the ear.",
+    feas: "workaround", why: "Saying \"Jarvis\" out loud next to the person is awkward, and the touchpad only works while a session is open. The trigger becomes the phone's Action Button or a tap during an open session. Meta says whole-sensor photo capture is in beta and apps that use it cannot be published, so App Store builds use a stream frame.",
+    effort: "M", impact: 4, bots: true,
+    privacy: "It reads only text the person is wearing publicly, and the capture light is on. It never matches faces. The brief is not saved unless he says \"keep\". Even so, this is looking someone up in front of them, so the opener should never reveal the lookup.",
+    unverified: "Whether a stream frame is sharp enough to read a badge from conversation distance.",
+  },
+  {
+    id: "W5", name: "Spot to SKU", area: "Work and business",
+    pitch: "See a design idea out in the world and have a Rowel draft product on real blanks before you leave.",
+    example: "In a Deep Ellum shop he likes a vintage-style tee: \"Jarvis, Rowel idea: this vibe on a heavyweight tee.\" By the time he reaches the truck, Driver has an unpublished Shopify draft with a supplier mockup, cost including supplier freight, and a suggested price.",
+    how: "A photo goes to Grok vision, which describes the style and does not copy the design. Driver uses its Shopify tools and the POD supplier's catalog to create a draft product on a real blank with supplier mockups, then pushes \"draft ready\".",
+    feas: "now", why: "It takes one look and bot tools that already exist. Everything stays a draft.",
+    effort: "M", impact: 4, bots: true,
+    privacy: "Another shop's art is used as inspiration only. A trademark and copyright check happens before anything goes live, and nothing is published without his OK. Any people caught in the photo are not kept.",
+  },
+  {
+    id: "M1", name: "Pick up where I left off", area: "Memory and life log",
+    pitch: "Take the glasses off mid-task. When you put them back on, Jarvis tells you where you were.",
+    example: "He takes them off at 2:10 for a call while Indy is pulling caterer quotes. At 2:45 he puts them back on: \"Welcome back. Indy's three quotes came in, and the cheapest is $640. You were also halfway through the Elm Street punch list. Resume?\"",
+    how: "DAT reports when the glasses are worn and when the hinge opens or closes while the app runs. On take-off, the app snapshots its open work: pending relay asks, an active walk-through, timers. On put-on, it builds a one- or two-line resume from that local state. A model call is optional.",
+    feas: "now", why: "The worn and hinge states are read while the app runs, as GLASSES_SDK.md describes. No camera is needed.",
+    effort: "S", impact: 4, bots: false,
+    privacy: "It uses only the wearer's own state, kept on the phone.",
+    unverified: "How promptly the worn event arrives while the app is in the background.",
+    buildsOn: "Standing orders (D2)",
+    wave: 4,
+  },
+  {
+    id: "M2", name: "Stash log", area: "Memory and life log",
+    pitch: "Tell Jarvis where you put things, and ask months later.",
+    example: "\"Spare truck key is in the junk drawer, left side.\" He adds a look. Three months later: \"Where's the spare truck key?\" \"Junk drawer, left side, since August 3. Want the photo on your phone?\"",
+    how: "A local store of item, place text, an optional photo, and GPS. Matching runs on the phone, with a model only for fuzzy questions.",
+    feas: "now", why: "It is voice plus an optional look.",
+    effort: "S", impact: 3, bots: false,
+    privacy: "Everything stays on the phone, and a photo is taken only when asked.",
+    buildsOn: "Different from Place notes (T1), which fire by location",
+  },
+  {
+    id: "M3", name: "Decision diary", area: "Memory and life log",
+    pitch: "Log the big calls by voice. Jarvis replays them later with the numbers that show how they turned out.",
+    example: "\"Decision: Rowel hoodies move to the heavier blank because returns mention thin fabric.\" Ninety days later: \"You switched hoodie blanks on Nov 14. Here is the return rate since.\" Fire Fox pulls the figures from Shopify.",
+    how: "A local log with a follow-up date. When a follow-up is due, Fire Fox fetches the outcome data with its Shopify tools and Jarvis reads the comparison.",
+    feas: "now", why: "Voice plus a bot query.",
+    effort: "S", impact: 3, bots: true,
+    privacy: "Only his own words. Business data stays in his accounts.",
+  },
+  {
+    id: "M4", name: "Ask my past", area: "Memory and life log",
+    pitch: "One question searches everything you have told Jarvis, kept, or captured.",
+    example: "\"What was the restaurant Marcus recommended last month?\" \"On Oct 18 you said: Marcus says try the place on Bishop Arts with the wood oven.\" It quotes the date and the exact line.",
+    how: "An on-phone index covers the mind meld log, notes, the stash log, the decision diary, and the text in kept photos, with embeddings on the phone. Grok answers only from the snippets it finds and cites their dates.",
+    feas: "now", why: "The mind meld log already exists. This adds search and nothing from the glasses.",
+    effort: "M", impact: 5, bots: false,
+    privacy: "The index is sealed on the phone, and only the matched snippets reach the model. Health records are excluded, following rule 5 in the backlog.",
+  },
+  {
+    id: "P1", name: "Next time I see…", area: "People and social",
+    pitch: "Leave yourself a note about a person, and Jarvis whispers it just before you see them.",
+    example: "\"Next time I see Dana, ask how her mom's surgery went.\" On Thursday, two minutes before the calendar event with Dana: \"Dana in two minutes. Ask about her mom's surgery. You also owe her the quote.\"",
+    how: "A queue of notes on the phone. The trigger is a calendar attendee match through Fire Fox or EventKit, or a geofence around a saved place. The note is spoken when it fires.",
+    feas: "now", why: "Audio only. Calendar triggers work today. Place triggers need Always location.",
+    effort: "S", impact: 4, bots: true,
+    privacy: "These are the wearer's own words about someone, kept on the phone and never shared. No recognition of anyone.",
+    buildsOn: "People file (P1) and Promise ledger (W6), with a trigger added",
+  },
+  {
+    id: "P2", name: "Name rescue", area: "People and social",
+    pitch: "Blanked on a name? Jarvis whispers who you have met at this place before.",
+    example: "At the gym: \"Here you've noted Marcus, a trainer, and Kim at the front desk.\"",
+    how: "Names the wearer saved with a place (\"that was Kim, front desk\"), filtered by current location and spoken. No camera.",
+    feas: "workaround", why: "The silent double-tap only works while a session is open on Adventurer, so the trigger is a quiet \"Jarvis, names\" or the phone's Action Button. On display glasses the name shows silently on the lens.",
+    effort: "S", impact: 3, bots: false,
+    privacy: "Only names the wearer chose to save. No face recognition, by design.",
+  },
+  {
+    id: "P3", name: "Gift radar", area: "People and social",
+    pitch: "Jarvis remembers what people love and has the gift handled before the date.",
+    example: "Months earlier: \"Mom loves blue enamel cookware.\" Ten days before her birthday: \"Rally found a blue Dutch oven, $79, arriving the 21st. Order it?\" \"Yes.\"",
+    how: "Dictated likes plus calendar birthdays. Rally searches with its shopping tools and buys only after a spoken yes, within a cap he sets.",
+    feas: "now", why: "Voice plus bot actions.",
+    effort: "S", impact: 3, bots: true,
+    privacy: "Only his own notes. Every purchase needs his explicit yes.",
+  },
+  {
+    id: "P4", name: "Crew update", area: "People and social",
+    pitch: "Tell your people something hands-free, and hear their replies in your ear.",
+    example: "\"Tell the Rowel crew the pop-up moves to 3 pm.\" Replies come back: \"Jess: got it. Sam: can't make 3.\"",
+    how: "Groups saved in bot memory. Fire Fox sends by its own email or SMS tool, and replies return through relay /push.",
+    feas: "now", why: "It works only on channels the bot owns. iOS does not let any app read Messages or WhatsApp.",
+    effort: "S", impact: 3, bots: true,
+    privacy: "Each message is read back and sent only after a yes. Recipients know it comes from his assistant's address.",
+    buildsOn: "Two-wearer link (P2) needs both people wearing glasses. This does not.",
+  },
+  {
+    id: "H1", name: "Mirror coach", area: "Health and body",
+    pitch: "Face a mirror, and the glasses check your lifting form.",
+    example: "Squats in the garage gym: \"Knees caved on reps four and five. Depth was good.\"",
+    how: "Camera stream at 7 to 15 frames a second pointed at a mirror. Apple Vision body-pose runs on the phone against the reflection. Rep feedback is spoken.",
+    feas: "workaround", why: "Raw frames arrive only while the app is in the foreground, so the phone sits propped with the app open. The capture light stays on, and a long session at 15 fps may trigger heat step-downs.",
+    effort: "L", impact: 3, bots: false,
+    privacy: "In a public gym, other people are in the mirror. Frames are processed on the phone and nothing is kept. A home gym is the intended setting.",
+    unverified: "Pose accuracy on a mirror reflection seen from head height, and how long the glasses run before heat limits.",
+  },
+  {
+    id: "H2", name: "60-second check-in", area: "Health and body",
+    pitch: "A spoken daily check-in that spots patterns you would miss.",
+    example: "When the glasses go on in the morning: \"Energy, one to five? Sleep? Anything hurting?\" Two weeks later: \"Your energy has been a 2 on days after late Shopify nights.\"",
+    how: "A log on the phone with simple trend statistics on the phone. HealthKit could be read later. A model sees only a redacted summary, and only if he opts in.",
+    feas: "now", why: "Voice only, triggered by putting the glasses on.",
+    effort: "S", impact: 3, bots: false,
+    privacy: "Health data is sealed on the phone and never sent to the bots, per rule 5. It is not medical advice.",
+  },
+  {
+    id: "O1", name: "Errand radar", area: "Home and errands",
+    pitch: "Say what you need from anywhere, and Jarvis tells you when you are passing a place that has it.",
+    example: "\"Need printer ink and 9-volt batteries.\" The next day, driving: \"Office Depot is a block ahead, and you need ink. Check if it's in stock?\"",
+    how: "A list on the phone. iOS region monitoring around the nearest matching stores is rotated as he moves. A bot can optionally check stock with its browser.",
+    feas: "workaround", why: "It needs Always location, and iOS watches only 20 regions per app at once, so the regions rotate. Audio only, which is safe while driving.",
+    effort: "M", impact: 4, bots: true,
+    privacy: "Location stays on the phone.",
+  },
+  {
+    id: "O2", name: "Return it", area: "Home and errands",
+    pitch: "Hold up the thing, say \"return this\", and a bot handles the return.",
+    example: "The wrong-size cable: \"Jarvis, return this.\" Driver finds the order, starts the return, emails the QR code, and adds the drop-off to Errand radar.",
+    how: "One look. Text recognition on the phone reads the label or receipt, and the bot matches the order through email search or its browser, then runs the return. Any form is submitted only after a spoken yes.",
+    feas: "now", why: "One look plus bot tools. Some stores need a signed-in browser on the bot's side.",
+    effort: "M", impact: 3, bots: true,
+    privacy: "Only a photo of his own item, and it is not kept.",
+  },
+  {
+    id: "O3", name: "Warning light decoder", area: "Home and errands",
+    pitch: "Look at the blinking light or error code, then hear what it means and what to do.",
+    example: "The washer shows E21: \"Drain is blocked. Check the pump filter behind the bottom-right panel. If that doesn't fix it, want Driver to book a repair?\"",
+    how: "A look goes to text recognition on the phone for codes and Grok vision for symbols. Indy finds the manual, or uses a saved model plate.",
+    feas: "now", why: "One look. For a car, only while parked: the camera is never used while driving.",
+    effort: "S", impact: 3, bots: true,
+    privacy: "Only his own things.",
+    buildsOn: "Part lookup (B7) and Fix-it helper (O4)",
+  },
+  {
+    id: "A1", name: "Watch for it", area: "Accessibility",
+    pitch: "Tell Jarvis what to wait for, and it speaks up when it appears.",
+    example: "A blind rider at a stop: \"Tell me when the 22 comes.\" Four minutes later: \"Bus 22 is pulling up in front of you.\" Or: \"Tell me when my name is on the order screen.\"",
+    how: "Camera stream at 2 frames a second at the smallest size. Text recognition on the phone checks each frame. Grok vision runs only when the scene changes, with a rate limit. It stops at the target or a timeout.",
+    feas: "workaround", why: "Raw frames stop when the app leaves the foreground, so the phone has to stay unlocked with the app open. The capture light stays on throughout.",
+    effort: "M", impact: 5, bots: false,
+    privacy: "This is a continuous camera in public. The light is on, frames stay on the phone and are not stored, and it stops by itself.",
+    unverified: "Battery and heat over a 10-minute watch, and whether the background HEVC stream could be decoded later to drop the foreground requirement.",
+    buildsOn: "Line helper (A6), generalized",
+  },
+  {
+    id: "A2", name: "Say it for me", area: "Accessibility",
+    pitch: "For people whose speech is hard for others to follow, Jarvis repeats it clearly in their own voice.",
+    example: "A user with ALS at a pharmacy counter speaks softly into the glasses, and the phone speaker says clearly: \"I'm picking up a prescription for Jordan Lee.\"",
+    how: "The HFP mic, which is beamformed to the wearer, feeds speech recognition. Grok cleanup is optional. The phone speaks with iOS Personal Voice once the user authorizes it. On iOS, HFP input and Bluetooth output usually travel together, so the app pauses HFP, speaks on the phone speaker, then restores the glasses route.",
+    feas: "workaround", why: "Routing has to switch per utterance, and recognition of atypical speech is not proven.",
+    effort: "M", impact: 5, bots: false,
+    privacy: "Only the wearer's own speech, processed on the device where possible.",
+    unverified: "Recognition accuracy for atypical speech through HFP at 16 kHz, and the route switch time.",
+  },
+  {
+    id: "A3", name: "Haptic compass", area: "Accessibility",
+    pitch: "Turn-by-turn directions you feel instead of hear: Apple Watch taps for left, right, and stop.",
+    example: "On a loud street: three taps means turn right, two means left, and one long buzz means stop. The voice stays quiet.",
+    how: "Guide mode's walking cues are sent to a watchOS companion over WatchConnectivity and played as haptic patterns.",
+    feas: "workaround", why: "The repo has no Watch app yet, and nothing in DAT 1.0.1's documentation offers haptic output on the glasses.",
+    effort: "L", impact: 4, bots: false,
+    privacy: "Nothing new.",
+    unverified: "Whether any glasses-side haptic exists. None is documented.",
+  },
+  {
+    id: "A4", name: "Sign to speech", area: "Accessibility",
+    pitch: "Sign in front of you, and the phone speaks it aloud.",
+    example: "A Deaf user signs at a coffee counter, and the phone says: \"Large oat latte, please.\"",
+    how: "The camera stream sees the wearer's own hands from above. A sign-recognition model runs on the phone or through a hosted model.",
+    feas: "workaround", why: "This is a research bet. No production-grade model for signing seen from the signer's own viewpoint was found. It also needs the foreground and the light on.",
+    effort: "L", impact: 5, bots: false,
+    privacy: "Only the wearer's hands. Other people in the frame are not stored.",
+    unverified: "Everything. Treat it as a spike, not a feature.",
+  },
+  {
+    id: "C1", name: "Clip that", area: "Creator tools",
+    pitch: "Creator mode keeps the last 30 seconds. Say \"clip that\" after the moment happens.",
+    example: "Packing Rowel orders with creator mode on, the cat knocks over the stack. \"Jarvis, clip that.\" The previous 30 seconds are saved, and Driver drafts a TikTok caption for approval.",
+    how: "A DAT stream at 720 by 1280 and 30 frames a second feeds an in-memory ring buffer, only while creator mode is on. \"Clip that\" writes the last N seconds to Photos. Grok drafts the caption, and nothing is posted without his OK.",
+    feas: "workaround", why: "Raw frames need the foreground. HEVC frames do keep arriving in the background, which may allow a pocket buffer. The quality is the preview stream, not Meta's own 3K capture.",
+    effort: "M", impact: 4, bots: true,
+    privacy: "The camera is on continuously with the light on, so people nearby should be told. Nothing past 30 seconds is kept unless clipped.",
+    unverified: "Whether HEVC samples can be written to a file in the background without decoding.",
+    buildsOn: "Voice slate (C1) and Live stream (C8)",
+  },
+  {
+    id: "C2", name: "Live whisper", area: "Creator tools",
+    pitch: "During a TikTok LIVE, top comments and gifts are read quietly into your ear.",
+    example: "Mid-unboxing: \"Three people are asking the hoodie price. A new follower sent a rose.\"",
+    how: "A bot's browser watches the LIVE page on his PC, summarizes it, and pushes through the relay. Jarvis reads it in the ear.",
+    feas: "workaround", why: "No public TikTok API for LIVE comments was confirmed, so this rides on a browser session.",
+    effort: "M", impact: 3, bots: true,
+    privacy: "Commenters' public usernames are spoken only in his ear.",
+    unverified: "TikTok's terms for automated viewing of a LIVE page.",
+  },
+  {
+    id: "J1", name: "Earcon language", area: "Jarvis mode",
+    pitch: "A sound for every bot and event, so you know what happened without a word.",
+    example: "A rising chime is Fire Fox with business news. A coin sound is Rally with money. A tick means Indy finished research. A low pulse means something needs a yes. \"What was that?\" replays the line.",
+    how: "A small sound set bundled in the app. Each relay push carries the bot and the kind of event. Sounds play over A2DP when not listening, for full quality.",
+    feas: "now", why: "It needs only the app running, which the background audio session already provides.",
+    effort: "S", impact: 4, bots: true,
+    privacy: "A sound tells bystanders nothing, which is better than speech.",
+    wave: 5,
+  },
+  {
+    id: "J2", name: "Glance and dispatch", area: "Jarvis mode",
+    pitch: "Look at anything, say \"handle this\", and Jarvis picks the right bot.",
+    example: "A flyer for a Nov 22 vendor market: \"Handle this.\" \"Fire Fox put it on Saturday's calendar and is asking about the booth fee.\" A paper bill: \"Rally scheduled it for the 1st.\"",
+    how: "One look. Text recognition on the phone plus Grok vision sorts it into event, bill, product, contact, or document. It goes to that bot through relay /ask, which already carries photos. Faces are blurred on the phone before upload. The action is read back before anything happens.",
+    feas: "now", why: "One look plus the relay. It depends on Foundations.",
+    effort: "M", impact: 5, bots: true,
+    privacy: "One photo with the light on. Faces are blurred on the device before the photo leaves the phone.",
+    buildsOn: "Desk handoff (W10) and Look to Talk (W13)",
+    wave: 1,
+  },
+  {
+    id: "J3", name: "Interrupt manager", area: "Jarvis mode",
+    pitch: "Bots can reach you on their own, but only when it is worth it.",
+    example: "During the Acme meeting, Rally's \"payout landed\" waits, while \"Meta ads card declined\" gets one pulse. After the meeting: \"Three things came in while you were with Acme.\"",
+    how: "Each push carries urgent, normal, or low. The app holds normal and low during calendar events, while driving (Core Motion activity), and in do not disturb. It keeps a daily interrupt budget and batches the rest.",
+    feas: "now", why: "Logic on the phone plus a calendar read.",
+    effort: "S", impact: 4, bots: true,
+    privacy: "Nothing new is captured.",
+    wave: 5,
+  },
+  {
+    id: "J4", name: "Protocols", area: "Jarvis mode",
+    pitch: "Stark-style named routines that run several bots at once.",
+    example: "\"Jarvis, travel protocol.\" Driver checks the flight, Fire Fox sets an out-of-office and moves Friday's calls, and Rally books the 6:10 ride. Jarvis reads the plan, and one yes approves it.",
+    how: "Skills (D1) plus Relay race (W2), extended with parallel steps and a single read-back of the whole plan. Money and sending keep their own checkpoints.",
+    feas: "now", why: "It builds on written Skills and Relay race code. It depends on Foundations.",
+    effort: "M", impact: 5, bots: true,
+    privacy: "Every outside action is listed in the read-back before the yes. Spending still needs his explicit OK.",
+    buildsOn: "Skills (D1), Relay race (W2)",
+  },
+  {
+    id: "J5", name: "Silent approve", area: "Jarvis mode",
+    pitch: "Approve a bot's action without saying a word.",
+    example: "In a meeting, Driver wants to reply to a customer. The reply appears on the lens, and a pinch approves it or a swipe rejects it.",
+    how: "A lens card plus a Neural Band select, through CompanionSurface and GestureMap, which already listen for the band.",
+    feas: "display", why: "Adventurer has no display or band, and the backlog's rule 6 requires a spoken yes for any action.",
+    effort: "M", impact: 4, bots: true,
+    privacy: "The card is visible only to the wearer.",
+  },
+];
+
+const LIMITS: string[][] = [
+  ["Camera stream", "360×640, 504×896, or 720×1280 at 2, 7, 15, 24, or 30 fps. The capture light is on.", "Watch for it, Clip that, Mirror coach"],
+  ["App in background", "Raw frames stop. HEVC frames keep arriving but are not decoded by the SDK.", "Camera features need the app in front"],
+  ["Whole-sensor photo", "Up to 4032×3024, not during a stream. In beta: apps that use it cannot be published yet.", "Owner build only. App Store builds use stream frames."],
+  ["Glasses mic (HFP)", "Mono, 16 or 8 kHz, beamformed to the wearer's voice. Other voices are reduced.", "Great for commands, poor for capturing others"],
+  ["Speakers", "A2DP high quality, output only. HFP and A2DP are mutually exclusive.", "Replies drop to voice quality while listening"],
+  ["Audio with the stream", "Ambient, not beamformed, only while the camera is on.", "Needs the light on"],
+  ["Ordering", "The HFP route must settle before a camera stream starts, or audio can fail silently.", "Foundation fix"],
+  ["Touchpad and head motion", "Only while a session is open, and an open session takes the single tap and long press.", "Silent triggers need workarounds"],
+  ["Device state", "Worn, hinge, battery, and heat are read while the app runs. Heat lowers the frame rate.", "Pick up where I left off"],
+  ["Not available", "Replacing \"Hey Meta\", reading other apps' notifications, any display or band on Adventurer.", "Silent approve waits for display glasses"],
+];
+
+const FOUNDATIONS = [
+  { text: "Sound and mic through the glasses", done: false, meta: "The build agent is fixing AudioSessionManager: HFP first, no forced phone speaker, a route-change observer, and the HFP route settled before the camera starts. Needs his on-glasses check." },
+  { text: "A real brain with his xAI key", done: false, meta: "The Phoenix Fox key exists and the account has $20 with auto top-up. The key field and its Test key button arrive in the next TestFlight build. Not yet tested." },
+  { text: "Vision: one look and the stream", done: false, meta: "Written, not yet run on his glasses. Every look feature depends on it." },
+  { text: "Relay to Fire Fox, Indy, Driver, and Rally", done: false, meta: "The worker is deployed. BOT_WEBHOOKS is not set and the bots are not connected. The relay token still has to reach his phone safely." },
+  { text: "Jarvis wake word with the app in the background", done: false, meta: "Built, with the orange mic indicator. He has not confirmed it with the glasses on." },
+];
+
+export default function App() {
+  const [area, setArea] = useState<string>("all");
+  const [feas, setFeas] = useState<string>("all");
+  const [effort, setEffort] = useState<string>("all");
+  const [sort, setSort] = useState<string>("impact");
+  const [botsOnly, setBotsOnly] = useState<boolean>(false);
+  const [waveOnly, setWaveOnly] = useState<boolean>(false);
+
+  const filtered = useMemo(() => {
+    const list = IDEAS.filter((i: Idea) =>
+      (area === "all" || i.area === area) &&
+      (feas === "all" || i.feas === feas) &&
+      (effort === "all" || i.effort === effort) &&
+      (!botsOnly || i.bots) &&
+      (!waveOnly || i.wave !== undefined));
+    const sorted = [...list];
+    if (sort === "impact") sorted.sort((a: Idea, b: Idea) => b.impact - a.impact || EFFORT_RANK[a.effort] - EFFORT_RANK[b.effort]);
+    if (sort === "effort") sorted.sort((a: Idea, b: Idea) => EFFORT_RANK[a.effort] - EFFORT_RANK[b.effort] || b.impact - a.impact);
+    if (sort === "area") sorted.sort((a: Idea, b: Idea) => AREAS.indexOf(a.area) - AREAS.indexOf(b.area));
+    return sorted;
+  }, [area, feas, effort, sort, botsOnly, waveOnly]);
+
+  const count = (f: Feas) => IDEAS.filter((i: Idea) => i.feas === f).length;
+  const feasTone = (f: Feas): "success" | "warning" | "danger" => (f === "now" ? "success" : f === "workaround" ? "warning" : "danger");
+
+  const wave = IDEAS.filter((i: Idea) => i.wave !== undefined).sort((a: Idea, b: Idea) => (a.wave ?? 0) - (b.wave ?? 0));
+
+  return (
+    <Page
+      title="Phoenix Fox: Life-Changing Features"
+      summary="29 new things the glasses could do, each with its honest readiness on the Adventurer today, plus the five to build first once the foundations work. Pick the ones you want and I'll queue them."
+      width="wide"
+      sources={[
+        "https://wearables.developer.meta.com/docs/develop/dat/microphones-and-speakers/",
+        "https://wearables.developer.meta.com/docs/develop/dat/camera-stream-processing/",
+        "https://wearables.developer.meta.com/docs/reference/ios_swift/dat/1.0/mwdatcamera_videocodec",
+        "https://github.com/cinderandcrown/phoenix-fox/blob/main/docs/INNOVATION_BACKLOG.md",
+        "https://github.com/cinderandcrown/phoenix-fox/blob/main/docs/GLASSES_SDK.md",
+      ]}
+    >
+      <TableOfContents items={[
+        { label: "Recommended first wave", id: "wave" },
+        { label: "Foundations first", id: "foundations" },
+        { label: "All ideas", id: "all" },
+        { label: "Idea details", id: "details" },
+        { label: "What the glasses allow", id: "limits" },
+        { label: "How this was checked", id: "checked" },
+      ]} />
+
+      <Section heading="Recommended first wave" id="wave">
+        <Rows rows={wave.map((i: Idea) => ({
+          lead: String(i.wave),
+          title: i.name,
+          detail: i.pitch,
+          meta: `Effort ${i.effort}`,
+          status: { label: FEAS_LABEL[i.feas], tone: feasTone(i.feas) },
+        }))} />
+        <Text>Why these five: each one works on the Adventurer today without a camera running all day. They turn the glasses into the bots' eyes (Glance and dispatch), voice (Call it for me), and daily habit (Walk my inbox, Pick up where I left off). Earcons and the Interrupt manager are the proactive layer that Store pulse and every bot push ride on, so they ship together as one pick.</Text>
+        <Callout tone="info" lead="Order matters">Four of the five need the relay connected to the bots. None of them is worth building until the foundations below pass on his glasses.</Callout>
+      </Section>
+
+      <Section heading="Foundations first" id="foundations" caption="Status as of Nov 14, 2026. Nothing is ticked until it is confirmed on his glasses.">
+        <Checklist items={FOUNDATIONS} />
+      </Section>
+
+      <Section heading="All ideas" id="all">
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 16, alignItems: "flex-end" }}>
+          <Select label="Area" value={area} onChange={(v: string) => setArea(v)} options={[{ value: "all", label: "All areas" }, ...AREAS.map((a: Area) => ({ value: a, label: a }))]} />
+          <Select label="Effort" value={effort} onChange={(v: string) => setEffort(v)} options={[{ value: "all", label: "Any effort" }, { value: "S", label: "S (days)" }, { value: "M", label: "M (1 to 2 weeks)" }, { value: "L", label: "L (weeks or research)" }]} />
+          <Select label="Sort by" value={sort} onChange={(v: string) => setSort(v)} options={[{ value: "impact", label: "Impact" }, { value: "effort", label: "Least effort" }, { value: "area", label: "Area" }]} />
+          <Toggle label="Uses the bots" value={botsOnly} onChange={(v: boolean) => setBotsOnly(v)} />
+          <Toggle label="First wave only" value={waveOnly} onChange={(v: boolean) => setWaveOnly(v)} />
+        </div>
+        <Segmented
+          value={feas}
+          onChange={(v: string) => setFeas(v)}
+          options={[
+            { value: "all", label: "All", count: IDEAS.length },
+            { value: "now", label: "Works now", count: count("now") },
+            { value: "workaround", label: "Needs workaround", count: count("workaround") },
+            { value: "display", label: "Display glasses", count: count("display") },
+          ]}
+        />
+        {filtered.length > 0 ? (
+          <Table
+            columns={["Idea", "Area", "On Adventurer", "Effort", "Impact", "Bots"]}
+            align={["start", "start", "start", "end", "end", "start"]}
+            rows={filtered.map((i: Idea) => [
+              `${i.name}: ${i.pitch}`,
+              i.area,
+              { text: FEAS_LABEL[i.feas], tone: feasTone(i.feas) },
+              i.effort,
+              `${i.impact} / 5`,
+              i.bots ? "Yes" : "No",
+            ])}
+          />
+        ) : (
+          <Text>Nothing matches every filter. Loosen one of them.</Text>
+        )}
+        <Text>Impact is my estimate of how much it would change his day, out of 5. Effort: S is days, M is one to two weeks, and L is weeks or open research.</Text>
+      </Section>
+
+      <Section heading="Idea details" id="details" caption="These follow the filters above. Open an idea to see the example, how it works, and privacy.">
+        {filtered.map((i: Idea) => (
+          <Section key={i.id} heading={`${i.name} · ${i.area}`} collapsible defaultOpen={false}>
+            <Properties items={[
+              { label: "Pitch", value: i.pitch },
+              { label: "A day with it", value: i.example },
+              { label: "How it works", value: i.how },
+              { label: "On Adventurer", value: `${FEAS_LABEL[i.feas]}. ${i.why}` },
+              { label: "Effort", value: i.effort },
+              { label: "Privacy", value: i.privacy },
+              ...(i.unverified ? [{ label: "Unverified", value: i.unverified }] : []),
+              ...(i.buildsOn ? [{ label: "Builds on", value: i.buildsOn }] : []),
+            ]} />
+          </Section>
+        ))}
+      </Section>
+
+      <Section heading="What the glasses allow" id="limits" caption="From Meta's DAT docs and the repo's GLASSES_SDK.md. Toolkit 1.0.1, Adventurer.">
+        <Table columns={["Capability", "What it allows", "What it means here"]} rows={LIMITS} />
+      </Section>
+
+      <Section heading="How this was checked" id="checked">
+        <Text>The repo's docs/INNOVATION_BACKLOG.md already lists about 90 ideas, and ten are written: Council, Relay race, Walk-through, Tally, Ingredient watch, Dose guard, Standing orders, Place notes, Close the day, and Skills. Look to Talk is written too. None of the 29 ideas here repeats one of those. Where an idea builds on one, its details say so.</Text>
+        <Text>Camera, background, and audio limits come from Meta's public DAT pages and the repo's GLASSES_SDK.md. Anything I could not confirm is marked "Unverified" on the idea. No idea needs the camera without its light, recording the room all day, or recognizing strangers. The backlog rules that forbid those still hold.</Text>
+        <LinkCards links={[
+          { title: "Microphones and speakers", site: "wearables.developer.meta.com", href: "https://wearables.developer.meta.com/docs/develop/dat/microphones-and-speakers/" },
+          { title: "Camera stream processing", site: "wearables.developer.meta.com", href: "https://wearables.developer.meta.com/docs/develop/dat/camera-stream-processing/" },
+          { title: "Innovation backlog", site: "github.com", href: "https://github.com/cinderandcrown/phoenix-fox/blob/main/docs/INNOVATION_BACKLOG.md" },
+        ]} />
+      </Section>
+    </Page>
+  );
+}
+
+
+</cursor_untrusted_data_1337>
