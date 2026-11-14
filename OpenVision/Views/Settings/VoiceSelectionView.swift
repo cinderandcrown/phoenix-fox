@@ -19,16 +19,16 @@ struct VoiceSelectionView: View {
 
     var body: some View {
         List {
-            // System Default Option
+            // Auto: best Premium / Enhanced / Personal Voice installed on this phone.
             Section {
                 voiceRow(
-                    name: "System Default",
+                    name: "Best available",
                     quality: nil,
                     identifier: nil,
                     isSelected: settingsManager.settings.selectedVoiceIdentifier == nil
                 )
             } footer: {
-                Text("Uses the default voice from iOS Settings → Accessibility → Spoken Content")
+                Text("Picks Personal Voice when authorized, otherwise the highest-quality English voice installed (Premium, then Enhanced). Never prefers the robotic Standard/compact voice when a better one exists.")
             }
 
             // Premium Voices
@@ -69,7 +69,7 @@ struct VoiceSelectionView: View {
                 }
             }
 
-            // Default Voices
+            // Standard / compact — last resort; sound robotic.
             let defaultVoices = voices.filter { $0.quality == .default }
             if !defaultVoices.isEmpty {
                 Section {
@@ -82,26 +82,29 @@ struct VoiceSelectionView: View {
                         )
                     }
                 } header: {
-                    Text("Default Voices")
+                    Text("Standard (robotic)")
+                } footer: {
+                    Text("These compact voices sound mechanical. Prefer Premium or Enhanced above, or download better voices below.")
                 }
             }
 
             // Download More Voices
             Section {
-                Link(destination: URL(string: "App-prefs:ACCESSIBILITY&path=SPEECH")!) {
+                Link(destination: URL(string: UIApplication.openSettingsURLString)!) {
                     HStack {
-                        Label("Download More Voices", systemImage: "square.and.arrow.down")
+                        Label("Download better voices", systemImage: "square.and.arrow.down")
                         Spacer()
                         Image(systemName: "arrow.up.right.square")
                             .foregroundColor(.secondary)
                     }
                 }
             } footer: {
-                Text("Download premium and enhanced voices in iOS Settings → Accessibility → Spoken Content → Voices")
+                Text("In iOS Settings → Accessibility → Spoken Content → Voices, download a Premium or Enhanced English voice. Then return here and choose it (or leave Best available).")
             }
         }
         .navigationTitle("TTS Voice")
         .onAppear {
+            TTSService.requestPersonalVoiceAccessIfNeeded()
             loadVoices()
         }
     }
@@ -172,8 +175,10 @@ struct VoiceSelectionView: View {
            let voice = AVSpeechSynthesisVoice(identifier: identifier) {
             utterance.voice = voice
         } else {
-            utterance.voice = AVSpeechSynthesisVoice(language: "en-US")
+            utterance.voice = TTSService.userVoice
         }
+        utterance.rate = AVSpeechUtteranceDefaultSpeechRate
+        utterance.pitchMultiplier = 1.0
 
         let synthesizer = AVSpeechSynthesizer()
         synthesizer.speak(utterance)

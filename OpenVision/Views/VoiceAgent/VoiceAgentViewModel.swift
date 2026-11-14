@@ -2663,13 +2663,17 @@ final class VoiceAgentViewModel: ObservableObject {
         // mark comes from the engine itself when sound actually starts; marking it here excluded
         // synthesis time, making TTS TTFB structurally zero and perceived latency optimistic.
         MetricsCollector.shared.markTTSRequested()
+        // Plain words for the ear (markup / URLs / emoji already stripped for streamed chunks).
+        let spoken = SpokenReply.plain(text)
+        guard !spoken.isEmpty else { return }
         // A neural voice (Kokoro on-device; Grok, OpenAI cloud) when selected + ready; otherwise Apple's.
         // The neural voices have one speed, so a wearer who asked for slower or faster speech
         // gets the built-in voice, which can do it.
-        if let neuralTTS, settingsManager.settings.accessibility.pace == .normal {
-            Task { await neuralTTS.speak(text) }
+        if let neuralTTS, settingsManager.settings.accessibility.pace == .normal,
+           abs(settingsManager.settings.voiceSpeed - 1) < 0.02 {
+            Task { await neuralTTS.speak(spoken) }
         } else {
-            ttsService.speak(text)
+            ttsService.speak(spoken)
         }
     }
 

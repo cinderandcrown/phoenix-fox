@@ -160,10 +160,10 @@ enum TTSEngineType: String, Codable, CaseIterable, Identifiable {
     var id: String { rawValue }
     var displayName: String {
         switch self {
-        case .appleSystem: return "Apple (system voice)"
+        case .appleSystem: return "Apple (on-device)"
         case .kokoro: return "Kokoro (natural, on-device)"
-        case .grok: return "Grok (natural, cloud)"
-        case .openAI: return "OpenAI (natural, cloud)"
+        case .grok: return "Grok (cloud, opt-in)"
+        case .openAI: return "OpenAI (cloud, opt-in)"
         }
     }
 }
@@ -325,15 +325,20 @@ struct AppSettings: Codable, Equatable {
     /// Conversation timeout in seconds (auto-end after silence)
     var conversationTimeout: TimeInterval = 30
 
-    /// Selected TTS voice identifier for the Apple system voice (nil = system default)
+    /// Selected TTS voice identifier for the Apple system voice (nil = auto: best Premium/Enhanced/Personal).
     var selectedVoiceIdentifier: String? = nil
 
-    /// Which TTS engine to speak with. Apple (system voice) is the default and always available;
-    /// Kokoro is on-device neural TTS (natural, offline) once its model is downloaded.
-    var ttsEngine: TTSEngineType = .appleSystem
+    /// Which TTS engine to speak with. Kokoro is preferred when its model is on disk (warm,
+    /// on-device neural). Until then Apple's best installed Premium/Enhanced voice is used.
+    /// Cloud engines (Grok, OpenAI) are opt-in and need a key in the Keychain.
+    var ttsEngine: TTSEngineType = .kokoro
 
     /// Selected Kokoro voice (e.g. "af_heart"). First letter: a = American, b = British.
+    /// `af_heart` is the warmest American female preset shipped with Kokoro-82M.
     var kokoroVoice: String = "af_heart"
+
+    /// Multiplier on Apple's default speaking rate. 1.0 is natural. Clamped in TTSService.
+    var voiceSpeed: Float = 1.0
 
     // MARK: - Telemetry (opt-in, self-hosted)
 

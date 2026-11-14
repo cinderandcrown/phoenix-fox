@@ -8,16 +8,34 @@ struct VoiceSettingsView: View {
     // MARK: - Environment
 
     @EnvironmentObject var settingsManager: SettingsManager
-
+    @State private var isPreviewing = false
 
     // MARK: - Computed Properties
 
     private var selectedVoiceName: String {
         guard let identifier = settingsManager.settings.selectedVoiceIdentifier,
               let voice = AVSpeechSynthesisVoice(identifier: identifier) else {
-            return "System Default"
+            return TTSService.userVoice?.name ?? "Best available"
         }
         return voice.name
+    }
+
+    private var speedLabel: String {
+        let speed = settingsManager.settings.voiceSpeed
+        if abs(speed - 1) < 0.02 { return "Natural" }
+        return String(format: "%.0f%%", Double(speed) * 100)
+    }
+
+    private func previewCurrentVoice() {
+        isPreviewing = true
+        let sample = "Hi — I'm Jarvis. This is how I sound on your glasses."
+        // Same path as replies: neural when ready, else Apple's best installed voice.
+        if let neural = NeuralSpeech.active(settingsManager.settings) {
+            Task { await neural.speak(sample) }
+        } else {
+            TTSService.shared.speak(sample)
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 4) { isPreviewing = false }
     }
 
     // MARK: - Body
@@ -118,6 +136,13 @@ struct VoiceSettingsView: View {
 
             // TTS Voice Section
             Section {
+                Button {
+                    previewCurrentVoice()
+                } label: {
+                    Label(isPreviewing ? "Playing…" : "Preview voice", systemImage: "play.circle.fill")
+                }
+                .disabled(isPreviewing)
+
                 Picker("Speech Engine", selection: $settingsManager.settings.ttsEngine) {
                     ForEach(TTSEngineType.allCases) { engine in
                         Text(engine.displayName).tag(engine)
@@ -183,18 +208,33 @@ struct VoiceSettingsView: View {
                         OpenAISettingsView()
                     }
                 }
+
+                VStack(alignment: .leading, spacing: 6) {
+                    HStack {
+                        Text("Speed")
+                        Spacer()
+                        Text(speedLabel).foregroundColor(.secondary)
+                    }
+                    Slider(value: $settingsManager.settings.voiceSpeed, in: 0.75...1.25, step: 0.05)
+                }
+
+                if TTSService.needsBetterVoicesHint && settingsManager.settings.ttsEngine == .appleSystem {
+                    Link(destination: URL(string: UIApplication.openSettingsURLString)!) {
+                        Label("Download better voices in iOS Settings", systemImage: "square.and.arrow.down")
+                    }
+                }
             } header: {
                 Text("Output Voice")
             } footer: {
                 switch settingsManager.settings.ttsEngine {
                 case .kokoro:
-                    Text("Kokoro is a natural, on-device neural voice — private and offline. Download its model (~600 MB) under Kokoro Model, then it runs entirely on-device.")
+                    Text("Kokoro is the default when its model is on this phone (~600 MB download) — warm, private, offline. Until then Phoenix Fox uses the best Apple Premium/Enhanced voice installed. Pitch stays natural; speed is the slider above.")
                 case .grok:
-                    Text("Grok is xAI's natural cloud voice. It uses your Grok sign-in (SuperGrok or API key), follows the language of each reply, and needs an internet connection. Replies are sent to xAI to be spoken.")
+                    Text("Grok is xAI's natural cloud voice (opt-in). It needs your Grok sign-in and an internet connection. Replies are sent to xAI to be spoken. Falls back to Apple if the key is missing.")
                 case .openAI:
-                    Text("OpenAI's natural cloud voice (\(CloudTTSService.openAITTSModel)). It needs an OpenAI API key with credits — a ChatGPT subscription doesn't cover speech. Replies are sent to OpenAI to be spoken.")
+                    Text("OpenAI's natural cloud voice (\(CloudTTSService.openAITTSModel), opt-in). Needs an OpenAI API key with credits. Falls back to Apple if the key is missing.")
                 case .appleSystem:
-                    Text("Apple's built-in system voice. For higher quality, download a Premium/Enhanced voice in iOS Settings → Accessibility → Spoken Content.")
+                    Text("Apple on-device voice. Phoenix Fox picks the best Premium or Enhanced English voice (or Personal Voice when authorized)—not the robotic Standard/compact voice. Download better voices in iOS Settings → Accessibility → Spoken Content.")
                 }
             }
 

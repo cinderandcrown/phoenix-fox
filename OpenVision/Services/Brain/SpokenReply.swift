@@ -65,9 +65,31 @@ enum SpokenReply {
         s = replace(s, "\\*{2,}|_{2,}|`+", "")
 
         s = String(String.UnicodeScalarView(s.unicodeScalars.filter { !isPicture($0) }))
+        // Strip thousands separators so "1,200" is spoken as a number, not chopped at the comma.
+        // Clock times (3:15, 15:30) are left for the voice engine — Premium/Enhanced AVSpeech
+        // and Kokoro already read them naturally; rewriting them often sounds worse.
+        s = replace(s, "\\b(\\d{1,3}(?:,\\d{3})+)\\b") { match in
+            // match[0] is the full match; digits with commas live in group 1 when using replace(_:template).
+            match.replacingOccurrences(of: ",", with: "")
+        }
         s = replace(s, "\\s+", " ")
         s = replace(s, "\\s+([.,;:!?])", "$1")
         return s.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    /// Regex replace with a closure over the full match string.
+    private static func replace(_ text: String, _ pattern: String, _ each: (String) -> String) -> String {
+        guard let expression = try? NSRegularExpression(pattern: pattern) else { return text }
+        let ns = text as NSString
+        let matches = expression.matches(in: text, range: NSRange(location: 0, length: ns.length))
+        var result = text
+        for match in matches.reversed() {
+            let full = ns.substring(with: match.range)
+            if let swiftRange = Range(match.range, in: result) {
+                result.replaceSubrange(swiftRange, with: each(full))
+            }
+        }
+        return result
     }
 
     /// Emoji and the invisible characters that join them. A voice either skips them or

@@ -79,6 +79,16 @@ final class SpokenReplyTests: XCTestCase {
         XCTAssertEqual(SpokenReply.plain("  \n \n"), "")
     }
 
+    func testThousandsSeparatorsAreRemovedForSpeech() {
+        XCTAssertEqual(SpokenReply.plain("About 1,200 steps left."), "About 1200 steps left.")
+        XCTAssertEqual(SpokenReply.plain("Cost is $12,500 today."), "Cost is $12500 today.")
+    }
+
+    func testClockTimesAreLeftForTheVoiceEngine() {
+        XCTAssertEqual(SpokenReply.plain("Leave by 4:15."), "Leave by 4:15.")
+        XCTAssertEqual(SpokenReply.plain("Meet at 15:30 at the gate."), "Meet at 15:30 at the gate.")
+    }
+
     func testPlainTwiceIsTheSameAsOnce() {
         let written = "## Plan\n- **Call** [Sam](tel:555)\n- Check https://example.com/x.\n\nThen rest 😀"
         let once = SpokenReply.plain(written)

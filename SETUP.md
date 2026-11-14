@@ -81,7 +81,7 @@ The home screen shows what Jarvis is doing in a word or two under the orb: Ready
 | You say | What should happen |
 | --- | --- |
 | **Jarvis** | A chime. The app is listening for one request, and stays open for a follow-up until you stop talking. |
-| Jarvis, what time is it | The time is spoken. No network and no model are used. |
+| Jarvis, what time is it | The time is spoken. No network and no model are used. **Voice check:** it should sound like a calm, natural person (not robotic), come from the glasses speakers, at normal speed and pitch. |
 | Jarvis, ask Indy about the gate | Jarvis says "Asking Indy." at once. The request goes to Indy through the relay, Indy's card on the home screen shows the task, and Indy's reply is spoken with Indy's name. |
 | go on | After a long answer that ended with "There's more. Say go on.", the next part is spoken. Turn this off with **Short spoken replies** under Assistants. |
 | Jarvis, what do you see | The capture light comes on, one picture is taken, the light goes off, and the answer is spoken. |

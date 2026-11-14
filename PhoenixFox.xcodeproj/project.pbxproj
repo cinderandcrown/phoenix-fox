@@ -288,6 +288,8 @@
 		876B670BF350C504B0B276B5 /* AIProviderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C1B2E8F44C4F8E9DF4497E0 /* AIProviderTests.swift */; };
 		51DC379730E532EDC5A9FD24 /* ClaudeSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEC14BA021F1D9079985414D /* ClaudeSettingsView.swift */; };
 		53668B6AD58B7F2F8D2C4FF5 /* ProviderKeyTestButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D2890A98299C4B809AE20C7 /* ProviderKeyTestButton.swift */; };
+		F1959F3DA44816590861F243 /* AppleVoiceChoice.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF32A53BE5D28A4C68C31691 /* AppleVoiceChoice.swift */; };
+		767A0BB1569AFC9378F5725F /* AppleVoiceChoiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD4A50413FA8E8E52935728E /* AppleVoiceChoiceTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -576,6 +578,8 @@
 		0C1B2E8F44C4F8E9DF4497E0 /* AIProviderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIProviderTests.swift; sourceTree = "<group>"; };
 		CEC14BA021F1D9079985414D /* ClaudeSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClaudeSettingsView.swift; sourceTree = "<group>"; };
 		4D2890A98299C4B809AE20C7 /* ProviderKeyTestButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProviderKeyTestButton.swift; sourceTree = "<group>"; };
+		BF32A53BE5D28A4C68C31691 /* AppleVoiceChoice.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleVoiceChoice.swift; sourceTree = "<group>"; };
+		FD4A50413FA8E8E52935728E /* AppleVoiceChoiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleVoiceChoiceTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -965,6 +969,7 @@
 				BE848862D72446F7BBDD3D89 /* KokoroTTSService.swift */,
 				A82F52D647139EC398E043BF /* NeuralSpeech.swift */,
 				D416290774C17FDC0DDFBC68 /* TTSService.swift */,
+				BF32A53BE5D28A4C68C31691 /* AppleVoiceChoice.swift */,
 			);
 			path = TTS;
 			sourceTree = "<group>";
@@ -1070,6 +1075,7 @@
 				1E5E803A1AAD693F3F59E29F /* AudioRoutePolicyTests.swift */,
 				57995089192F8CA478B88A6B /* OnDeviceLookTests.swift */,
 				0C1B2E8F44C4F8E9DF4497E0 /* AIProviderTests.swift */,
+				FD4A50413FA8E8E52935728E /* AppleVoiceChoiceTests.swift */,
 			);
 			path = OpenVisionTests;
 			sourceTree = "<group>";
@@ -1556,6 +1562,7 @@
 				8BCE34AD6CBF565DB24FFBC6 /* AudioRoutePolicyTests.swift in Sources */,
 				F09B402FB088F7C971E19F3A /* OnDeviceLookTests.swift in Sources */,
 				876B670BF350C504B0B276B5 /* AIProviderTests.swift in Sources */,
+				767A0BB1569AFC9378F5725F /* AppleVoiceChoiceTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1774,6 +1781,7 @@
 				FA1DC6774294E547C8DF9A2F /* ProviderRouter.swift in Sources */,
 				51DC379730E532EDC5A9FD24 /* ClaudeSettingsView.swift in Sources */,
 				53668B6AD58B7F2F8D2C4FF5 /* ProviderKeyTestButton.swift in Sources */,
+				F1959F3DA44816590861F243 /* AppleVoiceChoice.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -3,7 +3,8 @@
 //
 // Model + voices download from HuggingFace (prince-canuma/Kokoro-82M) on demand — the model is
 // ~600 MB, each voice ~0.5 MB. Synthesis runs on-device via KokoroSwift; the 24 kHz float output
-// is played through AVAudioEngine. Apple's AVSpeechSynthesizer TTS remains the untouched default.
+// is played through AVAudioEngine. When the model is not on disk yet, NeuralSpeech falls
+// through to Apple's best Premium/Enhanced voice.
 
 import Foundation
 import AVFoundation
