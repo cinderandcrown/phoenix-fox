@@ -99,6 +99,17 @@ final class ConversationManager: ObservableObject {
         addMessage(message)
     }
 
+    /// Takes back the last thing the wearer said, when it turns out to belong in no
+    /// history: a turn about their health, which is kept sealed elsewhere or not at all.
+    func forgetLastUserMessage(saying text: String) {
+        guard var conversation = currentConversation, conversation.forgetLastUserMessage(saying: text) else { return }
+        if let index = conversations.firstIndex(where: { $0.id == conversation.id }) {
+            conversations[index] = conversation
+        }
+        currentConversation = conversation
+        saveConversations()
+    }
+
     /// Add tool message
     func addToolMessage(name: String, result: String) {
         let message = Message.tool(name: name, result: result)

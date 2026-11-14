@@ -230,4 +230,13 @@ final class WorkshopCommandTests: XCTestCase {
         XCTAssertEqual(parse("price check", installed), .skill(Skills.Match(skill: price, slot: nil)))
         XCTAssertEqual(parse("list my skills", installed), .skillList)
     }
+
+    func testHealthCommandsAreMarkedSoTheyStayOutOfTheHistory() {
+        XCTAssertTrue(WorkshopCommand.checkIngredients.isHealth)
+        XCTAssertTrue(WorkshopCommand.doseLog("ibuprofen").isHealth)
+        XCTAssertTrue(WorkshopCommand.doseAnyway.isHealth)
+        XCTAssertTrue(WorkshopCommand.allergyAdd("peanuts").isHealth)
+        XCTAssertFalse(WorkshopCommand.tallyRead.isHealth)
+        XCTAssertFalse(WorkshopCommand.undo.isHealth)
+    }
 }

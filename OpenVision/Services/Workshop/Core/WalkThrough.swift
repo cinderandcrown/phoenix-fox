@@ -102,11 +102,26 @@ struct WalkThrough: Codable, Equatable, Identifiable, Sendable {
 
     // MARK: - The report
 
+    /// The most photos sent with one report. The relay has a size limit for a whole
+    /// message, and past this many each picture would be too small to be worth sending.
+    static let photoLimit = 12
+
+    /// The items whose photos go with the report, in the order they are sent: flags
+    /// first, because those are the pictures someone has to act on.
+    func photosToSend(limit: Int = WalkThrough.photoLimit) -> [Item] {
+        let withPhotos = items.filter { $0.photo != nil }
+        let ordered = withPhotos.filter { $0.kind == .flag } + withPhotos.filter { $0.kind == .note }
+        return Array(ordered.prefix(limit))
+    }
+
     /// The report in Markdown. Photos are numbered in the order they are sent with it.
     ///
-    /// - Parameter limit: The longest text allowed. Items that do not fit are counted in a
-    ///   last line, never dropped silently.
-    func report(calendar: Calendar = .current, locale: Locale = .current, limit: Int = .max) -> String {
+    /// - Parameters:
+    ///   - sent: The items whose photos go with the report, in order. Left out, every
+    ///     photo is numbered in the order it was taken.
+    ///   - limit: The longest text allowed. Items that do not fit are counted in a last
+    ///     line, never dropped silently.
+    func report(sent: [Item]? = nil, calendar: Calendar = .current, locale: Locale = .current, limit: Int = .max) -> String {
         func clock(_ date: Date) -> String { WorkshopText.clock(date, calendar: calendar, locale: locale) }
         let started = WorkshopText.stamp(startedAt, date: .medium, time: .short, calendar: calendar, locale: locale)
 
@@ -117,12 +132,16 @@ struct WalkThrough: Codable, Equatable, Identifiable, Sendable {
         head.append("\(WorkshopText.sentence(spokenCounts)).")
 
         var photoNumber: [UUID: Int] = [:]
-        for item in items where item.photo != nil {
+        for item in sent ?? items.filter({ $0.photo != nil }) {
             photoNumber[item.id] = photoNumber.count + 1
         }
         func row(_ item: Item) -> String {
             var text = "- \(clock(item.at)): \(Self.closed(item.text))"
-            if let number = photoNumber[item.id] { text += " (photo \(number))" }
+            if let number = photoNumber[item.id] {
+                text += " (photo \(number))"
+            } else if item.photo != nil {
+                text += " (photo kept on the phone)"
+            }
             return text
         }
 

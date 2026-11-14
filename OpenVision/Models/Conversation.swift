@@ -42,6 +42,21 @@ struct Conversation: Identifiable, Codable, Equatable {
         }
     }
 
+    /// Takes back the last thing the wearer said, if it is the last message and says
+    /// exactly this. Used for a turn that belongs in no history.
+    ///
+    /// - Returns: True when a message was removed.
+    @discardableResult
+    mutating func forgetLastUserMessage(saying text: String) -> Bool {
+        guard let last = messages.last, last.role == .user, last.content == text else { return false }
+        messages.removeLast()
+        if !messages.contains(where: { $0.role == .user }) {
+            // The title was made from the sentence that was just taken back.
+            title = "New Conversation"
+        }
+        return true
+    }
+
     /// Add a message to the conversation
     mutating func addMessage(_ message: Message) {
         messages.append(message)

@@ -53,6 +53,8 @@ final class VoiceAgentViewModel: ObservableObject {
     private var pendingHeard: HeardTurn?
     private var lastAccessCommand = ""
     private var lastAccessAt = Date.distantPast
+    private var lastWorkshopCommand = ""
+    private var lastWorkshopAt = Date.distantPast
     private var hasRequestedSpeechAuth = false
 
     /// The live-video backend currently driving audio/video (Gemini or OpenAI Realtime).
@@ -850,6 +852,7 @@ final class VoiceAgentViewModel: ObservableObject {
             self?.voiceCommandService.extraPause = settings.extraPause
         }
         AccessibilityCoordinator.shared.apply()
+        if BuildFlavor.current.allowsExperimental { WorkshopCoordinator.shared.start() }
 
         // Command captured
         voiceCommandService.onCommandCaptured = { [weak self] (command: String) in
@@ -1144,6 +1147,10 @@ final class VoiceAgentViewModel: ObservableObject {
         // general stop handling or a bot.
         if await handleAccessibilityCommand(command) { return }
 
+        // The owner build's workshop is next, for the same reason: "note, the stop valve is
+        // leaking" is a walk-through note, not a stop command.
+        if await handleWorkshopCommand(command) { return }
+
         let lowerCommand = command.lowercased()
 
         // Check for "stop" command - stops TTS and waits for next command.
@@ -1317,6 +1324,32 @@ final class VoiceAgentViewModel: ObservableObject {
         lastAccessAt = Date()
         pendingHeard = nil
         CompanionSurface.present(bot: nil, text: reply) { self.speakResponse($0) }
+        if !ttsService.isSpeaking && !NeuralSpeech.isAnySpeaking {
+            agentState = isSessionActive ? .listening : .idle
+        }
+        return true
+    }
+
+    /// Offers a sentence to the owner build's workshop. True when the workshop handled it.
+    private func handleWorkshopCommand(_ command: String) async -> Bool {
+        guard settingsManager.workshop.anyOn else { return false }
+        guard !isLiveVideoMode || activeLiveService == nil else { return false }
+        // The recognizer can deliver one phrase twice. A second "add twelve cups" must not count twice.
+        if command == lastWorkshopCommand, Date().timeIntervalSince(lastWorkshopAt) < 4 { return true }
+        let reply = await WorkshopCoordinator.shared.handle(command) { [weak self] in
+            await self?.accessibilityFrame()
+        } progress: { [weak self] line in
+            self?.ttsService.announce(line, urgent: false)
+        }
+        guard let reply else { return false }
+        lastWorkshopCommand = command
+        lastWorkshopAt = Date()
+        pendingHeard = nil
+        if reply.offRecord {
+            ConversationManager.shared.forgetLastUserMessage(saying: command)
+            historyAwaitingReply = false
+        }
+        CompanionSurface.present(bot: nil, text: reply.text) { self.speakResponse($0) }
         if !ttsService.isSpeaking && !NeuralSpeech.isAnySpeaking {
             agentState = isSessionActive ? .listening : .idle
         }

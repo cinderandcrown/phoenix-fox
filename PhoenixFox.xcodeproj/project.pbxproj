@@ -223,6 +223,9 @@
 		D8D6C300D79EAEE44BEF0684 /* WorkshopCountingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 979720D3C7037FE66D992D65 /* WorkshopCountingTests.swift */; };
 		2989E3905FA5C844D245E8F7 /* WorkshopHealthTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9DC6AE39A6FCD98E7096A909 /* WorkshopHealthTests.swift */; };
 		1BDB9EA12B5D3AD870BD5466 /* WorkshopTeamTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E96F07EE853200393B1BB92 /* WorkshopTeamTests.swift */; };
+		AD46E8B1EF7512F7A9FA6C1F /* WorkshopCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = F17C6FFB4472C8AF830FF710 /* WorkshopCoordinator.swift */; };
+		26A85D4F19C09E31FD1B5929 /* WorkshopSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C27C613A99D052AC6C3D979 /* WorkshopSettingsView.swift */; };
+		91401B209B2A9597FA7DE125 /* ConversationForgetTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F432816B913027E3313163A /* ConversationForgetTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -446,6 +449,9 @@
 		979720D3C7037FE66D992D65 /* WorkshopCountingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkshopCountingTests.swift; sourceTree = "<group>"; };
 		9DC6AE39A6FCD98E7096A909 /* WorkshopHealthTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkshopHealthTests.swift; sourceTree = "<group>"; };
 		7E96F07EE853200393B1BB92 /* WorkshopTeamTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkshopTeamTests.swift; sourceTree = "<group>"; };
+		F17C6FFB4472C8AF830FF710 /* WorkshopCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkshopCoordinator.swift; sourceTree = "<group>"; };
+		5C27C613A99D052AC6C3D979 /* WorkshopSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkshopSettingsView.swift; sourceTree = "<group>"; };
+		9F432816B913027E3313163A /* ConversationForgetTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversationForgetTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -499,6 +505,7 @@
 				4BA2FDE24B15B51FD7449EB1 /* AccessibilitySettingsView.swift */,
 				5704DC60510D8F1C43EC78E8 /* LiveCaptionsView.swift */,
 				BA4587C6165845F82CF03064 /* GlassesLimitsView.swift */,
+				5C27C613A99D052AC6C3D979 /* WorkshopSettingsView.swift */,
 			);
 			path = Settings;
 			sourceTree = "<group>";
@@ -905,6 +912,7 @@
 				979720D3C7037FE66D992D65 /* WorkshopCountingTests.swift */,
 				9DC6AE39A6FCD98E7096A909 /* WorkshopHealthTests.swift */,
 				7E96F07EE853200393B1BB92 /* WorkshopTeamTests.swift */,
+				9F432816B913027E3313163A /* ConversationForgetTests.swift */,
 			);
 			path = OpenVisionTests;
 			sourceTree = "<group>";
@@ -1045,6 +1053,7 @@
 			isa = PBXGroup;
 			children = (
 				04295D47ADC2F595787C3C74 /* Core */,
+				F17C6FFB4472C8AF830FF710 /* WorkshopCoordinator.swift */,
 			);
 			path = Workshop;
 			sourceTree = "<group>";
@@ -1243,6 +1252,7 @@
 				D8D6C300D79EAEE44BEF0684 /* WorkshopCountingTests.swift in Sources */,
 				2989E3905FA5C844D245E8F7 /* WorkshopHealthTests.swift in Sources */,
 				1BDB9EA12B5D3AD870BD5466 /* WorkshopTeamTests.swift in Sources */,
+				91401B209B2A9597FA7DE125 /* ConversationForgetTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1418,6 +1428,8 @@
 				3198ACF442481A72FD14EDCE /* WorkshopCommand.swift in Sources */,
 				9FE64029FB642F544EDE1A96 /* WorkshopSettings.swift in Sources */,
 				82CB1BBEA0C8EF587817CD10 /* WorkshopText.swift in Sources */,
+				AD46E8B1EF7512F7A9FA6C1F /* WorkshopCoordinator.swift in Sources */,
+				26A85D4F19C09E31FD1B5929 /* WorkshopSettingsView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

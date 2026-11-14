@@ -60,6 +60,19 @@ enum WorkshopCommand: Equatable, Sendable {
     case skill(Skills.Match)
     case skillList
 
+    /// True for a command about the wearer's health. What is heard and said in such a
+    /// turn is kept out of the conversation history, which is not sealed the way the
+    /// medicine log is.
+    var isHealth: Bool {
+        switch self {
+        case .checkIngredients, .allergyAdd, .allergyRemove, .allergyList,
+             .doseFromLabel, .doseLog, .doseAnyway, .doseAsk, .doseToday, .doseUndo, .doseErase:
+            return true
+        default:
+            return false
+        }
+    }
+
     struct Context: Equatable, Sendable {
         var settings = WorkshopSettings()
         /// The names of the wearer's assistants.

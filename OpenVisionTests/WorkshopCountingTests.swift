@@ -209,6 +209,19 @@ final class WalkThroughTests: XCTestCase {
         XCTAssertTrue(lines.last!.hasSuffix("Photo. (photo 2)"))
     }
 
+    func testPhotosAreNumberedInTheOrderTheyAreSentFlagsFirst() {
+        var walk = WalkThrough(name: "site", startedAt: start)
+        walk.add(.note, "first picture", photo: "a", at: start)
+        walk.add(.flag, "second picture", photo: "b", at: start)
+        walk.add(.note, "third picture", photo: "c", at: start)
+        let sent = walk.photosToSend(limit: 2)
+        XCTAssertEqual(sent.compactMap(\.photo), ["b", "a"])
+        let report = walk.report(sent: sent, calendar: calendar, locale: locale)
+        XCTAssertTrue(report.contains("Second picture. (photo 1)"))
+        XCTAssertTrue(report.contains("First picture. (photo 2)"))
+        XCTAssertTrue(report.contains("Third picture. (photo kept on the phone)"))
+    }
+
     func testAReportThatIsTooLongSaysHowMuchWasLeftOut() {
         var walk = WalkThrough(name: "warehouse", startedAt: start)
         for index in 1...120 {
