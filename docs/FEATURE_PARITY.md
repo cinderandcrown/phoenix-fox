@@ -64,12 +64,12 @@ Display glasses and the Neural Band do not get a second code path. `CompanionSur
 | WhatsApp, Messenger, Instagram calls | Blocked | Spoken. No public API, and DAT does not hand the camera to another calling app. |
 | Read other apps' notifications | Blocked | Spoken. iOS keeps those private. |
 | Set the system volume | Blocked | The level is spoken. The rocker on the glasses stays in charge. |
-| Be My Eyes volunteer video | Blocked | A one-photo description is offered instead. |
+| Be My Eyes volunteer video | Blocked | A description from the phone is offered instead. See [Accessibility, compared with Be My Eyes](#accessibility-compared-with-be-my-eyes). |
 | Workout stats | Partial | Not wired. HealthKit is the later path. It is not claimed. |
 | Mind meld | Built | Off until "mind meld on". Stores words on the phone. "What should I do" proposes one bot ask. "Do that" or "have Indy handle that" sends it. No camera bytes. |
 | Choose Grok, ChatGPT, Gemini, Claude, or your own assistant | Partial | The backends are in the app and Settings switches between them. The default is the relay. One setting that swaps the bot team for another provider with the same wake word, and a paid tier for the bot team, are not built. |
-| Guide mode for blind and low-vision users | Not started | Scene narration, hazard callouts, sign reading, object finding, walking directions, and an emergency call. The comparison is Be My Eyes. Planned after v1 is confirmed on the glasses. |
-| Accessibility suite and `docs/ACCESSIBILITY.md` | Not started | The relay settings screen announces its result to VoiceOver. A full VoiceOver pass over every screen has not been done. |
+| Guide mode for blind and low-vision users | Partial | Written: hazard callouts with direction tones, scene description, sign and document reading, finding objects, turn-by-turn walking directions, the emergency contact, and the safety notice. It has not been built by Xcode in CI yet or run on the glasses. Curbs and drop-offs are not detected reliably. Each part has its own row in [ACCESSIBILITY.md](ACCESSIBILITY.md). |
+| Accessibility suite and [ACCESSIBILITY.md](ACCESSIBILITY.md) | Partial | Written for blind and low-vision, Deaf and hard-of-hearing, speech and motor, and memory and task support, with a status row for each feature. It has not been built by Xcode in CI yet or run on the glasses. The Accessibility and Captions screens are made for VoiceOver. A full VoiceOver pass over the rest of the app has not been done. |
 
 ## Mind meld
 
@@ -101,7 +101,7 @@ Say "mind meld on". After that, finished turns are written to `phoenix-mindmeld.
 | Hear music and calls on the glasses speakers | **Yes.** Bluetooth HFP / A2DP, which is the path Meta documents for mic and speaker. | Replies use that route when the glasses are the connected audio device. |
 | Take a photo and save it | **Yes.** One still, then Photos library. The hardware light is on for the shot. | "Take a picture." |
 | Share a photo to a contact inside Meta's apps | **Partial.** Saving to Photos is real. Hand-off into Messenger or Instagram is not. | Saves the still. Does not claim the Meta share sheet. |
-| Walking navigation with spoken steps | **Partial.** Apple Maps can search, speak the first walking step, and open the map. Meta's continuous guidance and companion map are theirs. | First step spoken, Apple Maps opened, limitation spoken. |
+| Walking navigation with spoken steps | **Partial.** Apple Maps can search, speak the first walking step, and open the map. Meta's continuous guidance and companion map are theirs. | "Navigate to" speaks the first step and opens Apple Maps. "Walk me to" plans a walking route and speaks every turn, with re-routing. It is written and not yet run on the glasses. See [ACCESSIBILITY.md](ACCESSIBILITY.md). |
 | In-lens captions, maps, message previews | **Blocked on Adventurer.** `supportsDisplay` is false. HUD code runs only when a display is reported. | Spoken answer only. |
 | Neural Band pinch and swipe | **Blocked on Adventurer.** The band is not part of this product. DAT exposes semantic taps, not raw EMG, and only when that hardware is present. | No gesture is required. |
 | Be My Eyes volunteer video | **Blocked.** Meta's help page requires the Meta AI app connection. A third-party app cannot join that volunteer network. | Offers a one-photo description instead, and says the volunteer call stays in Meta AI. |
@@ -151,6 +151,25 @@ These are the extra companion behaviors, still only where a public API exists. T
 | Translate, then summarize the meeting | The next utterances are translated and shown on the phone. A summary is a short relay brief. There is no lens caption on Adventurer. | One short call per utterance you chose. |
 | Morning brief | Once each morning, if the relay is set, the assistants are asked for a short brief. | One relay round. |
 | Record a clip | Uses the existing recorder, which only runs while the camera stream is up. The light stays on. The file goes to Photos. | No model. |
+
+## Accessibility, compared with Be My Eyes
+
+Meta's accessibility feature on these glasses is "Call a Volunteer", made with Be My Eyes: a sighted volunteer sees the camera view and talks the wearer through a task. Meta AI can also give more detailed descriptions. Both are part of the Meta AI app, and a third-party app cannot join them.
+
+A person is better than software at many of these tasks, and Phoenix Fox does not claim otherwise. What it adds is help that needs no other person, no signal for most of it, and no wait. The full list, the safety limits, and the sources are in [ACCESSIBILITY.md](ACCESSIBILITY.md).
+
+| | Be My Eyes on Meta glasses | Phoenix Fox |
+| --- | --- | --- |
+| Who is looking | A sighted volunteer, live. | The phone. A model only for scene descriptions and finding things. |
+| Needs a connection | Yes. | No, for reading, money, labels, colors, faces, callouts, sound alerts, and tasks. Yes, for walking routes and model descriptions. |
+| Reading text, labels, money | The volunteer reads it. | Read on the phone, word for word. Medicine labels in a fixed order. Unclear numbers are left out. |
+| Moving around | The volunteer describes what they see. | Guide mode calls out people, vehicles, stairs, doors, and signs with direction tones. Walking directions speak each turn. Neither replaces a cane or a guide dog. |
+| Recognizing people | Not part of it. | Only people saved with their spoken agreement, kept on the phone. |
+| Hearing | Not part of it. | Live captions, sound alerts, your name called, saved transcripts. |
+| Tasks and memory | Not part of it. | Step-by-step routines, reminders for a person or a place, "what was I doing?". |
+| Privacy | A stranger sees the camera view for the length of the call. | Pictures stay on the phone unless a model description is asked for. |
+| When it is wrong | A person can say "I'm not sure, turn it over". | It says when it cannot tell, and it will still make mistakes a person would not. |
+| Status | Shipping. | Written, not yet run on the glasses. |
 
 ## Smart Capture
 

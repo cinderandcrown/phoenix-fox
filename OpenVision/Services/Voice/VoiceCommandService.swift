@@ -74,6 +74,34 @@ final class VoiceCommandService: ObservableObject {
     /// Called when conversation mode times out (no speech detected)
     var onConversationTimeout: (() -> Void)?
 
+    /// Called with the recognizer's running text while it waits for the wake word. Live
+    /// captions read it. Nothing is called unless a listener is set.
+    var onAmbientSpeech: ((String) -> Void)?
+
+    /// Called when the recognizer starts a new session, so its running text begins again.
+    var onRecognitionRestarted: (() -> Void)?
+
+    // MARK: - Accessibility
+
+    /// How much longer than usual to wait before giving up on a command. 1 is the usual wait.
+    var patience: Double = 1
+
+    /// Extra seconds of quiet allowed inside a sentence before it is taken as finished, for
+    /// a wearer whose speech has long pauses.
+    var extraPause: TimeInterval = 0
+
+    /// Keep recognition on the phone when the phone supports it. Live captions turn this on,
+    /// so other people's speech is not sent to a server.
+    var prefersOnDeviceRecognition = false {
+        didSet {
+            guard prefersOnDeviceRecognition != oldValue, isListening, state == .idle else { return }
+            restartRecognition()
+        }
+    }
+
+    /// Whether recognition can stay on this phone for the current language.
+    var supportsOnDeviceRecognition: Bool { speechRecognizer?.supportsOnDeviceRecognition ?? false }
+
     // MARK: - Barge-in Control
 
     /// When true, barge-in detection is paused (e.g., during TTS playback)
@@ -166,13 +194,14 @@ final class VoiceCommandService: ObservableObject {
         guard state == .listening || state == .conversationMode else { return }
         guard hasSpokenThisTurn, !currentTranscription.isEmpty else { return }
 
-        print("[VoiceCommand] VAD end-of-speech → committing in \(Constants.Voice.vadCommitGrace)s: '\(currentTranscription)'")
+        let grace = Constants.Voice.vadCommitGrace + extraPause
+        print("[VoiceCommand] VAD end-of-speech → committing in \(grace)s: '\(currentTranscription)'")
         // Turn latency starts counting from the moment the user actually stopped talking.
         MetricsCollector.shared.markSpeechEnd()
         vadCommitPending = true
         silenceTimer?.invalidate()
         silenceTimer = Timer.scheduledTimer(
-            withTimeInterval: Constants.Voice.vadCommitGrace, repeats: false
+            withTimeInterval: grace, repeats: false
         ) { [weak self] _ in
             Task { @MainActor in
                 guard let self, self.vadCommitPending else { return }
@@ -246,11 +275,13 @@ final class VoiceCommandService: ObservableObject {
         // the detector's own consumer (see SpeechActivityDetector's threading note).
         let detector = speechDetector
         let captured = utteranceBuffer
+        let fanout = MicFanout.shared
         if let reason = OVCatchException({
-            inputNode.installTap(onBus: 0, bufferSize: 1024, format: recordingFormat) { buffer, _ in
+            inputNode.installTap(onBus: 0, bufferSize: 1024, format: recordingFormat) { buffer, when in
                 recognitionRequest.append(buffer)
                 detector.feed(buffer)
                 captured.append(buffer)
+                fanout.send(buffer, at: when)
             }
         }) {
             print("[VoiceCommand] installTap failed: \(reason)")
@@ -285,6 +316,7 @@ final class VoiceCommandService: ObservableObject {
 
         isListening = true
         state = isWakeWordEnabled ? .idle : .listening
+        onRecognitionRestarted?()
         print("[VoiceCommand] Started listening - audio engine running")
     }
 
@@ -298,6 +330,9 @@ final class VoiceCommandService: ObservableObject {
         var phrases = ["Jarvis", "Hey Jarvis", "Ok Jarvis", "Ok Vision", "Okay Vision", "Hey Vision", "Vision"]
         if !wakeWord.isEmpty { phrases.insert(wakeWord, at: 0) }
         request.contextualStrings = phrases
+        if prefersOnDeviceRecognition, supportsOnDeviceRecognition {
+            request.requiresOnDeviceRecognition = true
+        }
     }
 
     /// SFSpeechRecognizer stops after ~1 minute or when it emits a final result / errors. While
@@ -442,11 +477,13 @@ final class VoiceCommandService: ObservableObject {
         speechDetector.reset()
         let detector = speechDetector
         let captured = utteranceBuffer
+        let fanout = MicFanout.shared
         if let reason = OVCatchException({
-            inputNode.installTap(onBus: 0, bufferSize: 1024, format: recordingFormat) { buffer, _ in
+            inputNode.installTap(onBus: 0, bufferSize: 1024, format: recordingFormat) { buffer, when in
                 recognitionRequest.append(buffer)
                 detector.feed(buffer)
                 captured.append(buffer)
+                fanout.send(buffer, at: when)
             }
         }) {
             print("[VoiceCommand] installTap (reinstall) failed: \(reason)")
@@ -465,6 +502,7 @@ final class VoiceCommandService: ObservableObject {
             }
         }
 
+        onRecognitionRestarted?()
         print("[VoiceCommand] Restarted recognition (cleared buffer)")
         // Restart churn is the proxy for recognizer health: a high rate here is what shreds
         // transcripts into fragments like "53258 Okay Vision".
@@ -490,7 +528,7 @@ final class VoiceCommandService: ObservableObject {
     /// Start conversation timeout (auto-exit after silence)
     private func startConversationTimeout() {
         conversationTimeoutTimer?.invalidate()
-        conversationTimeoutTimer = Timer.scheduledTimer(withTimeInterval: 4.0, repeats: false) { [weak self] _ in
+        conversationTimeoutTimer = Timer.scheduledTimer(withTimeInterval: 4.0 * patience, repeats: false) { [weak self] _ in
             Task { @MainActor in
                 self?.handleConversationTimeout()
             }
@@ -542,6 +580,8 @@ final class VoiceCommandService: ObservableObject {
             // Check for wake word
             if detectWakeWord(in: transcription) {
                 handleWakeWordDetected()
+            } else {
+                onAmbientSpeech?(transcription)
             }
 
         case .listening, .conversationMode:
@@ -831,7 +871,7 @@ final class VoiceCommandService: ObservableObject {
     private func resetSilenceTimer() {
         guard !speechDetector.isAvailable else { return }
         silenceTimer?.invalidate()
-        silenceTimer = Timer.scheduledTimer(withTimeInterval: Constants.Voice.silenceTimeout, repeats: false) { [weak self] _ in
+        silenceTimer = Timer.scheduledTimer(withTimeInterval: Constants.Voice.silenceTimeout + extraPause, repeats: false) { [weak self] _ in
             Task { @MainActor in
                 self?.handleSilenceTimeout()
             }
@@ -855,7 +895,7 @@ final class VoiceCommandService: ObservableObject {
     /// Start command timeout
     private func startCommandTimeout() {
         commandTimeoutTimer?.invalidate()
-        commandTimeoutTimer = Timer.scheduledTimer(withTimeInterval: Constants.Voice.commandTimeout, repeats: false) { [weak self] _ in
+        commandTimeoutTimer = Timer.scheduledTimer(withTimeInterval: Constants.Voice.commandTimeout * patience, repeats: false) { [weak self] _ in
             Task { @MainActor in
                 self?.handleCommandTimeout()
             }

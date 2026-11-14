@@ -25,6 +25,11 @@ struct SettingsView: View {
                     } label: {
                         Label("Smart Capture", systemImage: "camera.viewfinder")
                     }
+                    NavigationLink {
+                        AccessibilitySettingsView()
+                    } label: {
+                        Label("Accessibility", systemImage: "accessibility")
+                    }
                 } header: {
                     Text("Phoenix Fox")
                 }

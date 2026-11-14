@@ -62,21 +62,27 @@ struct VoiceAgentView: View {
                     .transition(.opacity)
                 }
             Spacer()
-            if companion.cameraOn || !companion.caption.isEmpty || companion.holdsConversation {
+            if companion.cameraLightOn || !companion.caption.isEmpty || companion.holdsConversation {
                 VStack(spacing: 4) {
                     Text(companion.statusLine)
                         .font(.caption.bold())
                     if !companion.caption.isEmpty {
+                        // Live captions are read at arm's length, so they are set larger.
                         Text(companion.caption)
-                            .font(.callout)
+                            .font(LiveCaptions.shared.isOn ? .title3.weight(.medium) : .callout)
                     }
                 }
                 .foregroundColor(.white)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 16)
                 .padding(.vertical, 8)
-                .background(Capsule().fill(companion.cameraOn ? Color.red.opacity(0.85) : Color.black.opacity(0.45)))
+                .background(
+                    RoundedRectangle(cornerRadius: 18, style: .continuous)
+                        .fill(companion.cameraLightOn ? Color.red.opacity(0.85) : Color.black.opacity(0.6))
+                )
+                .padding(.horizontal, 12)
                 .padding(.bottom, 8)
+                .accessibilityElement(children: .combine)
             }
             centerContent
                 Spacer()

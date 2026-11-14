@@ -63,6 +63,10 @@ struct OpenVisionApp: App {
                 OnboardingView(hasCompletedOnboarding: $hasCompletedOnboarding)
             }
         }
+        .overlay(alignment: .top) {
+            // Sound alerts for Deaf and hard-of-hearing wearers show over every screen.
+            AccessBannerView()
+        }
         .preferredColorScheme(.dark)
         .task {
             // Telemetry settings persist, but the sink lives in memory — without this a

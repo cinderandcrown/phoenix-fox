@@ -248,6 +248,8 @@ struct AppSettings: Codable, Equatable {
     var jarvisAddressAsSir: Bool = false
     /// On-phone log of what he says. Off until he says "mind meld on". Never stores camera bytes.
     var mindMeldEnabled: Bool = false
+    /// The accessibility suite: Guide mode, captions, sound alerts, pace. See docs/ACCESSIBILITY.md.
+    var accessibility = AccessibilitySettings()
     /// Extra frames with "look at this". Off to keep uploads small.
     var jarvisLookClip: Bool = false
     var assistantBots: [AssistantBot] = AssistantRoster.seed

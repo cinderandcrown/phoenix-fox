@@ -30,13 +30,15 @@ The first target is Meta Glasses Adventurer, which has a camera, microphones, an
 - **On the phone first.** The wake word, speech to text, the time, timers, reminders, and notes use no cloud model. A look sends one compressed photo, and a watch session sends a frame only when the scene has changed. This keeps the cost of each user low.
 - **The relay.** The app never talks to a bot directly. It sends an ask to a small Cloudflare Worker in [`relay/`](relay/), and the bots collect and answer it. The interface is in [docs/RELAY_API.md](docs/RELAY_API.md). The relay token is typed into the app and kept in the iPhone's Keychain.
 - **One output, one input.** Every reply is spoken. On glasses that report a display, the same call also draws a card on the lens. A tap, a band gesture, or the capture button enters the same turn as a spoken command. Display glasses and the Neural Band therefore need no second code path.
+- **Accessibility.** Guide mode, reading, labels, money, colors, live captions, sound alerts, and step-by-step tasks run on the phone and are driven by voice. [docs/ACCESSIBILITY.md](docs/ACCESSIBILITY.md) has the safety limits and the status of each.
 - **Other providers.** Settings can switch the assistant to Grok, OpenAI, Gemini Live, Claude, a Hermes or OpenClaw server, Apple Intelligence, or a model that runs on the phone.
 
 ## Privacy and the capture light
 
-- The camera runs only when you ask for a look, a picture, a recording, or a watch session, and the glasses' capture light is on whenever it runs. That light is Meta's hardware. Phoenix Fox cannot turn it off and does not try to.
+- The camera runs only when you ask for a look, a picture, a recording, a watch session, or Guide mode, and the glasses' capture light is on whenever it runs. That light is Meta's hardware. Phoenix Fox cannot turn it off and does not try to.
 - There is no hidden recording and no firmware change.
 - The microphone is on while Jarvis is listening, and iOS shows its orange indicator the whole time.
+- Face recognition is off until you turn it on. A face is saved only after you confirm aloud that the person agreed, and face data never leaves the phone.
 - Notes you ask it to remember are encrypted on the phone. "Mind meld", the running log of what you said, is off until you turn it on, and it keeps words and not photos.
 - API keys and the relay token are stored in the Keychain. No secret is in this repository.
 
