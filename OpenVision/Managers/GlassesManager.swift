@@ -347,15 +347,14 @@ final class GlassesManager: ObservableObject {
                     "Unregister timed out; SDK still \(Self.stage(for: wearables.registrationState).rawValue). Meta AI opened: \(registration.details(stage: registrationStage))"
                 )
             }
+        } catch UnregistrationError.alreadyUnregistered {
+            pendingReregisterAfterUnregister = false
+            registration.dismiss()
+            applyLocalUnregisteredState()
+            noteRegistration("SDK alreadyUnregistered.")
+            if thenReregister { await register() }
         } catch {
             pendingReregisterAfterUnregister = false
-            if let unreg = error as? UnregistrationError, unreg == .alreadyUnregistered {
-                registration.dismiss()
-                applyLocalUnregisteredState()
-                noteRegistration("SDK alreadyUnregistered.")
-                if thenReregister { await register() }
-                return
-            }
             endRegistration(with: .refused(error.localizedDescription))
             errorMessage = "Unregister failed: \(error.localizedDescription)"
             noteRegistration("Unregistration failed: \(error.localizedDescription)")
@@ -374,27 +373,19 @@ final class GlassesManager: ObservableObject {
     }
 
     /// Waits until `registrationState` is not registered/registering (Meta AI finished
-    /// unregistration / handleUrl). Returns false on timeout.
+    /// unregistration / handleUrl). Polls on the main actor to avoid Swift 6 task-group
+    /// isolation warnings on the existential WearablesInterface stream.
     private func waitUntilNotRegistered(wearables: any WearablesInterface, seconds: Double) async -> Bool {
-        if !Self.isRegisteredStage(Self.stage(for: wearables.registrationState)) {
-            return true
+        let deadline = ContinuousClock.now + .seconds(seconds)
+        while ContinuousClock.now < deadline {
+            let stage = Self.stage(for: wearables.registrationState)
+            registrationStage = stage
+            if !Self.isRegisteredStage(stage) { return true }
+            try? await Task.sleep(for: .milliseconds(250))
         }
-        return await withTaskGroup(of: Bool.self) { group in
-            group.addTask { @MainActor in
-                for await state in wearables.registrationStateStream() {
-                    let stage = Self.stage(for: state)
-                    if !Self.isRegisteredStage(stage) { return true }
-                }
-                return false
-            }
-            group.addTask {
-                try? await Task.sleep(for: .seconds(seconds))
-                return false
-            }
-            let first = await group.next() ?? false
-            group.cancelAll()
-            return first
-        }
+        let final = Self.stage(for: wearables.registrationState)
+        registrationStage = final
+        return !Self.isRegisteredStage(final)
     }
 
     /// After unregister completes via the state listener (e.g. callback while waiting).

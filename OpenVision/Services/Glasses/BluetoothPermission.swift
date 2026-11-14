@@ -18,7 +18,7 @@ enum BluetoothPermission {
         case .allowedAlways, .denied, .restricted:
             return current
         case .notDetermined:
-            return await Prompt.shared.waitForDecision()
+            return await Prompt().waitForDecision()
         @unknown default:
             return current
         }
@@ -35,9 +35,8 @@ enum BluetoothPermission {
     }
 
     /// Holds a CBCentralManager long enough for the system prompt and first state callback.
+    @MainActor
     private final class Prompt: NSObject, CBCentralManagerDelegate {
-        static let shared = Prompt()
-
         private var manager: CBCentralManager?
         private var waiting: [CheckedContinuation<CBManagerAuthorization, Never>] = []
 
@@ -52,13 +51,15 @@ enum BluetoothPermission {
             }
         }
 
-        func centralManagerDidUpdateState(_ central: CBCentralManager) {
-            let auth = CBCentralManager.authorization
-            guard auth != .notDetermined else { return }
-            let pending = waiting
-            waiting = []
-            for continuation in pending {
-                continuation.resume(returning: auth)
+        nonisolated func centralManagerDidUpdateState(_ central: CBCentralManager) {
+            Task { @MainActor in
+                let auth = CBCentralManager.authorization
+                guard auth != .notDetermined else { return }
+                let pending = waiting
+                waiting = []
+                for continuation in pending {
+                    continuation.resume(returning: auth)
+                }
             }
         }
     }
