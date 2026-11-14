@@ -256,6 +256,14 @@
 		838A10CBC575310A2247B387 /* PixelDiff.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58F76DEBBDC295391681AD5E /* PixelDiff.swift */; };
 		B25FBFE74AD3D2CB94D819C6 /* PixelDiffTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DD63657BF844C8ACEE3FAB1 /* PixelDiffTests.swift */; };
 		C0E067A33D5F3936EC81240E /* SnapshotHarness.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C494B33F8D2C048BB62E96A /* SnapshotHarness.swift */; };
+		F8D078DAAA807434876D9BEF /* LookCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = 964476B8764F20B35F331775 /* LookCommand.swift */; };
+		C0164E06AA740B81C4B22A4F /* LookOnce.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C93263A50A714323F18872D /* LookOnce.swift */; };
+		32B4E67074FBD7F88E1469B3 /* LookTarget.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5D0E21BEE60880202E5A640 /* LookTarget.swift */; };
+		072B6A32279145B27E4685EC /* LookTone.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0CBE8D03F6372B9BEE05A09 /* LookTone.swift */; };
+		DB5DE2B391876F631D49F1F3 /* LookTracker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8650FA94BAB04594156DB735 /* LookTracker.swift */; };
+		4A311B1DD505E61F6EB53E78 /* WindowReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D41438185B29D51F09B5FF3 /* WindowReader.swift */; };
+		084A0616D93164BE5316F87A /* LookToTalkReadingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 175F0E0A6BE6D3FAC6F4E1B9 /* LookToTalkReadingTests.swift */; };
+		5D5AD4E1A05FD9AD9787D7DD /* LookToTalkTrackerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94E55AF003BF42F1DEBE8BF3 /* LookToTalkTrackerTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -512,6 +520,14 @@
 		58F76DEBBDC295391681AD5E /* PixelDiff.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PixelDiff.swift; sourceTree = "<group>"; };
 		2DD63657BF844C8ACEE3FAB1 /* PixelDiffTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PixelDiffTests.swift; sourceTree = "<group>"; };
 		2C494B33F8D2C048BB62E96A /* SnapshotHarness.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SnapshotHarness.swift; sourceTree = "<group>"; };
+		964476B8764F20B35F331775 /* LookCommand.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LookCommand.swift; sourceTree = "<group>"; };
+		0C93263A50A714323F18872D /* LookOnce.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LookOnce.swift; sourceTree = "<group>"; };
+		A5D0E21BEE60880202E5A640 /* LookTarget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LookTarget.swift; sourceTree = "<group>"; };
+		D0CBE8D03F6372B9BEE05A09 /* LookTone.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LookTone.swift; sourceTree = "<group>"; };
+		8650FA94BAB04594156DB735 /* LookTracker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LookTracker.swift; sourceTree = "<group>"; };
+		5D41438185B29D51F09B5FF3 /* WindowReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowReader.swift; sourceTree = "<group>"; };
+		175F0E0A6BE6D3FAC6F4E1B9 /* LookToTalkReadingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LookToTalkReadingTests.swift; sourceTree = "<group>"; };
+		94E55AF003BF42F1DEBE8BF3 /* LookToTalkTrackerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LookToTalkTrackerTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -772,6 +788,7 @@
 				505A4BF51D97702569AA4A9D /* Accessibility */,
 				55F747B2BBB8A220AAFC4394 /* Workshop */,
 				FE855D9BEED3D4DA13019523 /* Store */,
+				CDAAE118E2421360DD17DBB9 /* LookToTalk */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -992,6 +1009,8 @@
 				58F76DEBBDC295391681AD5E /* PixelDiff.swift */,
 				2DD63657BF844C8ACEE3FAB1 /* PixelDiffTests.swift */,
 				2C494B33F8D2C048BB62E96A /* SnapshotHarness.swift */,
+				175F0E0A6BE6D3FAC6F4E1B9 /* LookToTalkReadingTests.swift */,
+				94E55AF003BF42F1DEBE8BF3 /* LookToTalkTrackerTests.swift */,
 			);
 			path = OpenVisionTests;
 			sourceTree = "<group>";
@@ -1223,6 +1242,27 @@
 			path = Core;
 			sourceTree = "<group>";
 		};
+		CDAAE118E2421360DD17DBB9 /* LookToTalk */ = {
+			isa = PBXGroup;
+			children = (
+				C3EAF14DF7EA3B4EEF2F3AA7 /* Core */,
+			);
+			path = LookToTalk;
+			sourceTree = "<group>";
+		};
+		C3EAF14DF7EA3B4EEF2F3AA7 /* Core */ = {
+			isa = PBXGroup;
+			children = (
+				964476B8764F20B35F331775 /* LookCommand.swift */,
+				0C93263A50A714323F18872D /* LookOnce.swift */,
+				A5D0E21BEE60880202E5A640 /* LookTarget.swift */,
+				D0CBE8D03F6372B9BEE05A09 /* LookTone.swift */,
+				8650FA94BAB04594156DB735 /* LookTracker.swift */,
+				5D41438185B29D51F09B5FF3 /* WindowReader.swift */,
+			);
+			path = Core;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -1413,6 +1453,8 @@
 				838A10CBC575310A2247B387 /* PixelDiff.swift in Sources */,
 				B25FBFE74AD3D2CB94D819C6 /* PixelDiffTests.swift in Sources */,
 				C0E067A33D5F3936EC81240E /* SnapshotHarness.swift in Sources */,
+				084A0616D93164BE5316F87A /* LookToTalkReadingTests.swift in Sources */,
+				5D5AD4E1A05FD9AD9787D7DD /* LookToTalkTrackerTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1606,6 +1648,12 @@
 				474FC45F86F8F04BD44F1013 /* OnboardingFlow.swift in Sources */,
 				AE3C295743DCC9F3867E70D5 /* OnboardingPage.swift in Sources */,
 				775C5C8ED65CE4C5196B5680 /* OnboardingView.swift in Sources */,
+				F8D078DAAA807434876D9BEF /* LookCommand.swift in Sources */,
+				C0164E06AA740B81C4B22A4F /* LookOnce.swift in Sources */,
+				32B4E67074FBD7F88E1469B3 /* LookTarget.swift in Sources */,
+				072B6A32279145B27E4685EC /* LookTone.swift in Sources */,
+				DB5DE2B391876F631D49F1F3 /* LookTracker.swift in Sources */,
+				4A311B1DD505E61F6EB53E78 /* WindowReader.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -392,6 +392,7 @@ final class StreamReplacementTests: XCTestCase {
         XCTAssertFalse(StreamPurpose.still.replacesLesserStream)
         XCTAssertFalse(StreamPurpose.watch.replacesLesserStream)
         XCTAssertFalse(StreamPurpose.smartCapture.replacesLesserStream)
+        XCTAssertFalse(StreamPurpose.lookToTalk.replacesLesserStream)
     }
 
     func testAStreamStartedForOneLookFallsShortOfGuideMode() throws {

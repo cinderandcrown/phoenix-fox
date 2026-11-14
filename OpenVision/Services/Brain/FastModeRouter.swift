@@ -32,11 +32,35 @@ enum FastModeRouter {
         var bots: [AssistantBot]
         var instantReady: Bool
         var clipEnabled: Bool
+        /// The assistant chosen by looking at its window. See `LookToTalk`. While one is
+        /// held, a request that names nobody goes to it, and through the relay: the
+        /// wearer is talking to that assistant, not to the quick model on the phone.
+        var focus: String?
+
+        init(fastMode: Bool, isPro: Bool, bots: [AssistantBot], instantReady: Bool, clipEnabled: Bool, focus: String? = nil) {
+            self.fastMode = fastMode
+            self.isPro = isPro
+            self.bots = bots
+            self.instantReady = instantReady
+            self.clipEnabled = clipEnabled
+            self.focus = focus
+        }
+    }
+
+    /// The held assistant, when it is on the roster and the plan covers it. A name said
+    /// aloud still wins: "ask Driver" goes to Driver whoever is being looked at.
+    static func focus(in context: Context) -> AssistantBot? {
+        guard let name = context.focus?.trimmingCharacters(in: .whitespacesAndNewlines), !name.isEmpty,
+              let bot = AssistantRoster.normalized(context.bots)
+                  .first(where: { $0.name.compare(name, options: .caseInsensitive) == .orderedSame }) else { return nil }
+        return bot.isDefault || context.isPro ? bot : nil
     }
 
     static func rules(_ text: String, context: Context) -> JarvisRoute {
         let lower = text.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
-        let fallback = AssistantRoster.defaultBot(in: context.bots).name
+        let held = focus(in: context)
+        let fallback = held?.name ?? AssistantRoster.defaultBot(in: context.bots).name
+        let instant = context.fastMode && context.instantReady && held == nil
 
         if let mind = mind(lower, bots: context.bots) { return .mind(mind) }
 
@@ -54,7 +78,7 @@ enum FastModeRouter {
 
         let visual = contains(lower, ["what am i looking at", "what is this", "what's this", "whats this", "translate this", "what does this say", "what do you see"])
         if visual {
-            if context.fastMode && context.instantReady {
+            if instant {
                 return .instant(text: text, photo: true, cacheable: false)
             }
             return .relay(RelayTurn(intent: "look", targetBot: fallback, text: text, photo: true, clip: false, cacheable: false))
@@ -64,13 +88,13 @@ enum FastModeRouter {
         if addressed.explicit && !addressed.bot.isDefault && !context.isPro {
             return .needsPro(PaidFeature.botTeam.refusal)
         }
-        let target = addressed.bot.name
+        let target = addressed.explicit ? addressed.bot.name : fallback
         let body = addressed.remainder
 
         if isTask(body.lowercased()) || (addressed.explicit && !addressed.bot.isDefault) {
             return .relay(RelayTurn(intent: "message", targetBot: target, text: body, photo: false, clip: false, cacheable: false))
         }
-        if context.fastMode && context.instantReady {
+        if instant {
             return .instant(text: body, photo: false, cacheable: true)
         }
         return .relay(RelayTurn(intent: "message", targetBot: target, text: body, photo: false, clip: false, cacheable: false))
