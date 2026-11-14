@@ -1,7 +1,8 @@
 name: CI
 
-# Unsigned iOS Simulator build and unit tests. No Apple account required.
-# Signing and TestFlight are in testflight.yml.
+# iOS Simulator build and unit tests. No Apple account required: the simulator build is
+# signed on the runner with no identity, the same as a simulator build on any Mac.
+# Signing for devices and TestFlight are in testflight.yml.
 
 on:
   pull_request:
@@ -26,7 +27,7 @@ jobs:
         run: python3 -m unittest discover -s scripts -v
 
   build:
-    name: Build and test (simulator, unsigned)
+    name: Build and test (simulator)
     runs-on: macos-26
     timeout-minutes: 90
     steps:
@@ -75,6 +76,8 @@ jobs:
           defaults write com.apple.dt.XCBuild IgnoreFileSystemDeviceInodeChanges -bool YES
           find Vendor -exec touch -t 202601010000 {} +
 
+      # Signing is left on. An unsigned app has no entitlements, and the simulator then
+      # refuses it the Keychain, where every API key and the relay token are stored.
       - name: Build for simulator
         run: |
           set -o pipefail
@@ -89,9 +92,6 @@ jobs:
             -skipMacroValidation \
             ARCHS=arm64 \
             ONLY_ACTIVE_ARCH=NO \
-            CODE_SIGNING_ALLOWED=NO \
-            CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGN_IDENTITY= \
             DEVELOPMENT_TEAM= \
           | tee xcodebuild.log \
           | xcbeautify --renderer github-actions
