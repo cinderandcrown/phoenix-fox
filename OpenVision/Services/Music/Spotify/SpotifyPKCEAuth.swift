@@ -119,9 +119,9 @@ final class SpotifyPKCEAuth: NSObject, ASWebAuthenticationPresentationContextPro
         guard let items = URLComponents(url: callback, resolvingAgainstBaseURL: false)?.queryItems else {
             throw MusicProviderError.notAuthorized
         }
-        let returnedState = items.first { $0.name == "state" }?.value
+        let returnedState = items.first(where: { $0.name == "state" })?.value
         guard returnedState == state else { throw MusicProviderError.notAuthorized }
-        guard let code = items.first { $0.name == "code" }?.value else {
+        guard let code = items.first(where: { $0.name == "code" })?.value else {
             throw MusicProviderError.notAuthorized
         }
         return try await exchange(code: code, verifier: verifier)

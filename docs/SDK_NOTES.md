@@ -50,9 +50,8 @@ Living citations for third-party SDKs and platform constraints. Dates are when t
 ## Apple Music (MusicKit)
 
 - Uses `MusicAuthorization`, `MusicCatalogSearchRequest`, `ApplicationMusicPlayer`.
-- Entitlements: `com.apple.developer.music-kit`, `com.apple.developer.media-player`.
-- Enable MusicKit on the App ID in the Apple Developer portal (human).
-- System Now Playing: `MPNowPlayingInfoCenter` + `MPRemoteCommandCenter`.
+- **Human step before TestFlight Apple Music works:** enable MusicKit on App ID `com.cinderandcrown.phoenixfox`, then add `com.apple.developer.music-kit` = true to `OpenVision.entitlements`. Shipping that key without the portal capability fails archive export.
+- Do **not** add `com.apple.developer.media-player` — it is not a valid entitlement for this app; `MPNowPlayingInfoCenter` / `MPRemoteCommandCenter` need none.
 
 ## ShazamKit
 

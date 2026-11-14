@@ -4,14 +4,15 @@
 import AVFoundation
 import Foundation
 import MediaPlayer
-import MusicKit
+@preconcurrency import MusicKit
 
 @MainActor
 final class AppleMusicProvider: MusicProvider {
     static let shared = AppleMusicProvider()
 
     let id: MusicProviderID = .appleMusic
-    private let player = ApplicationMusicPlayer.shared
+    /// Shared player is not Sendable; keep access on MainActor via this computed property.
+    private var player: ApplicationMusicPlayer { ApplicationMusicPlayer.shared }
     private(set) var isPlaying = false
 
     var isConfigured: Bool {
