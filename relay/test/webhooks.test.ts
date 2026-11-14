@@ -4,9 +4,12 @@ import {
   EVENT_HEADER,
   SIGNATURE_HEADER,
   TIMESTAMP_HEADER,
+  contentToVerify,
   deliver,
+  deliveryHeaders,
   parseHeaders,
   parseWebhooks,
+  sealBody,
   sign,
   targetsFor,
   type WebhookConfig,
@@ -23,10 +26,15 @@ const HOOKS: WebhookConfig = {
 };
 const ASK = { id: "a1", text: "book a table", transcript: "Jarvis, book a table", intent: "message", target_bot: "Fire Fox" };
 
-/** What a bot does to check a webhook: recompute the HMAC over "<timestamp>.<body>". */
+/**
+ * What a bot does to check a webhook: recompute the HMAC over
+ * `"<timestamp>.<contentJson>"` where contentJson is the body with the trailing
+ * `relay` envelope removed (or the full body when no envelope is present).
+ */
 async function verifies(sent: Sent, secret: string): Promise<boolean> {
   const timestamp = Number(sent.headers.get(TIMESTAMP_HEADER));
-  return sent.headers.get(SIGNATURE_HEADER) === `v1=${await sign(secret, timestamp, sent.body)}`;
+  const content = contentToVerify(sent.body);
+  return sent.headers.get(SIGNATURE_HEADER) === `v1=${await sign(secret, timestamp, content)}`;
 }
 
 describe("webhook configuration", () => {
@@ -195,6 +203,10 @@ describe("webhook delivery", () => {
       delivery: sent.headers.get(DELIVERY_HEADER),
       reply_url: "https://relay.test/reply/a1",
       ask: { ...ASK, image: "aGk=", context: [] },
+      relay: {
+        timestamp: Number(sent.headers.get(TIMESTAMP_HEADER)),
+        signature: sent.headers.get(SIGNATURE_HEADER),
+      },
     });
     expect(Object.keys(body.ask as object)).not.toContain("deliveries");
     expect(Object.keys(body.ask as object)).not.toContain("replies");
@@ -217,6 +229,69 @@ describe("webhook delivery", () => {
     expect(relay.sent[0].headers.get("Authorization")).toBe("Bearer sender-key");
     expect(relay.sent[0].headers.get("X-Webhook-Key")).toBe("alt");
     expect(await verifies(relay.sent[0], SECRET)).toBe(true);
+  });
+
+  it("always signs even when Authorization custom headers are set (Grok-style)", async () => {
+    const webhooks: WebhookConfig = {
+      targets: [{
+        bot: "Fire Fox",
+        url: "https://bots.test/firefox",
+        secret: SECRET,
+        headers: { Authorization: "Bearer sender-key" },
+      }],
+      problems: [],
+    };
+    const relay = harness({ webhooks });
+    await relay.post("/ask", ASK);
+    await relay.settle();
+    const [sent] = relay.sent;
+    // Headers: force-set after custom Authorization so they cannot be skipped.
+    expect(sent.headers.get(TIMESTAMP_HEADER)).toBe(String(Math.floor(relay.now() / 1000)));
+    expect(sent.headers.get(SIGNATURE_HEADER)).toMatch(/^v1=[0-9a-f]{64}$/);
+    expect(await verifies(sent, SECRET)).toBe(true);
+    // Body envelope: Grok routines only see JSON, not X-Relay-* headers.
+    const body = JSON.parse(sent.body) as {
+      relay?: { timestamp: number; signature: string };
+      ask?: unknown;
+    };
+    expect(body.relay?.timestamp).toBe(Number(sent.headers.get(TIMESTAMP_HEADER)));
+    expect(body.relay?.signature).toBe(sent.headers.get(SIGNATURE_HEADER));
+    expect(body.ask).toMatchObject(ASK);
+    // Body-only verification (no HTTP headers): strip relay, recompute HMAC.
+    const content = contentToVerify(sent.body);
+    expect(JSON.parse(content).relay).toBeUndefined();
+    expect(body.relay?.signature).toBe(
+      `v1=${await sign(SECRET, body.relay!.timestamp, content)}`,
+    );
+  });
+
+  it("force-sets relay auth headers after custom headers in deliveryHeaders", () => {
+    const headers = deliveryHeaders(
+      {
+        bot: "Fire Fox",
+        url: "https://bots.test/firefox",
+        secret: SECRET,
+        headers: {
+          Authorization: "Bearer sender-key",
+          // Would be rejected at parse time; still must lose to force-set if present.
+          [SIGNATURE_HEADER]: "v1=deadbeef",
+          [TIMESTAMP_HEADER]: "1",
+        },
+      },
+      "ask",
+      "delivery-id",
+      1_700_000_000,
+      "v1=8ca5221428c4b93d4ae4544da031735322fa553401ca9fbe7cbeb0cae1b8b55b",
+    );
+    expect(headers.get("Authorization")).toBe("Bearer sender-key");
+    expect(headers.get(TIMESTAMP_HEADER)).toBe("1700000000");
+    expect(headers.get(SIGNATURE_HEADER)).toBe(
+      "v1=8ca5221428c4b93d4ae4544da031735322fa553401ca9fbe7cbeb0cae1b8b55b",
+    );
+    expect(sealBody('{"event":"ask"}', 1_700_000_000, "v1=abc")).toBe(
+      '{"event":"ask","relay":{"timestamp":1700000000,"signature":"v1=abc"}}',
+    );
+    expect(contentToVerify(sealBody('{"event":"ask"}', 1_700_000_000, "v1=abc"))).toBe('{"event":"ask"}');
   });
 
   it("treats HTTP 202 with a non-JSON body as delivered and waits for POST /reply", async () => {
