@@ -160,6 +160,11 @@ final class VoiceAgentViewModel: ObservableObject {
     private func installCompanionHooks() {
         guard !companionHooksInstalled else { return }
         companionHooksInstalled = true
+        LookToTalk.shared.listen = { [weak self] in self?.listenForLook() }
+        LookToTalk.shared.cameraBusyElsewhere = { [weak self] in
+            guard let self else { return false }
+            return self.isLiveVideoMode || self.isRecording
+        }
         NotificationCenter.default.addObserver(forName: .phoenixWake, object: nil, queue: .main) { [weak self] _ in
             Task { @MainActor in
                 self?.startWakeWordListening()
@@ -317,7 +322,8 @@ final class VoiceAgentViewModel: ObservableObject {
             pending.continuation.resume(returning: "no")
             return
         }
-        if AccessibilityCoordinator.shared.headAnswerPolicy.accepts(answer) {
+        if AccessibilityCoordinator.shared.headAnswerPolicy.accepts(answer)
+            || LookToTalk.shared.headAnswerPolicy.accepts(answer) {
             let word = answer == .yes ? "Yes" : "No"
             userTranscript = word
             Task { await self.sendCommand(word) }
@@ -1170,6 +1176,9 @@ final class VoiceAgentViewModel: ObservableObject {
         // leaking" is a walk-through note, not a stop command.
         if await handleWorkshopCommand(command) { return }
 
+        // Look to Talk is last of the three, and matches nothing while its switch is off.
+        if await handleLookCommand(command) { return }
+
         let lowerCommand = command.lowercased()
 
         // Check for "stop" command - stops TTS and waits for next command.
@@ -1304,7 +1313,8 @@ final class VoiceAgentViewModel: ObservableObject {
 
         // Drive whichever backend is selected through the AIBackend protocol — capabilities
         // (localLLM, supportsImageInput) decide the path, not concrete service types.
-        if settingsManager.settings.aiBackend == .ownAssistant {
+        // An assistant held by Look to Talk hears the request whichever brain is selected.
+        if settingsManager.settings.aiBackend == .ownAssistant || LookToTalk.shared.focus != nil {
             await runPhoenixFoxTurn(command)
             return
         }
@@ -1386,6 +1396,38 @@ final class VoiceAgentViewModel: ObservableObject {
             agentState = isSessionActive ? .listening : .idle
         }
         return true
+    }
+
+    /// Offers a sentence to Look to Talk. True when it was one of its commands.
+    private func handleLookCommand(_ command: String) async -> Bool {
+        guard settingsManager.workshop.lookToTalk else { return false }
+        guard !isLiveVideoMode || activeLiveService == nil else { return false }
+        guard let reply = await LookToTalk.shared.handle(command) else { return false }
+        switch reply {
+        case .say(let line):
+            pendingHeard = nil
+            CompanionSurface.present(bot: nil, text: line) { self.speakResponse($0) }
+            if !ttsService.isSpeaking && !NeuralSpeech.isAnySpeaking {
+                agentState = isSessionActive ? .listening : .idle
+            }
+        case .send(let request, let naming):
+            // The request goes on without the words that chose who hears it.
+            pendingHeard = nil
+            userTranscript = request
+            if let naming { ttsService.speak("Asking \(naming).") }
+            await runPhoenixFoxTurn(request)
+            LookToTalk.shared.endOnce()
+        }
+        return true
+    }
+
+    /// Look to Talk found its assistant. Opens the microphone for the request, as the
+    /// wake word would, unless something else is being said or heard.
+    private func listenForLook() {
+        guard !isLiveVideoMode, !commandTurnActive, pendingAnswer == nil else { return }
+        guard !ttsService.isSpeaking, !NeuralSpeech.isAnySpeaking else { return }
+        guard voiceCommandService.state != .processing else { return }
+        wakeFromGlasses()
     }
 
     /// A full-size frame for reading text, colors, and faces on the phone. The camera goes

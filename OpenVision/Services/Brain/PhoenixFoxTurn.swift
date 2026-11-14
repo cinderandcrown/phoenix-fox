@@ -56,8 +56,10 @@ enum PhoenixFoxTurn {
             isPro: SubscriptionStore.shared.allows(.botTeam),
             bots: settings.assistantBots,
             instantReady: settings.isGrokConfigured,
-            clipEnabled: settings.jarvisLookClip
+            clipEnabled: settings.jarvisLookClip,
+            focus: LookToTalk.shared.focus
         ))
+        if case .relay(let turn) = route { LookToTalk.shared.sent(to: turn.targetBot) }
         switch route {
         case .needsPro(let message):
             speak(message, nil, false)
