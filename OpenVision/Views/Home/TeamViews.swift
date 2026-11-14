@@ -10,6 +10,8 @@ import SwiftUI
 struct TeamCard: View {
     let member: TeamBoard.Member
     let now: Date
+    /// Draws nothing that moves. For previews and snapshot tests.
+    var still = false
 
     var body: some View {
         HStack(alignment: .top, spacing: Theme.Space.snug) {
@@ -48,7 +50,11 @@ struct TeamCard: View {
         case .ready:
             Image(systemName: "circle").foregroundStyle(Theme.inkFaint)
         case .working:
-            ProgressView().tint(Theme.emberInk)
+            if still {
+                Image(systemName: "ellipsis.circle.fill").foregroundStyle(Theme.emberInk)
+            } else {
+                ProgressView().tint(Theme.emberInk)
+            }
         case .answered:
             Image(systemName: "checkmark.circle.fill").foregroundStyle(Theme.good)
         case .alerted(_, _, let urgent):
@@ -89,6 +95,7 @@ struct TeamSection: View {
     let members: [TeamBoard.Member]
     let now: Date
     let wakeWord: String
+    var still = false
 
     @State private var selected: Selection? = nil
 
@@ -104,7 +111,7 @@ struct TeamSection: View {
                 Button {
                     selected = Selection(id: member.id)
                 } label: {
-                    TeamCard(member: member, now: now)
+                    TeamCard(member: member, now: now, still: still)
                 }
                 .buttonStyle(.plain)
             }

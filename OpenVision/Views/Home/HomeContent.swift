@@ -49,7 +49,7 @@ struct HomeContent: View {
 
                 switch model.team {
                 case .members(let members):
-                    TeamSection(members: members, now: model.now, wakeWord: model.signals.wakeWord)
+                    TeamSection(members: members, now: model.now, wakeWord: model.signals.wakeWord, still: model.fixedTime != nil)
                 case .connect:
                     ConnectCard(onConnect: actions.connectAssistants)
                 case .brain(let name):

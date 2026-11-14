@@ -248,34 +248,65 @@ struct OutcomeLabel: View {
     }
 }
 
-// MARK: - Previews
+// MARK: - Samples and previews
+
+#if DEBUG
+/// Each step as it looks part-way through setting up, for previews and snapshot tests.
+/// Debug builds only.
+enum OnboardingSamples {
+    static let summary = OnboardingSummary(
+        glassesConnected: false, microphone: .allowed, speech: .allowed, brain: .onDevice, wakeWord: "Jarvis"
+    )
+
+    @MainActor @ViewBuilder
+    static func page(_ step: OnboardingStep) -> some View {
+        switch step {
+        case .welcome:
+            OnboardingPage(step: step, primaryTitle: "Get started", onPrimary: {}) {
+                WelcomePoints()
+            }
+        case .glasses:
+            OnboardingPage(step: step, primaryTitle: "Open Meta AI", onPrimary: {}, onSkip: {}, onBack: {}) {
+                EmptyView()
+            }
+        case .permissions:
+            OnboardingPage(step: step, primaryTitle: "Continue", onPrimary: {}, onBack: {}) {
+                PermissionRow(permission: .microphone, answer: .allowed, onOpenSettings: {})
+                PermissionRow(permission: .speech, answer: .denied, onOpenSettings: {})
+                PermissionRow(permission: .notifications, answer: .notAsked, onOpenSettings: {})
+            }
+        case .assistants:
+            OnboardingPage(step: step, primaryTitle: "Connect", onPrimary: {}, onSkip: {}, onBack: {}) {
+                RelayFields(address: .constant(""), token: .constant(""))
+                OutcomeLabel(text: "Enter the relay token first.", good: false)
+            }
+        case .ready:
+            OnboardingPage(step: step, primaryTitle: "Start", onPrimary: {}, onBack: {}) {
+                ReadyChecklist(summary: summary)
+            }
+        }
+    }
+}
 
 #Preview("Welcome") {
-    OnboardingPage(step: .welcome, primaryTitle: "Get started", onPrimary: {}) {
-        WelcomePoints()
-    }
+    OnboardingSamples.page(.welcome)
 }
 
 #Preview("Glasses") {
-    OnboardingPage(step: .glasses, primaryTitle: "Open Meta AI", onPrimary: {}, onSkip: {}, onBack: {}) {
-        EmptyView()
-    }
+    OnboardingSamples.page(.glasses)
 }
 
 #Preview("Permissions, one denied, light") {
-    OnboardingPage(step: .permissions, primaryTitle: "Continue", onPrimary: {}, onSkip: {}, onBack: {}) {
-        PermissionRow(permission: .microphone, answer: .allowed, onOpenSettings: {})
-        PermissionRow(permission: .speech, answer: .denied, onOpenSettings: {})
-        PermissionRow(permission: .notifications, answer: .notAsked, onOpenSettings: {})
-    }
-    .preferredColorScheme(.light)
+    OnboardingSamples.page(.permissions)
+        .preferredColorScheme(.light)
+}
+
+#Preview("Assistants") {
+    OnboardingSamples.page(.assistants)
 }
 
 #Preview("Ready, largest type") {
-    OnboardingPage(step: .ready, primaryTitle: "Start", onPrimary: {}, onBack: {}) {
-        ReadyChecklist(summary: OnboardingSummary(
-            glassesConnected: false, microphone: .allowed, speech: .allowed, brain: .onDevice, wakeWord: "Jarvis"
-        ))
-    }
-    .dynamicTypeSize(.accessibility5)
+    OnboardingSamples.page(.ready)
+        .dynamicTypeSize(.accessibility5)
 }
+#endif

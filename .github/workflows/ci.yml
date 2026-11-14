@@ -152,6 +152,25 @@ jobs:
           | tee xcodebuild-test.log \
           | xcbeautify --renderer github-actions
 
+      # Pictures of the home screen and first run. A picture with no reference is recorded
+      # by the tests; one that does not match is written to the "failed" folder beside a
+      # picture of what changed. docs/DESIGN.md says how to review and commit them.
+      - name: Upload snapshots
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: snapshots
+          path: OpenVisionTests/__Snapshots__
+          if-no-files-found: ignore
+
+      - name: Report snapshots with no reference
+        if: always()
+        run: |
+          new="$(git status --porcelain --untracked-files=all -- OpenVisionTests/__Snapshots__ | grep -c '^??' || true)"
+          if [ "$new" -gt 0 ]; then
+            echo "::warning title=Snapshots::$new snapshot pictures had no reference and were recorded. Download the snapshots artifact, look at them, and commit them to OpenVisionTests/__Snapshots__."
+          fi
+
       - name: Save packages and package build products
         if: always() && steps.cache.outputs.cache-hit != 'true'
         uses: actions/cache/save@v6
