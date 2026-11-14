@@ -187,7 +187,12 @@ final class ConversationManager: ObservableObject {
             let encoder = JSONEncoder()
             encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
             let data = try encoder.encode(conversations)
-            try data.write(to: fileURL, options: .atomic)
+            // Complete protection + no iCloud backup (legal C10). Readable only while unlocked.
+            try data.write(to: fileURL, options: [.atomic, .completeFileProtection])
+            var values = URLResourceValues()
+            values.isExcludedFromBackup = true
+            var url = fileURL
+            try? url.setResourceValues(values)
             print("[ConversationManager] Saved \(conversations.count) conversations")
 
         } catch {

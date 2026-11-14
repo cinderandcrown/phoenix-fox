@@ -412,7 +412,7 @@ final class OpenClawService: ObservableObject {
             params["attachments"] = [attachment]
         }
 
-        print("[OpenClaw] Sending message: \(text.prefix(50))...")
+        print("[OpenClaw] Sending message (\(text.count) chars)")
 
         let response = try await sendRequest(method: .sendMessage, params: params)
 
@@ -577,7 +577,7 @@ final class OpenClawService: ObservableObject {
                 // Text chunk from assistant
                 if let text = data["text"]?.stringValue, !text.isEmpty {
                     accumulatedResponse += text
-                    print("[OpenClaw] Assistant chunk: \(text.prefix(50))...")
+                    print("[OpenClaw] Assistant chunk (\(text.count) chars)")
                 }
 
             case "tool":
@@ -626,7 +626,7 @@ final class OpenClawService: ObservableObject {
                     for block in content {
                         if let text = block["text"]?.stringValue, !text.isEmpty {
                             accumulatedResponse += text
-                            print("[OpenClaw] Delta: \(text.prefix(30))...")
+                            print("[OpenClaw] Delta (\(text.count) chars)")
                         }
                     }
                 }
@@ -650,7 +650,7 @@ final class OpenClawService: ObservableObject {
                 let responseText = !finalText.isEmpty ? finalText : accumulatedResponse
 
                 if !responseText.isEmpty {
-                    print("[OpenClaw] Response: \(responseText.prefix(100))...")
+                    print("[OpenClaw] Response (\(responseText.count) chars)")
                     onAgentMessage?(responseText)
                 } else {
                     print("[OpenClaw] No response text found!")

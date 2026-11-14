@@ -81,20 +81,22 @@ struct AccessibilitySettingsView: View {
             ))
             .accessibilityHint("Calls out people, vehicles, stairs, doors, and signs through the glasses. The camera light stays on.")
             Toggle("Ask the assistant about hazards", isOn: settings.guideCloudDescriptions)
-                .accessibilityHint("When the scene changes, one picture may go to the assistant to check for hazards the phone can't detect.")
+                .accessibilityHint("Off by default. When on, one picture may go to the assistant on a scene change — only after Privacy & Data allows that provider.")
             Toggle("Direction tones", isOn: settings.guideAudioCues)
                 .accessibilityHint("A falling tone means left, a rising tone means right, and a level tone means ahead.")
-            Toggle("Face recognition", isOn: settings.faceRecognition)
-                .accessibilityHint("Recognizes only people you have saved with their permission.")
-            NavigationLink {
-                SavedFacesView()
-            } label: {
-                LabeledContent("Saved faces", value: "\(faces.records.count)")
+            if PrivacyFeatureFlags.faceRecognition {
+                Toggle("Face recognition", isOn: settings.faceRecognition)
+                    .accessibilityHint("Recognizes only people you have saved with their permission. Prints expire after 30 days.")
+                NavigationLink {
+                    SavedFacesView()
+                } label: {
+                    LabeledContent("Saved faces", value: "\(faces.records.count)")
+                }
             }
         } header: {
             Text("Seeing")
         } footer: {
-            Text("Guide mode is an aid. It misses things, especially curbs, drop-offs, glass, and fast traffic. It does not replace a cane, a guide dog, or your own judgment. Reading, colors, money, labels, and faces are worked out on this phone. Face data never leaves it.")
+            Text("Guide mode is an aid. It misses things, especially curbs, drop-offs, glass, and fast traffic. It does not replace a cane, a guide dog, or your own judgment. Reading, colors, money, labels, and faces are worked out on this phone. Face data never leaves it. See Privacy Policy section on biometrics.")
         }
     }
 

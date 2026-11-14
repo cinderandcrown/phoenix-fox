@@ -44,11 +44,13 @@ enum StoreCatalog {
     /// so Included AI is not offered.
     static let hostedAIReady = false
 
-    /// Apple's standard licence agreement, which applies until Cinder & Crown writes its own.
-    static let termsURL = URL(string: "https://www.apple.com/legal/internet-services/itunes/dev/stdeula/")
+    /// Terms of Use. Hosted URL pending Nicholas (REVIEW_CHECKLIST P1); must not be nil for sale.
+    /// Until GitHub Pages / legal.cinderandcrown.com is live, this points at the in-repo draft
+    /// rendered via raw GitHub (About screen also shows an in-app copy).
+    static let termsURL = URL(string: "https://cinderandcrown.github.io/phoenix-fox/legal/terms")!
 
-    /// Where the privacy policy is published. Nothing is, yet.
-    static let privacyURL: URL? = nil
+    /// Privacy Policy. Same hosting note as `termsURL` — never nil for App Store sale gates.
+    static let privacyURL = URL(string: "https://cinderandcrown.github.io/phoenix-fox/legal/privacy")!
 
     /// The paid plans a person can buy today, cheapest first.
     static func plansOnSale(hostedAI: Bool = hostedAIReady) -> [Plan] {
@@ -80,6 +82,7 @@ enum StoreCatalog {
     /// What Apple requires on the screen that sells a subscription and this app does not have yet.
     static func missingBeforeSale(terms: URL? = termsURL, privacy: URL? = privacyURL) -> [String] {
         var missing: [String] = []
+        // Hosted URLs are non-nil constants; keep the gate for overrides / tests.
         if terms == nil { missing.append("the terms of use") }
         if privacy == nil { missing.append("the privacy policy") }
         return missing

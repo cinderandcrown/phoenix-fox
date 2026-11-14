@@ -109,11 +109,13 @@ enum OwnerProfile {
     static let version = 3
 
     static func apply(to access: inout AccessibilitySettings) {
-        access.faceRecognition = true
+        // Face recognition stays behind PrivacyFeatureFlags (biometric; App Store risk).
+        access.faceRecognition = PrivacyFeatureFlags.faceRecognition
         access.soundAlerts = true
         access.keepTranscripts = true
         access.activityRecall = true
-        access.guideCloudDescriptions = true
+        // Guide cloud descriptions stay opt-in even for the owner profile (5.1.1(iii)).
+        access.guideCloudDescriptions = false
         access.guideAudioCues = true
     }
 

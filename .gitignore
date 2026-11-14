@@ -28,11 +28,18 @@ relay/node_modules/
 Pods/
 Podfile.lock
 *.xcworkspace
+!PhoenixFox.xcodeproj/project.xcworkspace/
+!PhoenixFox.xcodeproj/project.xcworkspace/contents.xcworkspacedata
+!PhoenixFox.xcodeproj/project.xcworkspace/xcshareddata/
+!PhoenixFox.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/
+!PhoenixFox.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved
 
 # Swift Package Manager
 .build/
 .swiftpm/
-Package.resolved
+# Root SPM resolve files stay ignored; the app pin must be committed for FluidAudio 0.15.5.
+/Package.resolved
+!PhoenixFox.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved
 
 # Carthage
 Carthage/Build/

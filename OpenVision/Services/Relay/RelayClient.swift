@@ -179,8 +179,15 @@ struct URLSessionRelayTransport: RelayTransport {
 
 /// Where the relay is and the token that opens it.
 struct RelayEndpoint: Sendable, Equatable {
-    /// The owner's relay. Used when Settings holds no other address.
-    static let defaultAddress = "https://phoenix-fox-relay.cinderandcrown.workers.dev"
+    /// The owner's personal relay. Compiled into owner / debug builds only — never the default
+    /// for store builds (APP_STORE_PLAN / legal review C15).
+    static let ownerAddress = "https://phoenix-fox-relay.cinderandcrown.workers.dev"
+
+    /// Address used when Settings leaves the field empty. Empty for store builds so other users
+    /// cannot hit the owner's Worker; owner builds keep the personal default.
+    static var defaultAddress: String {
+        BuildFlavor.current == .owner ? ownerAddress : ""
+    }
 
     let base: URL
     let token: String
@@ -191,7 +198,10 @@ struct RelayEndpoint: Sendable, Equatable {
     init?(address: String, token: String) {
         let token = token.trimmingCharacters(in: .whitespacesAndNewlines)
         var text = address.trimmingCharacters(in: .whitespacesAndNewlines)
-        if text.isEmpty { text = Self.defaultAddress }
+        if text.isEmpty {
+            text = Self.defaultAddress
+            if text.isEmpty { return nil }
+        }
         while text.hasSuffix("/") { text.removeLast() }
         guard !token.isEmpty,
               let components = URLComponents(string: text),

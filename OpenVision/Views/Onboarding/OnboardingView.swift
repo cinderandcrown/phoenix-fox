@@ -280,7 +280,13 @@ struct RelayFields: View {
                 Text("Relay address")
                     .font(.footnote.weight(.semibold))
                     .foregroundStyle(Theme.inkSoft)
-                TextField("Relay address", text: $address, prompt: Text(RelayEndpoint.defaultAddress))
+                TextField(
+                    "Relay address",
+                    text: $address,
+                    prompt: Text(RelayEndpoint.defaultAddress.isEmpty
+                        ? "https://your-relay.example"
+                        : RelayEndpoint.defaultAddress)
+                )
                     .textInputAutocapitalization(.never)
                     .autocorrectionDisabled()
                     .keyboardType(.URL)

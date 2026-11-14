@@ -32,6 +32,9 @@ enum FaceLedger {
     /// The most prints kept for one person. The oldest is dropped when another is added.
     static let printsPerPerson = 5
 
+    /// Automatic expiry for face prints (legal review). Default 30 days from consent or last seen.
+    static let defaultRetentionDays = 30
+
     enum Match: Equatable, Sendable {
         case known(name: String)
         /// A saved person is near, but not clearly nearer than everyone else.
@@ -72,6 +75,19 @@ enum FaceLedger {
         if others == 1 { line += " There is one more person I don't recognize." }
         if others > 1 { line += " There are \(others) more people I don't recognize." }
         return line
+    }
+
+    /// Drops records whose consent / last-seen is older than `retention`. Pure for unit tests.
+    static func pruningExpired(
+        _ records: [FaceRecord],
+        asOf now: Date = Date(),
+        retentionDays: Int = defaultRetentionDays
+    ) -> [FaceRecord] {
+        let limit = TimeInterval(retentionDays) * 24 * 60 * 60
+        return records.filter { record in
+            let anchor = record.lastSeen ?? record.consentAt
+            return now.timeIntervalSince(anchor) < limit
+        }
     }
 
     /// Adds a print to a person, creating the record on first use. Returns the new list.

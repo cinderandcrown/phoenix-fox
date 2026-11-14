@@ -188,26 +188,26 @@ struct SettingsView: View {
                     Text("Advanced")
                 }
 
-                // About Section
                 Section {
-                    HStack {
-                        Label("Version", systemImage: "info.circle")
-                        Spacer()
-                        Text("\(Config.appVersion) (\(Config.buildNumber))")
-                            .foregroundColor(.secondary)
+                    NavigationLink {
+                        PrivacyAndDataView()
+                    } label: {
+                        Label("Privacy & Data", systemImage: "hand.raised.fill")
                     }
-
-                    Link(destination: URL(string: "https://github.com/rayl15/OpenVision")!) {
-                        Label("GitHub Repository", systemImage: "link")
-                    }
-
-                    Link(destination: URL(string: "https://github.com/openclaw/openclaw")!) {
-                        Label("Get OpenClaw", systemImage: "arrow.up.right.square")
+                    NavigationLink {
+                        AboutView()
+                    } label: {
+                        HStack {
+                            Label("About", systemImage: "info.circle")
+                            Spacer()
+                            Text("\(Config.appVersion) (\(Config.buildNumber))")
+                                .foregroundColor(.secondary)
+                        }
                     }
                 } header: {
                     Text("About")
                 } footer: {
-                    Text("Phoenix Fox is built on OpenVision, which is MIT licensed. Say Jarvis to wake it.")
+                    Text("Privacy Policy, Terms, and Licenses. Phoenix Fox is built on OpenVision (MIT).")
                 }
             }
             .navigationTitle("Settings")

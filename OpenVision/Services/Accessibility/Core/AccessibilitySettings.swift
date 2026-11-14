@@ -14,9 +14,10 @@ struct AccessibilitySettings: Codable, Equatable, Sendable {
     /// The wearer has heard and accepted that Guide mode is an aid, not a replacement for
     /// a cane or a guide dog.
     var guideSafetyAccepted = false
-    /// Guide mode may send a frame to the cloud model when the scene changes. Off keeps
-    /// Guide mode to what the phone can detect by itself.
-    var guideCloudDescriptions = true
+    /// Guide mode may send a frame to the cloud model when the scene changes. Off by
+    /// default (App Store 5.1.1(iii) minimization): keep Guide mode to what the phone
+    /// can detect by itself until the wearer opts in.
+    var guideCloudDescriptions = false
     var guideAudioCues = true
     var faceRecognition = false
 

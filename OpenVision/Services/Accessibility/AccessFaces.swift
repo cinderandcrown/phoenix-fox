@@ -17,13 +17,28 @@ final class AccessFaces: ObservableObject {
     private static let file = "faces"
 
     private init() {
-        records = AccessStore.load([FaceRecord].self, from: Self.file) ?? []
+        let loaded = AccessStore.load([FaceRecord].self, from: Self.file) ?? []
+        records = FaceLedger.pruningExpired(loaded)
+        if records.count != loaded.count {
+            AccessStore.save(records, to: Self.file)
+        }
         // An earlier build kept face prints in a plain file with no record of consent.
         // Those are deleted, not carried over.
         let documents = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
         for legacy in ["known_faces_v2.json", "known_faces.json"] {
             try? FileManager.default.removeItem(at: documents.appendingPathComponent(legacy))
         }
+    }
+
+    /// Drops face prints past the retention window (default 30 days).
+    @discardableResult
+    func pruneExpired(asOf now: Date = Date()) -> Int {
+        let before = records.count
+        records = FaceLedger.pruningExpired(records, asOf: now)
+        if records.count != before {
+            if records.isEmpty { AccessStore.remove(Self.file) } else { AccessStore.save(records, to: Self.file) }
+        }
+        return before - records.count
     }
 
     var names: [String] { records.map(\.name) }
@@ -53,6 +68,7 @@ final class AccessFaces: ObservableObject {
 
     /// Who is in the photo. Returns the spoken answer and the names that were recognized.
     func identify(jpeg: Data) async -> (spoken: String, names: [String]) {
+        pruneExpired()
         guard !records.isEmpty else {
             return ("I haven't saved anyone yet. With their permission, say remember this person as, then their name.", [])
         }

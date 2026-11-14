@@ -146,13 +146,14 @@ final class AccessibilityCoordinator: ObservableObject {
         // Faces
         case .whoIsThis: return await whoIsThis(snapshot: snapshot)
         case .rememberFace(let name):
-            guard settings.faceRecognition else { return Self.facesOff }
+            guard PrivacyFeatureFlags.faceRecognition, settings.faceRecognition else { return Self.facesOff }
             return ask("Has \(name) agreed to let me save their face on this phone? Say yes or no.", then: .enroll(name: name))
         case .forgetFace(let name): return AccessFaces.shared.forget(name: name)
         case .forgetAllFaces:
             guard !AccessFaces.shared.records.isEmpty else { return "I haven't saved anyone's face." }
             return ask("Delete every saved face? Say yes or no.", then: .forgetAllFaces)
         case .faceRecognition(let on):
+            guard PrivacyFeatureFlags.faceRecognition else { return Self.facesOff }
             settings.faceRecognition = on
             return on
                 ? "Face recognition is on. I only recognize people you save, and I ask for their permission first. Face data stays on this phone."
@@ -377,7 +378,7 @@ final class AccessibilityCoordinator: ObservableObject {
     // MARK: - Faces
 
     private func whoIsThis(snapshot: Snapshot) async -> String {
-        guard settings.faceRecognition else { return Self.facesOff }
+        guard PrivacyFeatureFlags.faceRecognition, settings.faceRecognition else { return Self.facesOff }
         guard let jpeg = await snapshot() else { return Self.noPicture }
         let result = await AccessFaces.shared.identify(jpeg: jpeg)
         let notes = result.names.flatMap { name in

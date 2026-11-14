@@ -17,7 +17,13 @@ struct OwnAssistantSettingsView: View {
     var body: some View {
         Form {
             Section {
-                TextField("Relay address", text: $url, prompt: Text(RelayEndpoint.defaultAddress))
+                TextField(
+                    "Relay address",
+                    text: $url,
+                    prompt: Text(RelayEndpoint.defaultAddress.isEmpty
+                        ? "https://your-relay.example"
+                        : RelayEndpoint.defaultAddress)
+                )
                     .textInputAutocapitalization(.never)
                     .autocorrectionDisabled()
                     .keyboardType(.URL)
