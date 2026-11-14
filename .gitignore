@@ -78,3 +78,9 @@ fabric.properties
 
 # Python
 __pycache__/
+.vendor/
+*.p12
+*.mobileprovision
+.env
+.env.*
+!*.example
