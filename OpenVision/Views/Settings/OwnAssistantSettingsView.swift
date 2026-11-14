@@ -11,6 +11,8 @@ struct OwnAssistantSettingsView: View {
     @State private var url = SettingsManager.shared.settings.relayURL
     @State private var token = SettingsManager.shared.settings.relayToken
     @State private var check: RelayCheck = .idle
+    @State private var alerts: PushAlerts.Status?
+    @Environment(\.openURL) private var openURL
 
     var body: some View {
         Form {
@@ -51,6 +53,27 @@ struct OwnAssistantSettingsView: View {
             }
             .onChange(of: url) { check = .idle }
             .onChange(of: token) { check = .idle }
+
+            Section {
+                if let alerts {
+                    LabeledContent("Alerts", value: alerts.line)
+                    switch alerts {
+                    case .notAsked:
+                        Button("Turn on alerts") {
+                            Task { self.alerts = await PushAlerts.refresh(askIfNeeded: true) }
+                        }
+                    case .off:
+                        Button("Open iOS Settings") {
+                            if let settings = URL(string: UIApplication.openSettingsURLString) { openURL(settings) }
+                        }
+                    case .on:
+                        EmptyView()
+                    }
+                }
+            } footer: {
+                Text("An assistant can send you an alert, such as a finished task. iOS asks for permission when you turn this on. The alert only says something is waiting. The message is fetched from your relay.")
+            }
+            .task { alerts = await PushAlerts.status() }
 
             Section {
                 Toggle("Fast answers on Grok", isOn: $settingsManager.settings.jarvisFastMode)

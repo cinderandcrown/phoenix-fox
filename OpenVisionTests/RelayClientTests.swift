@@ -2,6 +2,9 @@
 // Copyright 2026 Cinder and Crown LLC
 
 import XCTest
+#if canImport(UserNotifications)
+import UserNotifications
+#endif
 @testable import PhoenixFox
 #if canImport(FoundationNetworking)
 import FoundationNetworking
@@ -477,3 +480,22 @@ final class RelayCheckTests: XCTestCase {
         XCTAssertFalse(RelayCheck.describe(.failure(.offline), address: "").isGood)
     }
 }
+
+#if canImport(UserNotifications)
+final class PushAlertsTests: XCTestCase {
+
+    func testEverySystemAnswerMapsToARow() {
+        XCTAssertEqual(PushAlerts.Status(.notDetermined), .notAsked)
+        XCTAssertEqual(PushAlerts.Status(.authorized), .on)
+        XCTAssertEqual(PushAlerts.Status(.provisional), .on)
+        XCTAssertEqual(PushAlerts.Status(.ephemeral), .on)
+        XCTAssertEqual(PushAlerts.Status(.denied), .off)
+    }
+
+    func testEachRowSaysWhetherAlertsAreOn() {
+        XCTAssertEqual(PushAlerts.Status.on.line, "On.")
+        XCTAssertTrue(PushAlerts.Status.notAsked.line.hasPrefix("Off."))
+        XCTAssertTrue(PushAlerts.Status.off.line.contains("iOS Settings"))
+    }
+}
+#endif

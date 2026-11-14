@@ -730,10 +730,10 @@ final class PlaceReminders: NSObject, @preconcurrency CLLocationManagerDelegate 
 /// capability and a key the owner has not added. The inbox long-poll is the path that works without it.
 final class PhoenixPushDelegate: NSObject, UIApplicationDelegate {
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil) -> Bool {
-        Task {
-            _ = try? await UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge])
-            application.registerForRemoteNotifications()
-        }
+        // Unit tests run inside this app. They must not register a device with Apple.
+        guard !AppLaunch.isHostingTests else { return true }
+        // Renews the registration if alerts are already allowed. Asking happens in Settings.
+        Task { await PushAlerts.refresh(askIfNeeded: false) }
         return true
     }
 

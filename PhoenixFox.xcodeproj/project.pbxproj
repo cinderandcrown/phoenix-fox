@@ -166,6 +166,7 @@
 		B93FA675EE3094D186653ED3 /* RelayClientTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEF251501487FBCFE35139B7 /* RelayClientTests.swift */; };
 		2BE06430EBD52AD493360F94 /* WearablesSDK.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3A02A6407C18B263A7FA388 /* WearablesSDK.swift */; };
 		7A3558B2ADF81CB0CABB1EF7 /* WearablesSDKTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA4F4112907EC707F95A12AC /* WearablesSDKTests.swift */; };
+		17071B87BC626664A102F829 /* PushAlerts.swift in Sources */ = {isa = PBXBuildFile; fileRef = F65548F5E24356AB1C1A022A /* PushAlerts.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -332,6 +333,7 @@
 		DEF251501487FBCFE35139B7 /* RelayClientTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RelayClientTests.swift; sourceTree = "<group>"; };
 		D3A02A6407C18B263A7FA388 /* WearablesSDK.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WearablesSDK.swift; sourceTree = "<group>"; };
 		CA4F4112907EC707F95A12AC /* WearablesSDKTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WearablesSDKTests.swift; sourceTree = "<group>"; };
+		F65548F5E24356AB1C1A022A /* PushAlerts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushAlerts.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -853,6 +855,7 @@
 			children = (
 				5109BFC57B90ADE2E95DBC71 /* RelayClient.swift */,
 				6AA41A16B55526CB60458427 /* RelayImages.swift */,
+				F65548F5E24356AB1C1A022A /* PushAlerts.swift */,
 			);
 			path = Relay;
 			sourceTree = "<group>";
@@ -1150,6 +1153,7 @@
 				41BA82E53DC6B71605D98EAA /* RelayClient.swift in Sources */,
 				4D00FDBCB04FB2E64CDBCACA /* RelayImages.swift in Sources */,
 				2BE06430EBD52AD493360F94 /* WearablesSDK.swift in Sources */,
+				17071B87BC626664A102F829 /* PushAlerts.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
