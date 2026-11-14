@@ -46,7 +46,7 @@ enum ChatGPTSubscription {
     /// — latency matters most for a voice assistant. Users can pick any model from the live list.
     static let defaultModel = "gpt-6-luna"
 
-    struct Model: Identifiable, Hashable {
+    struct Model: Identifiable, Hashable, Sendable {
         let slug: String
         let displayName: String
         var id: String { slug }
@@ -55,6 +55,7 @@ enum ChatGPTSubscription {
     // MARK: - Models
 
     /// Image-capable models the account can use, in the server's order.
+    @MainActor
     static func fetchModels() async throws -> [Model] {
         let url = URL(string: "\(baseURL)/models?client_version=\(modelsClientVersion)")!
         let (data, _) = try await send { credentials in
@@ -81,6 +82,10 @@ enum ChatGPTSubscription {
 
     /// One Responses turn. Returns the output items (messages, function calls, reasoning) in order;
     /// callers append them to `input` verbatim when continuing a tool loop.
+    ///
+    /// Main actor, like its callers: the request and reply are untyped JSON, which must not
+    /// cross an isolation boundary.
+    @MainActor
     static func respond(model: String, instructions: String, input: [[String: Any]],
                         tools: [[String: Any]]) async throws -> [[String: Any]] {
         var body: [String: Any] = [
@@ -178,6 +183,7 @@ enum ChatGPTSubscription {
 
     /// Send with a fresh token; on 401, force one refresh and retry (the token may have been
     /// revoked or rotated server-side before its stated expiry).
+    @MainActor
     private static func send(_ makeRequest: (OAuthCredentials) -> URLRequest) async throws -> (Data, HTTPURLResponse) {
         var credentials = try await OAuthTokenStore.shared.freshCredentials(for: provider)
         for attempt in 0..<2 {

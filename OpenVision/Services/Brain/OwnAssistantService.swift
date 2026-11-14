@@ -12,6 +12,7 @@ struct RelayReply: Equatable, Sendable {
 }
 
 /// Last push the inbox delivered, so "reply …" can thread a new ask back to that bot.
+@MainActor
 enum InboxThread {
     static var lastId: String?
     static var lastFrom: String?

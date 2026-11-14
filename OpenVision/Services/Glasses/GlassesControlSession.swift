@@ -171,7 +171,7 @@ final class GlassesControlSession {
             guard let inputs = try session.addInputs() else { return }
             eventsTask = Task {
                 for await event in inputs.events {
-                    let signal = Self.signal(from: event)
+                    guard let signal = Self.signal(from: event) else { continue }
                     await MainActor.run {
                         GlassesHUD.shared.handle(signal)
                         if let name = Self.notification(for: signal) {
@@ -222,7 +222,8 @@ final class GlassesControlSession {
         session = nil
     }
 
-    private static func signal(from event: InputEvent) -> GestureSignal {
+    /// Nil for an input kind a later SDK adds, which is ignored until `GestureMap` knows it.
+    private static func signal(from event: InputEvent) -> GestureSignal? {
         let source: GestureSignal.Source
         switch event.source {
         case .captouch: source = .temple
@@ -256,6 +257,8 @@ final class GlassesControlSession {
             }
         case .drag(let action, _, _, let dx, _, _, _):
             kind = action == .up ? .dragEnded(dx: dx) : .dragEnded(dx: 0)
+        @unknown default:
+            return nil
         }
         return GestureSignal(source: source, kind: kind)
     }

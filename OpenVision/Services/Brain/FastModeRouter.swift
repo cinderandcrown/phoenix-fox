@@ -2,7 +2,7 @@
 // Copyright 2026 Cinder and Crown LLC
 
 // Jarvis - FastModeRouter.swift
-// Rules first. `classifier` is the hook for a later model. Nil means the rules decide.
+// Rules decide the route, on the phone, before any model is paid for.
 // Only task-like turns go to the relay. Short talk stays on the cheap instant brain.
 
 import Foundation
@@ -24,25 +24,13 @@ enum JarvisRoute: Equatable {
     case mind(MindCommand)
 }
 
-protocol JarvisRouteClassifying: AnyObject {
-    func classify(_ text: String) async -> JarvisRoute?
-}
-
 enum FastModeRouter {
-    /// Swap in an LLM classifier without touching call sites. A nil result falls through to the rules.
-    static weak var classifier: JarvisRouteClassifying?
-
     struct Context {
         var fastMode: Bool
         var isPro: Bool
         var bots: [AssistantBot]
         var instantReady: Bool
         var clipEnabled: Bool
-    }
-
-    static func decide(_ text: String, context: Context) async -> JarvisRoute {
-        if let classified = await classifier?.classify(text) { return classified }
-        return rules(text, context: context)
     }
 
     static func rules(_ text: String, context: Context) -> JarvisRoute {

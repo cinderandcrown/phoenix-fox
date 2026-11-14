@@ -200,7 +200,7 @@ struct GemmaSettingsView: View {
         isDownloading = true
         Task {
             do {
-                try await gemma.download(selectedModel) { _ in }
+                try await gemma.download(selectedModel)
                 settingsManager.settings.localGemmaModelId = selectedModel.modelId
                 settingsManager.settings.localGemmaModelReady = true
                 settingsManager.saveNow()

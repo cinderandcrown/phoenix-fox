@@ -4,6 +4,7 @@
 import UIKit
 
 /// Utility for triggering haptic feedback
+@MainActor
 enum HapticFeedback {
 
     // MARK: - Impact Feedback
@@ -91,7 +92,8 @@ enum HapticFeedback {
     static func wakeWordDetected() {
         // Double tap pattern for wake word
         medium()
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+        Task {
+            try? await Task.sleep(for: .milliseconds(100))
             light()
         }
     }
