@@ -29,6 +29,7 @@ final class OwnAssistantService: ObservableObject {
     /// Asks that are waiting for a reply, each with the way to stop it.
     private var inFlight: [UUID: @Sendable () -> Void] = [:]
     private var inboxTask: Task<Void, Never>?
+    private var push = PushRegistration()
     private var settings: AppSettings { SettingsManager.shared.settings }
 
     init(client: RelayClient = RelayClient()) {
@@ -147,10 +148,20 @@ final class OwnAssistantService: ObservableObject {
         inboxTask = Task { await inboxLoop() }
     }
 
+    /// Apple gave this phone a push token.
     func registerDevice(_ token: String) async {
-        guard let endpoint = settings.relayEndpoint else { return }
+        push.received(token: token)
+        await registerDeviceIfNeeded()
+    }
+
+    /// Gives the relay this phone's push token if it does not have it yet.
+    /// Called when the token arrives, when the relay settings are saved, and after the inbox
+    /// reaches the relay, so a send that failed is tried again once the relay answers.
+    func registerDeviceIfNeeded() async {
+        guard let send = push.pending(for: settings.relayEndpoint) else { return }
         do {
-            try await client.registerDevice(token: token, environment: .current, with: endpoint)
+            try await client.registerDevice(token: send.token, environment: .current, with: send.endpoint)
+            push.accepted(send)
         } catch {
             GlassesLink.shared.record("Push registration with the relay failed: \(error.localizedDescription)")
         }
@@ -184,6 +195,7 @@ final class OwnAssistantService: ObservableObject {
             do {
                 deliver(try await client.inbox(from: endpoint))
                 backoff = .seconds(1)
+                await registerDeviceIfNeeded()
             } catch RelayError.unauthorized {
                 // A wrong token will not start working by itself. Look again when Settings may have changed.
                 try? await Task.sleep(for: .seconds(60))

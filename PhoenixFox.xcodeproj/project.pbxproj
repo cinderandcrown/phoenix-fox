@@ -169,6 +169,8 @@
 		7A3558B2ADF81CB0CABB1EF7 /* WearablesSDKTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA4F4112907EC707F95A12AC /* WearablesSDKTests.swift */; };
 		17071B87BC626664A102F829 /* PushAlerts.swift in Sources */ = {isa = PBXBuildFile; fileRef = F65548F5E24356AB1C1A022A /* PushAlerts.swift */; };
 		BD522A8C6366C94E2122EBED /* V1PathTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41B5E6408E5368D623A1F507 /* V1PathTests.swift */; };
+		8D3A45D450C73036D7B2D663 /* PushRegistration.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9C14EF86E3580197A7B53B8 /* PushRegistration.swift */; };
+		707177A7B368108C877AA335 /* PushRegistrationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1CECA1829EDBD13BE99F363 /* PushRegistrationTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -338,6 +340,8 @@
 		CA4F4112907EC707F95A12AC /* WearablesSDKTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WearablesSDKTests.swift; sourceTree = "<group>"; };
 		F65548F5E24356AB1C1A022A /* PushAlerts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushAlerts.swift; sourceTree = "<group>"; };
 		41B5E6408E5368D623A1F507 /* V1PathTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = V1PathTests.swift; sourceTree = "<group>"; };
+		C9C14EF86E3580197A7B53B8 /* PushRegistration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushRegistration.swift; sourceTree = "<group>"; };
+		B1CECA1829EDBD13BE99F363 /* PushRegistrationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushRegistrationTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -779,6 +783,7 @@
 				DEF251501487FBCFE35139B7 /* RelayClientTests.swift */,
 				CA4F4112907EC707F95A12AC /* WearablesSDKTests.swift */,
 				41B5E6408E5368D623A1F507 /* V1PathTests.swift */,
+				B1CECA1829EDBD13BE99F363 /* PushRegistrationTests.swift */,
 			);
 			path = OpenVisionTests;
 			sourceTree = "<group>";
@@ -862,6 +867,7 @@
 				5109BFC57B90ADE2E95DBC71 /* RelayClient.swift */,
 				6AA41A16B55526CB60458427 /* RelayImages.swift */,
 				F65548F5E24356AB1C1A022A /* PushAlerts.swift */,
+				C9C14EF86E3580197A7B53B8 /* PushRegistration.swift */,
 			);
 			path = Relay;
 			sourceTree = "<group>";
@@ -1029,6 +1035,7 @@
 				B93FA675EE3094D186653ED3 /* RelayClientTests.swift in Sources */,
 				7A3558B2ADF81CB0CABB1EF7 /* WearablesSDKTests.swift in Sources */,
 				BD522A8C6366C94E2122EBED /* V1PathTests.swift in Sources */,
+				707177A7B368108C877AA335 /* PushRegistrationTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1162,6 +1169,7 @@
 				4D00FDBCB04FB2E64CDBCACA /* RelayImages.swift in Sources */,
 				2BE06430EBD52AD493360F94 /* WearablesSDK.swift in Sources */,
 				17071B87BC626664A102F829 /* PushAlerts.swift in Sources */,
+				8D3A45D450C73036D7B2D663 /* PushRegistration.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

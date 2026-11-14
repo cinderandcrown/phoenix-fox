@@ -104,6 +104,8 @@ struct OwnAssistantSettingsView: View {
     private func save() {
         settingsManager.settings.relayURL = url.trimmingCharacters(in: .whitespacesAndNewlines)
         settingsManager.settings.relayToken = token.trimmingCharacters(in: .whitespacesAndNewlines)
+        // The push token arrived at launch, before there was a relay to give it to.
+        Task { await OwnAssistantService.shared.registerDeviceIfNeeded() }
     }
 
     private func runCheck() async {

@@ -748,6 +748,15 @@ final class PhoenixPushDelegate: NSObject, UIApplicationDelegate {
         Task { await OwnAssistantService.shared.registerDevice(hex) }
     }
 
+    /// Without a token there are no pushes. The inbox still delivers while the app is open,
+    /// and the reason is kept in the glasses log so it can be read on the phone.
+    func application(_ application: UIApplication, didFailToRegisterForRemoteNotificationsWithError error: any Error) {
+        let reason = error.localizedDescription
+        Task { @MainActor in
+            GlassesLink.shared.record("Apple did not give this phone a push token: \(reason)")
+        }
+    }
+
     /// A silent push only says "something is waiting". The message itself is pulled from the
     /// relay inbox, so nothing private travels through the push payload.
     func application(
