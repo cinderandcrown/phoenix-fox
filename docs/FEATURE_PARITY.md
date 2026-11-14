@@ -19,6 +19,48 @@ Sources, all Meta:
 
 "Better with Grok Bot" means Fire Fox, Indy, Driver, or Rally do the multi-step work, and a cheap vision model answers a single look. Silence stays on the phone.
 
+## Status
+
+**Done** means the Adventurer behavior is in the app and has no open product gap. **Partial** means it runs, and the Remaining column is still open. **Blocked** means Meta or iOS does not allow it. The app says so out loud instead of pretending. Nothing below has been worn on Adventurer yet. The owner confirms the Partial rows that touch the glasses, the mic, or push. The simulator CI only proves the code compiles.
+
+Display and Neural Band do not get a second command path. `CompanionSurface` speaks every reply and adds a lens card only when `supportsDisplay` is true. `GestureMap` turns DAT input into talk, look, and note. `VoiceAgentViewModel` is the only listener. Adventurer never opens that input session, because it would compete with the camera.
+
+| Feature | Status | Remaining |
+| --- | --- | --- |
+| Jarvis wake on the phone mic | Partial | Owner confirms Bluetooth HFP hears "Jarvis" with the glasses on. Whisper re-hears the command and the follow-up. Apple speech is the fallback if the model has not downloaded. |
+| Hey Meta launches Phoenix Fox | Partial | The hardware word stays Meta's. A `LaunchApp` invocation now starts the Jarvis session. Owner confirms the Meta AI app actually hands the launch to this bundle id. |
+| Temple tap / Neural Band | Blocked on Adventurer | The input session stays down so the camera can open. On display glasses the same notifications already call talk, look, and note. |
+| Look and ask, text in view, read aloud | Partial | One preview frame, then the stream stops and the hardware light goes off. Owner confirms a frame arrives on Adventurer and the light matches the stream. |
+| Ask a named bot ("ask Indy about X") | Partial | Routed in code and covered by `V1PathTests`. Needs the relay URL and token on the phone, and the worker deployed. |
+| Spoken replies | Partial | The selected voice speaks the line. A non-default bot is prefixed with its name. Per-bot voice identifiers are stored and not yet applied to TTS. |
+| Push alerts | Partial | Token is kept and registered when the relay is saved. Urgent pushes wake the app and are spoken from the inbox. Needs Apple push secrets on the worker, `APNS_USE_SANDBOX=false` for TestFlight, and the owner accepting notifications. Long-poll works without push. |
+| Live conversation after Jarvis | Partial | Follow-ups stay open until silence. Barge-in still requires "Jarvis" plus the next request, so the glasses mic does not treat the reply as a command. |
+| Live translation and meeting notes | Partial | Phone captions and speech. A summary needs the relay. No lens captions on Adventurer. |
+| Messages, SMS, email handoff | Partial | The app fills WhatsApp, Messenger, Mail, or Messages. The wearer taps send. |
+| Record a clip | Partial | Saves the preview stream to Photos while the light is on. It is not Meta's 3K file. |
+| QR, reminders, timers, time, date | Partial | On-phone. Time and date do not call a model. Owner confirms speech and the Reminders permission. |
+| Phone calls | Partial | `tel:` opens Phone after a Contacts lookup. |
+| Music play, pause, next, previous | Partial | System player only. The app says when that is the limit. |
+| Volume | Blocked | Reading the level is allowed. Setting it is not a public iOS API. The glasses rocker stays in charge. |
+| Hear replies on the glasses | Partial | Bluetooth HFP / A2DP when the glasses are the audio route. Owner confirms the speaker, not the phone earpiece. |
+| Take a photo | Partial | "Take a picture" saves a still. The light is on for the shot. |
+| Share into Meta's apps | Partial | The still goes to Photos. There is no Messenger or Instagram handoff. |
+| Walking directions | Partial | First step spoken, Apple Maps opened. Not Meta's continuous guidance. |
+| In-lens captions, maps, message previews | Blocked on Adventurer | `CompanionSurface` already renders when a display is reported. No Adventurer work left. |
+| Be My Eyes volunteer video | Blocked | One-photo description instead. The volunteer call stays in Meta AI. |
+| Other apps' notification readout | Blocked | iOS does not allow it. Timers and reminders Phoenix Fox created are spoken. |
+| WhatsApp, Messenger, Instagram calls and POV video | Blocked | No public API. The app says so. |
+| Workout stats | Blocked | Not wired. HealthKit is not claimed. |
+| Concierge booking | Partial | Goes to the named bot through the relay. The app does not book by itself. |
+| Smart Capture | Partial | Session, on-device gating, Grok keep/skip, Photos album, encrypted index. Auto-route is off until the owner turns it on. Owner confirms the light stays on for the session and that Grok calls stop at the cap. |
+| Watch this / frame-change gating | Partial | 8 fps stream, changed frames only. Covered by `FrameChangeTests` for the diff. Owner confirms the light and the stop phrase. |
+| Take over / parallel bots | Partial | Fire Fox, Indy, Driver, and Rally are asked together. Needs a running relay. |
+| Encrypted memory | Partial | AES-GCM, key in the Keychain. Search is on-device word vectors, not a photo embedding. |
+| Morning brief and geofenced reminders | Partial | One brief when the relay is set. Arrival needs Always location, and the location arrow stays on. |
+| Provider choice (Grok, ChatGPT, Gemini, Claude, on-device) | Partial | Settings already switch backends. Grok Bot multi-bot control is the default. A paid-only gate for extra bots is not enforced (`isPro` is true on the Phoenix Fox turn). |
+
+The behavior tables under this section are the spec those rows are judged against.
+
 | Meta feature | On Adventurer with DAT 1.0.1 and iOS | Phoenix Fox |
 | --- | --- | --- |
 | Wake with "Hey Meta" or a touchpad hold | **Partial.** The hardware wake word stays Meta's. DAT does not let another app register "Hey Meta" or replace it. The touchpad can report a tap only while an input session is up. Adventurer does not keep that session open, because it would block the camera. | Say **Jarvis**. The phone hears it over Bluetooth. Meta's wake word is unchanged. |
@@ -42,8 +84,8 @@ Sources, all Meta:
 | Take a photo and save it | **Yes.** One still, then Photos library. The hardware light is on for the shot. | "Take a picture." |
 | Share a photo to a contact inside Meta's apps | **Partial.** Saving to Photos is real. Hand-off into Messenger or Instagram is not. | Saves the still. Does not claim the Meta share sheet. |
 | Walking navigation with spoken steps | **Partial.** Apple Maps can search, speak the first walking step, and open the map. Meta's continuous guidance and companion map are theirs. | First step spoken, Apple Maps opened, limitation spoken. |
-| In-lens captions, maps, message previews | **Blocked on Adventurer.** `supportsDisplay` is false. HUD code runs only when a display is reported. | Spoken answer only. |
-| Neural Band pinch and swipe | **Blocked on Adventurer.** The band is not part of this product. DAT exposes semantic taps, not raw EMG, and only when that hardware is present. | No gesture is required. |
+| In-lens captions, maps, message previews | **Blocked on Adventurer.** `supportsDisplay` is false. `CompanionSurface` speaks, and adds a lens card only when a display is reported. | Spoken answer only. |
+| Neural Band pinch and swipe | **Blocked on Adventurer.** The band is not part of this product. DAT exposes semantic taps, not raw EMG. `GestureMap` already turns those taps into talk, look, and note when an input session exists. Adventurer does not open that session. | No gesture is required. |
 | Be My Eyes volunteer video | **Blocked.** Meta's help page requires the Meta AI app connection. A third-party app cannot join that volunteer network. | Offers a one-photo description instead, and says the volunteer call stays in Meta AI. |
 | "What time is it" / date | **Yes.** On the phone. No model call. | Spoken locally. |
 | Glasses battery | **Yes.** `Device.batteryLevel` when the link is up. | Spoken locally. |
@@ -68,9 +110,9 @@ These are the extra companion behaviors, still only where a public API exists. T
 
 | Item | Status | Where |
 | --- | --- | --- |
-| 1. Jarvis always-listening, App Intent, Action Button, Live Activity | **Partial.** Listening stays up across tabs and in the background audio session, with the system mic indicator. The shortcut is "Wake Jarvis in Phoenix Fox", which is what you assign to the Action Button. Apple will not register a bare "Hey Siri, Jarvis". A Live Activity is requested. There is no widget extension, so the island has no custom layout. | `OpenVision/Services/Voice/VoiceCommandService.swift`, `OpenVision/Services/Brain/Companion.swift`, `OpenVision/Views/VoiceAgent/VoiceAgentViewModel.swift`, `OpenVision/Resources/Info.plist` |
+| 1. Jarvis always-listening, App Intent, Action Button, Live Activity | **Partial.** Listening stays up across tabs and in the background audio session, with the system mic indicator. The shortcut is "Wake Jarvis in Phoenix Fox", which is what you assign to the Action Button. Apple will not register a bare "Hey Siri, Jarvis". A Live Activity is requested. There is no widget extension, so the island has no custom layout. Whisper hears the wake command and each follow-up. Hey Meta launch and display-glasses gestures enter the same session. | `OpenVision/Services/Voice/VoiceCommandService.swift`, `OpenVision/Services/Brain/Companion.swift`, `OpenVision/Views/VoiceAgent/VoiceAgentViewModel.swift`, `OpenVision/Resources/Info.plist` |
 | 2. WhatsApp, Messenger, SMS, email handoff with Contacts | **Partial.** Opens the app with the text filled in and looks up the contact. The wearer still taps send. No silent send, and no in-app chat list. | `OpenVision/Services/Brain/Companion.swift` (`MessageHandoff`), `OpenVision/Services/Brain/PhoenixFoxFeatures.swift` |
-| 3. Bot inbox, relay push, APNs, read aloud, voice reply | **Partial.** The worker in `relay/` implements `/ask`, `/pending`, `/reply/{id}`, `/push`, `/inbox`, and `/device`. The app long-polls the inbox and registers its APNs token. Pushes send only after the APNs secrets are set, and this repo does not deploy the worker. | `relay/`, `docs/RELAY_API.md`, `OpenVision/Services/Brain/OwnAssistantService.swift` |
+| 3. Bot inbox, relay push, APNs, read aloud, voice reply | **Partial.** The worker in `relay/` implements `/ask`, `/pending`, `/reply/{id}`, `/push`, `/inbox`, and `/device`. The app long-polls the inbox, stores the APNs token, and registers it when the relay is saved. Urgent pushes also wake the app. Pushes send only after the APNs secrets are set. TestFlight uses production APNs. This repo does not deploy the worker. | `relay/`, `docs/RELAY_API.md`, `OpenVision/Services/Brain/OwnAssistantService.swift` |
 | 4. Watch this, adaptive rate, change detection, live conversation, barge-in | **Partial.** The DAT stream stays at 8 fps with the light on. Inspection moves between about 0.4s and 2.5s when the scene changes, and only a changed frame goes to Grok. The conversation stays open. Interrupting speech still requires "Jarvis" plus the next request, so the reply echoing in the mic is not treated as a new command. | `OpenVision/Services/Brain/Companion.swift`, `OpenVision/Services/LiveVision/FrameChange.swift`, `OpenVision/Views/VoiceAgent/VoiceAgentViewModel.swift` |
 | 5. Grok, take over, parallel dispatch, spoken progress, task history | **Partial.** Fire Fox, Indy, Driver, and Rally are requested at the same time, and each reply is spoken as it arrives. The list is in Settings. This needs the relay, which is not running here. | `OpenVision/Services/Brain/Companion.swift`, `OpenVision/Services/Brain/OwnAssistantService.swift`, `OpenVision/Views/Settings/SettingsView.swift` |
 | 6. Encrypted memory and photo memories, semantic search | **Partial.** Notes and an optional photo are sealed with AES-GCM. The key is in the Keychain. Search ranks on-device word vectors from `NLEmbedding`, which is a bag of words, not a photo embedding model. | `OpenVision/Services/Brain/Companion.swift` (`SecureNotes`), `OpenVision/Services/Brain/PhoenixFoxFeatures.swift` |

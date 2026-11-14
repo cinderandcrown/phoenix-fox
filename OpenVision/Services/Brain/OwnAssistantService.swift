@@ -164,8 +164,17 @@ final class OwnAssistantService: ObservableObject {
     /// Long-poll `/inbox` while the relay is configured. APNs, when the phone has a token,
     /// only wakes this same pull. Nothing is spoken if the relay is down.
     func startInbox() {
+        Task { await registerStoredDevice() }
         guard inboxTask == nil else { return }
         inboxTask = Task { await inboxLoop() }
+    }
+
+    /// Re-send the APNs token after the relay address is saved. Registration at launch
+    /// no-ops when Settings is still empty.
+    func registerStoredDevice() async {
+        guard let token = UserDefaults.standard.string(forKey: PhoenixPushDelegate.storedTokenDefaultsKey),
+              !token.isEmpty else { return }
+        await registerDevice(token)
     }
 
     func registerDevice(_ token: String) async {

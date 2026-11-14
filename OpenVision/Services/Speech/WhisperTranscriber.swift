@@ -18,7 +18,7 @@ final class WhisperTranscriber {
     static let shared = WhisperTranscriber()
 
     private var pipe: WhisperKit?
-    private var loading: Task<WhisperKit?, Never>?
+    private var loading: Task<Void, Never>?
 
     private init() {
         loading = Task { await self.load() }
@@ -32,8 +32,8 @@ final class WhisperTranscriber {
 
     private func transcribe(samples: [Float], sampleRate: Double) async -> String? {
         guard samples.count > 1600 else { return nil }
-        let kit = pipe ?? await loading?.value
-        guard let kit else { return nil }
+        await loading?.value
+        guard let kit = pipe else { return nil }
         let audio = Self.resample(samples, from: sampleRate, to: 16_000)
         let results = await kit.transcribe(audioArrays: [audio])
         let text = (results.first ?? nil)?.map(\.text).joined(separator: " ")
@@ -41,7 +41,7 @@ final class WhisperTranscriber {
         return text.isEmpty ? nil : text
     }
 
-    private func load() async -> WhisperKit? {
+    private func load() async {
         let config = WhisperKitConfig(
             model: "base",
             verbose: false,
@@ -50,12 +50,9 @@ final class WhisperTranscriber {
             download: true
         )
         do {
-            let kit = try await WhisperKit(config)
-            pipe = kit
-            return kit
+            pipe = try await WhisperKit(config)
         } catch {
             GlassesLink.shared.record("Whisper unavailable, using Apple speech: \(error.localizedDescription)")
-            return nil
         }
     }
 

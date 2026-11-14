@@ -25,6 +25,12 @@ extension OpenAIService: AIBackend {
 extension GrokService: AIBackend {
     var backendType: AIBackendType { .grok }
     var supportsImageInput: Bool { true }
+
+    /// The class method takes an optional system prompt. The protocol witness does not,
+    /// and an extra parameter is not a match.
+    func sendMessage(_ text: String, imageData: Data?) async throws {
+        try await sendMessage(text, imageData: imageData, system: nil)
+    }
 }
 
 extension ClaudeService: AIBackend {

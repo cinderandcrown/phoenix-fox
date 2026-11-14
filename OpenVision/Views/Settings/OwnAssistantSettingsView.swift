@@ -50,6 +50,7 @@ struct OwnAssistantSettingsView: View {
         .onDisappear {
             settingsManager.settings.relayURL = url.trimmingCharacters(in: .whitespacesAndNewlines)
             settingsManager.settings.relayToken = token.trimmingCharacters(in: .whitespacesAndNewlines)
+            Task { await OwnAssistantService.shared.registerStoredDevice() }
         }
     }
 }

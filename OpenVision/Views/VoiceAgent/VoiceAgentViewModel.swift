@@ -182,6 +182,57 @@ final class VoiceAgentViewModel: ObservableObject {
                 self.sessionRecorder.stop()
             }
         }
+        // Glasses input slot. Adventurer does not open an input session, so these stay quiet
+        // there. Display glasses and a Neural Band post the same names; this is the only listener.
+        NotificationCenter.default.addObserver(forName: .jarvisVoiceLaunch, object: nil, queue: .main) { [weak self] _ in
+            Task { @MainActor in self?.wakeFromGlasses() }
+        }
+        NotificationCenter.default.addObserver(forName: .jarvisTalk, object: nil, queue: .main) { [weak self] _ in
+            Task { @MainActor in self?.wakeFromGlasses() }
+        }
+        NotificationCenter.default.addObserver(forName: .jarvisLook, object: nil, queue: .main) { [weak self] _ in
+            Task { @MainActor in self?.acceptExternalCommand("What do you see?") }
+        }
+        NotificationCenter.default.addObserver(forName: .jarvisNote, object: nil, queue: .main) { [weak self] _ in
+            Task { @MainActor in self?.acceptExternalCommand("Remember what you see") }
+        }
+        NotificationCenter.default.addObserver(forName: .jarvisGlassesTranscript, object: nil, queue: .main) { [weak self] note in
+            let text = note.object as? String ?? ""
+            Task { @MainActor in
+                guard !text.isEmpty else { return }
+                self?.acceptExternalCommand(text)
+            }
+        }
+    }
+
+    /// Hey Meta launched the app, or a temple / band tap asked to talk. The hardware wake word
+    /// stays Meta's. This only opens the Jarvis conversation on the phone.
+    private func wakeFromGlasses() {
+        startWakeWordListening()
+        if !isSessionActive && settingsManager.settings.isCurrentBackendConfigured {
+            startSession()
+        }
+        voiceCommandService.enterConversationMode()
+    }
+
+    /// A gesture or on-glasses transcript, run through the same turn as a spoken command.
+    func acceptExternalCommand(_ text: String) {
+        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+        guard settingsManager.settings.isCurrentBackendConfigured else {
+            errorMessage = "Add the relay address and token in Settings."
+            ttsService.speak("Add the relay address and token in Settings, then try again.")
+            return
+        }
+        if !isSessionActive { startSession() }
+        guard isSessionActive else { return }
+        let cleaned = DictationCleanup.clean(trimmed)
+        userTranscript = cleaned
+        commandTurnActive = true
+        pendingHeard = HeardTurn(transcript: trimmed, cleaned: cleaned)
+        ConversationManager.shared.addUserMessage(cleaned)
+        historyAwaitingReply = true
+        Task { await self.sendCommand(cleaned) }
     }
 
     // MARK: - Observed state changes (forwarded from the view's onChange hooks)
@@ -675,6 +726,9 @@ final class VoiceAgentViewModel: ObservableObject {
             // This prevents processing stale commands after session ends
             guard self.isSessionActive else {
                 print("[VoiceAgent] Ignoring command - session not active")
+                if !self.settingsManager.settings.isCurrentBackendConfigured {
+                    self.ttsService.speak("Add the relay address and token in Settings, then say Jarvis again.")
+                }
                 return
             }
 
@@ -1126,14 +1180,15 @@ final class VoiceAgentViewModel: ObservableObject {
                 return ImageBudget.jpeg(frame)
             },
             speakFiller: { [weak self] text in
-                self?.ttsService.speak(text)
+                CompanionSurface.present(bot: nil, text: text) { spoken in
+                    self?.ttsService.speak(spoken)
+                }
             },
             speak: { [weak self] text, from, always in
                 guard let self else { return }
                 let line = AssistantRoster.spoken(text: text, fromBot: from, bots: self.settingsManager.settings.assistantBots, alwaysName: always)
-                self.speakResponse(line.text)
-                if self.glassesLinkDisplay {
-                    GlassesHUD.shared.presentReply(bot: from ?? "Fire Fox", text: text)
+                CompanionSurface.present(bot: from, text: text) { _ in
+                    self.speakResponse(line.text)
                 }
             }
         )
@@ -1141,8 +1196,6 @@ final class VoiceAgentViewModel: ObservableObject {
             agentState = isSessionActive ? .listening : .idle
         }
     }
-
-    private var glassesLinkDisplay: Bool { GlassesLink.shared.displayCapable }
 
     // MARK: - Live Video Mode
 

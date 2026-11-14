@@ -1,20 +1,37 @@
 # Phoenix Fox setup
 
-Phoenix Fox is the name on the phone and on the App Store. **Jarvis** is only the wake word. The Xcode scheme is PhoenixFox. The source folder is still `OpenVision/` because that is the MIT project this build starts from.
+Phoenix Fox is the name on the phone and on the App Store. **Jarvis** is only the wake word. You do not need a Mac. GitHub Actions is the compiler. TestFlight installs the app on the iPhone.
 
-You do not need a Mac. GitHub Actions builds the app. TestFlight installs it on the iPhone.
+The v1 test is Meta Glasses Adventurer: displayless, camera, mic, and speaker. Meta Ray-Ban Display and the Neural Band are in the code and stay idle until the glasses report a display.
 
-## Secrets the owner still has to add
+## What you do on the iPhone
 
-Open the GitHub repository, then **Settings → Secrets and variables → Actions → New repository secret**. Create one secret per row. Do not paste any of these into chat or into a file that gets committed.
+Do these in order. The glasses steps need the Meta AI app. The Phoenix Fox steps need a TestFlight build, which waits on the secrets below.
+
+1. Install **Meta AI** from the App Store and sign in with the account that owns the glasses.
+2. In Meta AI, open **Settings → About** and tap the version number 5 times. Turn **Developer Mode** on. Pair the Adventurer glasses in Meta AI the way you normally would. The hardware light is Meta's. Phoenix Fox never turns it off.
+3. Add the GitHub Actions secrets in the table below. The next push to `main` uploads a build. Until every secret exists, the TestFlight workflow runs and skips. That skip is success, not a failure.
+4. Install **TestFlight**, accept the Phoenix Fox invite, and install the build. Allow microphone, speech recognition, camera, photos, notifications, and contacts when the app asks. Bluetooth is for the glasses.
+5. The app opens Meta AI to finish Wearables registration. Come back when Meta AI returns. The callback scheme is `phoenixfox`. If registration never finishes, the client token or the Meta release channel for app id `1651172483404286` is wrong. Developer Mode has to stay on.
+6. Settings → Assistants: paste the relay URL (`https://…`) and the relay token. They stay on the phone. They are not GitHub secrets. Leave this screen so the app can register for push.
+7. Put the glasses on. The phone should show them connected. Say **Jarvis**. You should hear the wake chime, then say **what time is it**. The reply is spoken from the phone, with no model call. If the reply comes from the phone earpiece, the glasses are not the audio route yet. Leave the Meta AI audio connection up and try again.
+8. Say **Jarvis, ask Indy about the gate**. The app says it is on it, then speaks Indy's reply. That needs the worker from `relay/` deployed with the same token. Deploy steps are in [docs/RELAY_API.md](docs/RELAY_API.md).
+9. Say **Jarvis, what do you see?** The glasses light comes on, one frame is taken, the light goes off, and you hear the answer. If the light never comes on, the camera permission inside Meta's registration was denied. Nothing is recorded unless you ask.
+10. From another machine, `POST /push` an urgent line as Driver. The phone should speak it. Low priority lines wait for the morning brief. If push is silent, the inbox long-poll still delivers the line while the app is open. Check that `APNS_USE_SANDBOX` is `false` for this TestFlight build.
+
+Say **Jarvis stop** to end the turn. The orange mic indicator is iOS. It stays while Jarvis is listening. That is required, not a hidden recording.
+
+## Secrets
+
+Open the GitHub repository, then **Settings → Secrets and variables → Actions → New repository secret**. One secret per row. Do not paste any of these into chat or into a committed file.
 
 | Secret | What it is | Where to copy it |
 | --- | --- | --- |
-| `APPLE_TEAM_ID` | 10-character Team ID | [developer.apple.com/account](https://developer.apple.com/account) → Membership details. The individual Apple Developer Program is purchased and still processing, so this appears only after Apple emails that the membership is active. |
-| `ASC_KEY_ID` | App Store Connect API key id | [App Store Connect](https://appstoreconnect.apple.com) → Users and Access → Integrations → App Store Connect API → the key's Key ID. Available once the membership is active. |
-| `ASC_ISSUER_ID` | Issuer ID above the keys list | Same App Store Connect API page, the Issuer ID at the top. |
-| `ASC_KEY_P8` | The private key file | Generated once when you click **Generate** on that page. Download `AuthKey_XXXX.p8` and paste the whole file, including the BEGIN and END lines. Apple will not show it again. |
-| `META_CLIENT_TOKEN` | Wearables client token | [Wearables Developer Center](https://wearables.developer.meta.com/) → organization **Cinder and Crown LLC** → project **Phoenix Fox** → the client token. It looks like `AR\|1651172483404286\|…`. |
+| `APPLE_TEAM_ID` | 10-character Team ID | [developer.apple.com/account](https://developer.apple.com/account) → Membership details. It appears after Apple says the membership is active. |
+| `ASC_KEY_ID` | App Store Connect API key id | [App Store Connect](https://appstoreconnect.apple.com) → Users and Access → Integrations → App Store Connect API. |
+| `ASC_ISSUER_ID` | Issuer ID above the keys list | Same page. |
+| `ASC_KEY_P8` | The private key file | Generated once. Paste the whole `AuthKey_XXXX.p8`, including the BEGIN and END lines. Apple will not show it again. |
+| `META_CLIENT_TOKEN` | Wearables client token | [Wearables Developer Center](https://wearables.developer.meta.com/) → Cinder and Crown LLC → Phoenix Fox. It looks like `AR\|1651172483404286\|…`. |
 
 These are not secrets and are already in the app:
 
@@ -23,447 +40,40 @@ These are not secrets and are already in the app:
 | Meta App ID `1651172483404286` | Info.plist `MWDAT` → `MetaAppID` |
 | Bundle ID `com.cinderandcrown.phoenixfox` | The Xcode target |
 | App name Phoenix Fox | Home screen and App Store |
+| URL scheme `phoenixfox` | The Meta registration callback |
 
-Until `APPLE_TEAM_ID` exists, the TestFlight workflow runs and skips the upload. The simulator compile does not need any secret.
+The simulator compile does not need any secret. Debug builds use the development push environment. The TestFlight archive uses production push. The worker's `APNS_USE_SANDBOX` is `false` for that archive. Set it to `true` only if you later install a development-signed build from Xcode.
 
-After a successful upload, install **TestFlight** from the App Store on the iPhone and accept the Phoenix Fox build. Developer Mode on the glasses still pairs through the Meta AI app. The callback scheme is `phoenixfox`.
+## Relay and push
 
-In the app, Settings → Assistants: enter the relay URL and the relay token. Those stay on the phone. They are not GitHub secrets.
-
-The rest of this page is the upstream OpenVision developer guide. Prefer the table above.
-
-> ## Read this first: you must build from source
->
-> Meta's Wearables Device Access Toolkit — the SDK that lets any app talk to Ray-Ban Meta
-> glasses — is in **developer preview**. Meta's own FAQ: *"Publishing is currently not available
-> during the Developer Preview phase."* Builds can only be shared through **invite-only release
-> channels, capped at 100 testers**, and only select partners may publish to the public.
->
-> So there is **no App Store build, no TestFlight, and no downloadable IPA** — not because of
-> Apple, but because glasses features would be dead for anyone outside the developer's own Meta
-> release channel. Building it yourself sidesteps that entirely: you register your own Meta app
-> and are your own developer, so you never need an invite from anyone.
->
-> What you need: a **Mac**, an **iPhone**, and a free **Meta developer account**. An Apple
-> Developer account is free too. The glasses are optional — the iPhone camera works as a fallback.
-
-## Prerequisites
-
-### Required
-- **Mac** with macOS 13.0 (Ventura) or later
-- **Xcode 15.0** or later
-- **iOS device** running iOS 16.0+ (simulator doesn't support Bluetooth)
-- **Apple Developer Account** (free or paid)
-- **[XcodeGen](https://github.com/yonaskolb/XcodeGen)** — `brew install xcodegen`. The Xcode
-  project is generated from `project.yml`; re-run `xcodegen generate` after adding or removing files
-- **Metal Toolchain** — `xcodebuild -downloadComponent MetalToolchain` (~688 MB, one-time).
-  Recent Xcode versions ship without a Metal compiler, and the on-device AI runtime compiles its
-  own Metal shaders. Skip this and the build fails with *"cannot execute tool 'metal'"*
-
-### Optional
-- **Meta Ray-Ban smart glasses** - For glasses integration (iPhone camera works as fallback)
-- **OpenClaw instance** - For OpenClaw AI backend
-- **Gemini API key** - For Gemini Live AI backend
-
----
-
-## Step 1: Clone the Repository
+The worker is not deployed by this repo. From `relay/`, after `npm install`:
 
 ```bash
-git clone https://github.com/rayl15/OpenVision.git
-cd OpenVision
+npx wrangler secret put RELAY_TOKEN
+npx wrangler secret put APNS_KEY_ID
+npx wrangler secret put APPLE_TEAM_ID
+npx wrangler secret put APNS_KEY_P8
+npx wrangler deploy
 ```
 
----
+`APNS_KEY_P8` is the same kind of `.p8` as the App Store Connect key, but it is the **Apple Push Notifications** key (Apple Developer → Keys), not the App Store Connect API key. The topic is `com.cinderandcrown.phoenixfox`.
 
-## Step 2: Configure Build Settings
+Put the worker URL and the same `RELAY_TOKEN` into Settings → Assistants.
 
-### 2.1 Create Config.xcconfig
+## What v1 is supposed to do
 
-```bash
-cp Config.xcconfig.example Config.xcconfig
-```
+| You say | What should happen |
+| --- | --- |
+| Jarvis | Wake chime. The session starts if the relay is saved. |
+| what time is it / what's the date / battery | Spoken on the phone. No model. |
+| ask Indy about … | Relay ask with `target_bot` Indy, then Indy's reply spoken. |
+| what do you see | Camera light on, one frame, light off, spoken answer. |
+| take a picture | Still saved to Photos. Light on for the shot. |
+| remember this | Encrypted note on the phone. |
+| A push from Driver | Spoken if urgent or normal. Low waits for the morning brief. |
 
-Edit `Config.xcconfig` with your values:
+If the relay is empty, Jarvis tells you to add it. Commands are not dropped in silence.
 
-```
-// Your development team ID (from developer.apple.com)
-DEVELOPMENT_TEAM = XXXXXXXXXX
+## If you later have a Mac
 
-// Unique bundle identifier for your app
-PRODUCT_BUNDLE_IDENTIFIER = com.yourname.openvision
-
-// Meta App ID from developer.meta.com (required for glasses)
-META_APP_ID = your_meta_app_id_here
-```
-
-### 2.2 Create Config.swift
-
-```bash
-cp OpenVision/Config/Config.swift.example OpenVision/Config/Config.swift
-```
-
-This file can contain default API keys (optional - users can also enter them in-app):
-
-```swift
-enum Config {
-    // Leave empty if users will enter in Settings
-    static let defaultOpenClawURL = ""
-    static let defaultOpenClawToken = ""
-    static let defaultGeminiAPIKey = ""
-}
-```
-
-### 2.3 Get Your Development Team ID
-
-1. Open Xcode
-2. Go to **Xcode → Settings → Accounts**
-3. Sign in with your Apple ID
-4. Click your team name
-5. Your Team ID is shown (10 characters)
-
-### 2.4 Get Your Meta App ID and Client Token (For Glasses)
-
-If you want to use Meta Ray-Ban glasses:
-
-1. Go to [wearables.developer.meta.com](https://wearables.developer.meta.com/)
-2. Create an account, an organization, and an app
-3. Add the **Meta Wearables** product
-4. Copy your **App ID** and **Client Token** from the dashboard
-5. Add both to `Config.xcconfig`, along with a URL scheme:
-
-```
-META_APP_ID = 1234567890
-CLIENT_TOKEN = AR|1234567890|your_client_token_hash
-APP_LINK_URL_SCHEME = openvision
-```
-
-`CLIENT_TOKEN` needs the **full `AR|<app id>|<hash>` form**, not just the hash.
-
-> **Leaving these as placeholders has a confusing symptom.** The app builds and launches fine,
-> but glasses registration never completes — and because the camera permission prompt sits behind
-> registration, Connect just appears to do nothing rather than reporting a credentials error.
-
-### 2.5 Enable Developer Mode in the Meta AI app
-
-**Required** — glasses will not register without it:
-
-1. Open the **Meta AI** app on your iPhone
-2. Go to **Settings → About**
-3. Tap the **version number 5 times**
-4. Toggle **Developer Mode** on
-
-**Note:** You can skip 2.4 and 2.5 if testing with the iPhone camera only.
-
----
-
-## Step 3: Add Meta DAT SDK
-
-The Meta Wearables Device Access Toolkit (DAT) SDK is required for glasses integration.
-
-**Nothing to do — this is already wired up.** `project.yml` declares the SDK
-(`https://github.com/facebook/meta-wearables-dat-ios`, pinned to `0.4.0`) and pulls in
-`MWDATCore` + `MWDATCamera`, so `xcodegen generate` and a build resolve it for you.
-
-> The pin is deliberate: 0.6.0 made `StreamSession.init` inaccessible and 0.7.0 renamed the
-> type outright. Don't float it without updating `GlassesManager`.
-
----
-
-## Step 4: Configure Capabilities
-
-In Xcode, select your target and go to **Signing & Capabilities**:
-
-### Required Capabilities
-
-1. **Background Modes**
-   - Audio, AirPlay, and Picture in Picture
-   - Background fetch
-   - Background processing
-
-2. **App Groups** (optional, for sharing data)
-
-### Info.plist Keys
-
-Add these to your `Info.plist`:
-
-```xml
-<!-- Microphone access for voice input -->
-<key>NSMicrophoneUsageDescription</key>
-<string>OpenVision needs microphone access for voice conversations with AI.</string>
-
-<!-- Camera access for photo capture -->
-<key>NSCameraUsageDescription</key>
-<string>OpenVision uses the camera to capture photos for AI analysis.</string>
-
-<!-- Speech recognition for wake word -->
-<key>NSSpeechRecognitionUsageDescription</key>
-<string>OpenVision uses speech recognition to detect your wake word and voice commands.</string>
-
-<!-- Bluetooth for glasses connection -->
-<key>NSBluetoothAlwaysUsageDescription</key>
-<string>OpenVision connects to Meta Ray-Ban glasses via Bluetooth.</string>
-
-<!-- Meta Wearables callback URL scheme -->
-<key>CFBundleURLTypes</key>
-<array>
-    <dict>
-        <key>CFBundleURLSchemes</key>
-        <array>
-            <string>openvision</string>
-        </array>
-    </dict>
-</array>
-```
-
----
-
-## Step 5: Build and Run
-
-### In Xcode
-
-1. Generate the project: `xcodegen generate` (re-run whenever files are added or removed)
-2. Connect your iOS device via USB and **unlock it**
-3. Select your device as the run destination
-4. Press **Cmd+R** to build and run
-5. Trust the developer certificate on your device if prompted:
-   - Go to **Settings → General → VPN & Device Management**
-   - Tap your developer certificate and trust it
-   - You must do this again after switching Xcode versions — the certificate changes, and until
-     it's trusted the app installs but refuses to launch
-
-### From the command line
-
-```bash
-xcodegen generate
-
-xcodebuild -scheme OpenVision -project OpenVision.xcodeproj -configuration Debug \
-  -destination 'id=<your-device-udid>' -derivedDataPath build/DerivedData \
-  -allowProvisioningUpdates -skipMacroValidation -skipPackagePluginValidation build
-
-xcrun devicectl device install app --device <your-device-udid> \
-  build/DerivedData/Build/Products/Debug-iphoneos/OpenVision.app
-```
-
-`xcrun devicectl list devices` prints your UDID.
-
-Both `-skipMacroValidation` and `-skipPackagePluginValidation` are required: the MLX packages
-ship a Swift macro and a build plugin, which Xcode's GUI trusts with a click but the CLI does not.
-
-**Run the tests** with the same flags: `xcodebuild test -scheme OpenVision -destination 'id=<udid>'`
-
-### Troubleshooting the build
-
-| Symptom | Cause |
-|---|---|
-| `cannot execute tool 'metal'` | Metal Toolchain not installed — see Prerequisites |
-| `Macro ... must be enabled` | Missing `-skipMacroValidation` |
-| `The developer disk image could not be mounted` | Device is **locked** (unlock and keep it awake), or your Xcode is older than the device's iOS — install a newer Xcode; `-downloadPlatform iOS` will *not* fix this |
-| `cannot find X in scope` after adding files | Run `xcodegen generate` |
-
----
-
-## Step 6: Configure AI Backend
-
-Once the app is running:
-
-### OpenClaw Setup
-
-1. Go to **Settings → AI Backend**
-2. Select **OpenClaw**
-3. Tap **OpenClaw Settings**
-4. Enter:
-   - **Gateway URL**: Your OpenClaw WebSocket URL (e.g., `wss://your-server.com:18789`)
-   - **Auth Token**: Your OpenClaw authentication token
-5. Tap **Test Connection** to verify
-
-### Gemini Live Setup
-
-1. Go to **Settings → AI Backend**
-2. Select **Gemini Live**
-3. Tap **Gemini Settings**
-4. Enter your [Gemini API key](https://aistudio.google.com/app/apikey)
-
-### Grok Setup
-
-1. Go to **Settings → AI Backend**
-2. Select **Grok**
-3. Tap **Grok Settings** and choose how to connect:
-   - **SuperGrok Subscription**: tap **Sign in with SuperGrok** and log in with your X/xAI account
-   - **API Key**: paste a key from [console.x.ai](https://console.x.ai)
-4. Pick a model (non-reasoning models answer fastest)
-
-To hear replies in a Grok voice, go to **Settings → Voice Control → Speech Engine**, choose
-**Grok (natural, cloud)**, and pick a voice. The ▶ next to each voice plays a sample. It uses
-the same sign-in or key as the backend.
-
-> SuperGrok sign-in works the way the Grok CLI signs in; requests then go to xAI's public API.
-
-### Hermes Setup
-
-OpenVision talks to your [Hermes Agent](https://github.com/NousResearch/hermes-agent) through
-its OpenAI-compatible API server. Hermes answers with its own tools, memory and skills; OpenVision
-asks for short spoken replies and sends photos from the glasses along with your question.
-
-On the machine running Hermes, add to `~/.hermes/.env`:
-
-```bash
-API_SERVER_ENABLED=true
-API_SERVER_KEY=<a long random secret>     # e.g. openssl rand -hex 32
-# Leave API_SERVER_HOST at its default (127.0.0.1) when using one of the options below.
-```
-
-Then restart `hermes gateway`. The API server listens on port 8642.
-
-> **The key gives full access to Hermes' tools, including terminal commands on that machine.**
-> Don't expose port 8642 to the internet as plain http. Pick one of:
-> - **Tailscale** (simplest): install it on the server and the iPhone, keep `API_SERVER_HOST` at
->   its default (`127.0.0.1`), and run `tailscale serve --bg 8642` on the server. Use the
->   `https://<server>.<tailnet>.ts.net` address it prints; only your own devices can reach it.
-> - **An https reverse proxy** (Caddy, nginx, Cloudflare Tunnel) in front of `127.0.0.1:8642`,
->   and use `https://hermes.example.com`.
-
-In OpenVision:
-
-1. Go to **Settings → AI Backend → Hermes Settings** and keep **Connect With: API Key**
-2. Enter the server address (add `/p/<profile>` for a named Hermes profile) and the `API_SERVER_KEY`
-3. Tap **Test Connection**, then select **Hermes** as the backend
-
-#### Or: sign in with the web UI's username and password
-
-If your Hermes web UI (`hermes dashboard`) is set up with a username and password, OpenVision
-can sign in to it instead and chat the way the Hermes Desktop app does:
-
-1. On the server, run the dashboard on a reachable address with the username/password provider
-   (see Hermes' [web dashboard guide](https://github.com/NousResearch/hermes-agent/blob/main/website/docs/user-guide/features/web-dashboard.md#usernamepassword-provider-no-oauth-idp)).
-   Hermes recommends this login only on a trusted network or VPN, so reach it over Tailscale or https.
-2. In OpenVision: **Hermes Settings → Connect With: Username & Password**, enter the web UI address,
-   and tap **Sign in to Hermes**. You log in on Hermes' own page; OpenVision keeps only the tokens.
-3. Select **Hermes** as the backend.
-
-Each OpenVision conversation (see History; a new one starts after a few quiet minutes or with +)
-is its own Hermes chat, titled by Hermes with an "OpenVision: " prefix so they're easy to find.
-
-Hermes' slash commands and skills work by voice: say "Ok Vision, slash usage", "slash title Trip
-planning", or a skill by name. Spoken names are matched to your server's commands and, for
-`/model`, to its model ids ("slash model GPT five point five" → `gpt-5.5`; a version number is
-never guessed). "slash new" starts a new chat.
-
-When Hermes asks for approval to run something, OpenVision reads the request aloud and you answer
-yes or no; its clarifying questions are answered by voice too. Requests for passwords, secrets or
-sudo are always declined. This mode uses the protocol of Hermes' own apps, which isn't a documented
-public API, so a Hermes update can break it; the API key mode is the stable option.
-
----
-
-## Step 7: Register Glasses (Optional)
-
-If you have Meta Ray-Ban glasses:
-
-1. Ensure glasses are paired with your iPhone via Bluetooth
-2. Go to **Settings → Glasses**
-3. Tap **Register with Meta AI**
-4. Follow the Meta AI app authentication flow
-5. Return to OpenVision when prompted
-6. Your glasses should now show as "Connected"
-
-### Troubleshooting Glasses
-
-- **Glasses not appearing**: Ensure Bluetooth is on and glasses are paired in iOS Settings
-- **Registration fails**: Check your Meta App ID in Config.xcconfig
-- **Streaming issues**: Try disconnecting and reconnecting the glasses
-
----
-
-## Step 8: Start Using OpenVision
-
-### OpenClaw Mode
-
-1. Tap the main orb button OR say **"Hey Vision"**
-2. Wait for "Listening..." status
-3. Speak your question or command
-4. AI responds via text-to-speech
-
-### Gemini Live Mode
-
-1. Tap the main orb button to start
-2. Just speak naturally (no wake word needed)
-3. AI responds with natural voice
-4. Video streams continuously from glasses
-
----
-
-## Testing Without Glasses
-
-OpenVision includes iPhone camera fallback for development:
-
-1. Go to **Settings → Glasses**
-2. Toggle **Use iPhone Camera** (if glasses aren't connected)
-3. Photo commands will use your iPhone's camera
-
----
-
-## Troubleshooting
-
-### Build Errors
-
-| Error | Solution |
-|-------|----------|
-| "Signing certificate not found" | Add your Apple ID in Xcode → Settings → Accounts |
-| "Missing package dependencies" | File → Packages → Resolve Package Versions |
-| "MWDATCore not found" | Add Meta DAT SDK via Swift Package Manager |
-| "Bundle identifier already in use" | Change PRODUCT_BUNDLE_IDENTIFIER in Config.xcconfig |
-
-### Runtime Errors
-
-| Error | Solution |
-|-------|----------|
-| "Microphone access denied" | Grant permission in iOS Settings → OpenVision |
-| "WebSocket connection failed" | Check your OpenClaw URL and network connection |
-| "Invalid API key" | Verify your Gemini API key in Settings |
-| "Wake word not working" | Grant speech recognition permission |
-
-### Connection Issues
-
-| Issue | Solution |
-|-------|----------|
-| OpenClaw disconnects frequently | Check network stability; auto-reconnect will retry 12 times |
-| Gemini audio choppy | Ensure stable WiFi connection |
-| Glasses not streaming | Toggle streaming off/on in Glasses settings |
-
----
-
-## Development Tips
-
-### Running on Simulator
-
-The iOS Simulator doesn't support:
-- Bluetooth (no glasses connection)
-- Some audio features
-
-Use a physical device for full testing.
-
-### Debug Logging
-
-Enable verbose logging in Xcode console:
-- Filter by `[OpenClaw]`, `[Gemini]`, `[Voice]`, `[Glasses]`
-
-### Hot Reloading Settings
-
-Settings changes are applied immediately without restart. WebSocket sessions receive updated configuration in real-time.
-
----
-
-## Getting Help
-
-- **GitHub Issues**: Report bugs or request features
-- **Discussions**: Ask questions and share tips
-- **CLAUDE.md**: Technical documentation for AI assistants
-
----
-
-## Next Steps
-
-- Read the [Contributing Guide](CONTRIBUTING.md) to contribute
-- Check out [OpenClaw](https://github.com/openclaw/openclaw) for tool development
-- Explore [Gemini Live API](https://ai.google.dev/gemini-api/docs/live-api) capabilities
+`project.yml` is the XcodeGen source. CI builds the committed `PhoenixFox.xcodeproj` and does not run XcodeGen. Copy `Config.xcconfig.example` to `Config.xcconfig` and `OpenVision/Config/Config.swift.example` to `OpenVision/Config/Config.swift` before a local build. Leave `META_CLIENT_TOKEN` out of git. The scheme is PhoenixFox. The source folder is still `OpenVision/` because that is the MIT project this build starts from.

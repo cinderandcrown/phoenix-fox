@@ -116,7 +116,7 @@ A bot that already collected the others can finish in one call:
 
 ## APNs
 
-Token auth, ES256. The `.p8` contents, the key id, and the Apple team id are secrets. The topic is `com.cinderandcrown.phoenixfox`. `APNS_USE_SANDBOX` defaults to `"true"` for TestFlight. Set it to `"false"` only for a production push environment.
+Token auth, ES256. The `.p8` contents, the key id, and the Apple team id are secrets. The topic is `com.cinderandcrown.phoenixfox`. TestFlight and the App Store use production APNs, so `APNS_USE_SANDBOX` is `"false"` in `wrangler.toml`. Set it to `"true"` only for a build installed from Xcode with a development provisioning profile. Urgent pushes include `content-available` so the phone wakes and speaks the inbox line. The banner is separate. The inbox is still the source of truth.
 
 Urgent pushes use an alert. Normal pushes are silent (`content-available`) so the phone pulls the inbox. The inbox is the source of truth. The push only wakes the app.
 

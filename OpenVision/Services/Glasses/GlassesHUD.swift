@@ -184,3 +184,32 @@ final class GlassesHUD {
         return Array(parts.prefix(5))
     }
 }
+
+/// One output path for a reply.
+///
+/// Speech always happens. That is the Adventurer path, and it is also the fallback when a
+/// display send fails. A lens card is added only when the paired glasses report a display,
+/// so Meta Ray-Ban Display uses this same call. Callers do not branch on hardware.
+@MainActor
+enum CompanionSurface {
+    static func present(
+        bot: String?,
+        text: String,
+        kind: HudCard.Kind = .reply,
+        speak: (String) -> Void
+    ) {
+        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+        speak(trimmed)
+        guard GlassesLink.shared.displayCapable else { return }
+        let name = (bot?.isEmpty == false ? bot : nil) ?? "Phoenix Fox"
+        switch kind {
+        case .reply:
+            GlassesHUD.shared.presentReply(bot: name, text: trimmed)
+        case .alert:
+            GlassesHUD.shared.presentAlert(bot: name, text: trimmed)
+        case .briefing:
+            GlassesHUD.shared.presentBriefing(bot: name, text: trimmed)
+        }
+    }
+}

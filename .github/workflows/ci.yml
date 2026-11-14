@@ -14,6 +14,9 @@ concurrency:
 
 env:
   DEVELOPER_DIR: /Applications/Xcode_26.6.app/Contents/Developer
+  # xcodebuild reads this the same way the Xcode defaults key does. Prebuilt
+  # swift-syntax has no iOS simulator slice, so macros must build from source.
+  IDEPackageEnablePrebuilts: "NO"
 
 jobs:
   build:
@@ -46,15 +49,18 @@ jobs:
         run: |
           defaults write com.apple.dt.Xcode IDEPackageEnablePrebuilts -bool NO
           rm -rf .spm/prebuilts
+          rm -rf "$HOME/Library/Caches/org.swift.swiftpm/prebuilts"
 
       - name: Build for simulator
         run: |
-          set -o pipefail
+          set +e
           xcodebuild build-for-testing \
             -project PhoenixFox.xcodeproj \
             -scheme PhoenixFox \
             -destination 'generic/platform=iOS Simulator' \
             -sdk iphonesimulator \
+            ARCHS=arm64 \
+            ONLY_ACTIVE_ARCH=YES \
             -clonedSourcePackagesDirPath .spm \
             -derivedDataPath DerivedData \
             -skipPackagePluginValidation \
@@ -63,7 +69,17 @@ jobs:
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGN_IDENTITY= \
             DEVELOPMENT_TEAM= \
-          | xcbeautify --renderer github-actions
+            > "$RUNNER_TEMP/xcodebuild.log" 2>&1
+          status=$?
+          set -e
+          xcbeautify --renderer github-actions < "$RUNNER_TEMP/xcodebuild.log" || true
+          if [ "$status" -ne 0 ]; then
+            exit "$status"
+          fi
+          if grep -E '/(OpenVision|OpenVisionTests)/[^:]+\.swift:[0-9]+:[0-9]+: warning:' "$RUNNER_TEMP/xcodebuild.log"; then
+            echo "::error::Phoenix Fox sources produced warnings. Strict concurrency is on. Fix the lines above."
+            exit 1
+          fi
 
       - name: Upload build log on failure
         if: failure()

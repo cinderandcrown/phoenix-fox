@@ -60,8 +60,10 @@ export async function deliverApns(env: RelayEnv, notice: PushNotice, deviceToken
   const host = env.APNS_USE_SANDBOX === "false" ? "api.push.apple.com" : "api.sandbox.push.apple.com";
   const token = await apnsJwt(env.APNS_KEY_P8, env.APNS_KEY_ID, env.APPLE_TEAM_ID, Math.floor(Date.now() / 1000));
   const urgent = notice.priority === "urgent";
+  // Urgent alerts also set content-available so a suspended app wakes and speaks the inbox.
+  // The banner is Apple's. The spoken line comes from the inbox pull, which is the source of truth.
   const body = urgent
-    ? { aps: { alert: { title: notice.from_bot, body: notice.text }, sound: "default" }, id: notice.id, from_bot: notice.from_bot, priority: notice.priority }
+    ? { aps: { alert: { title: notice.from_bot, body: notice.text }, sound: "default", "content-available": 1 }, id: notice.id, from_bot: notice.from_bot, priority: notice.priority }
     : { aps: { "content-available": 1 }, id: notice.id, from_bot: notice.from_bot, priority: notice.priority };
   const response = await fetch(`https://${host}/3/device/${deviceToken}`, {
     method: "POST",

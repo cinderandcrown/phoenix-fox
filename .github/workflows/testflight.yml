@@ -16,6 +16,7 @@ jobs:
     timeout-minutes: 120
     env:
       DEVELOPER_DIR: /Applications/Xcode_26.6.app/Contents/Developer
+      IDEPackageEnablePrebuilts: "NO"
     steps:
       - uses: actions/checkout@v7
 
@@ -63,6 +64,7 @@ jobs:
         run: |
           defaults write com.apple.dt.Xcode IDEPackageEnablePrebuilts -bool NO
           rm -rf .spm/prebuilts
+          rm -rf "$HOME/Library/Caches/org.swift.swiftpm/prebuilts"
 
       - name: Archive
         if: steps.gate.outputs.ready == 'true'

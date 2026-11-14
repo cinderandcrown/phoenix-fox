@@ -104,7 +104,10 @@ final class GlassesControlSession {
                 }
             }
             _ = stream.errorPublisher.listen { error in
-                GlassesLink.shared.record("Voice invocation: \(error.description)")
+                let message = error.description
+                Task { @MainActor in
+                    GlassesLink.shared.record("Voice invocation: \(message)")
+                }
             }
             try stream.start(deviceIdentifier: id)
             voice = stream
@@ -219,7 +222,9 @@ final class GlassesControlSession {
         session = nil
     }
 
-    private static func signal(from event: InputEvent) -> GestureSignal {
+    /// DAT 1.0.1 `InputEvent` cases all carry a source and a timestamp. Matching the bare
+    /// case name does not compile. This is the only place those associated values are read.
+    static func signal(from event: InputEvent) -> GestureSignal {
         let source: GestureSignal.Source
         switch event.source {
         case .captouch: source = .temple
@@ -231,7 +236,8 @@ final class GlassesControlSession {
         }
         let kind: GestureSignal.Kind
         switch event {
-        case .select: kind = .select
+        case .select(_, _):
+            kind = .select
         case .nav(let direction, _, _):
             switch direction {
             case .up: kind = .nav(.up)
@@ -239,8 +245,10 @@ final class GlassesControlSession {
             case .left: kind = .nav(.left)
             case .right: kind = .nav(.right)
             }
-        case .back: kind = .back
-        case .button: kind = .action
+        case .back(_, _):
+            kind = .back
+        case .button(_, _, _):
+            kind = .action
         case .capture(let press, _, _):
             switch press {
             case .shortPress: kind = .capture(.short)

@@ -12,6 +12,7 @@ import Contacts
 import CoreLocation
 import CryptoKit
 import Foundation
+import Security
 import MapKit
 import NaturalLanguage
 import SwiftUI
@@ -262,15 +263,16 @@ final class CompanionRuntime: ObservableObject {
 
     func notePush(text: String, from: String, priority: String) {
         let line = "\(from): \(text)"
-        if priority == "urgent" {
-            TTSService.shared.stop()
-            TTSService.shared.speak(line)
-        } else if priority == "low" {
-            GlassesMemory.remember("Later: \(line)")
-        } else if !TTSService.shared.isSpeaking {
-            TTSService.shared.speak(line)
-        }
         statusLine = line
+        if priority == "low" {
+            GlassesMemory.remember("Later: \(line)")
+            return
+        }
+        if priority != "urgent" && TTSService.shared.isSpeaking { return }
+        if priority == "urgent" { TTSService.shared.stop() }
+        CompanionSurface.present(bot: from, text: text, kind: priority == "urgent" ? .alert : .reply) { spoken in
+            TTSService.shared.speak("\(from): \(spoken)")
+        }
     }
 
     private func takeOver(_ request: String) async -> String {
@@ -709,6 +711,9 @@ final class PlaceReminders: NSObject, CLLocationManagerDelegate {
 /// Receives the APNs device token and a silent push. Delivery still depends on Apple's push
 /// capability and a key the owner has not added. The inbox long-poll is the path that works without it.
 final class PhoenixPushDelegate: NSObject, UIApplicationDelegate {
+    /// Device token, kept so a relay URL entered after launch can still register.
+    static let storedTokenDefaultsKey = "phoenix.apns.deviceToken"
+
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil) -> Bool {
         UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) { _, _ in
             DispatchQueue.main.async { application.registerForRemoteNotifications() }
@@ -718,10 +723,19 @@ final class PhoenixPushDelegate: NSObject, UIApplicationDelegate {
 
     func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
         let hex = deviceToken.map { String(format: "%02hhx", $0) }.joined()
+        UserDefaults.standard.set(hex, forKey: Self.storedTokenDefaultsKey)
         Task { await OwnAssistantService.shared.registerDevice(hex) }
     }
 
-    func application(_ application: UIApplication, didReceiveRemoteNotification userInfo: [AnyHashable: Any]) async -> UIBackgroundFetchResult {
+    func application(_ application: UIApplication, didFailToRegisterForRemoteNotificationsWithError error: Error) {
+        Task { @MainActor in
+            GlassesLink.shared.record("Push registration failed: \(error.localizedDescription)")
+        }
+    }
+
+    /// Nonisolated so the non-Sendable userInfo dictionary is not sent onto the main actor.
+    /// The payload is ignored. The inbox is the source of truth.
+    nonisolated func application(_ application: UIApplication, didReceiveRemoteNotification userInfo: [AnyHashable: Any]) async -> UIBackgroundFetchResult {
         await OwnAssistantService.shared.pullInboxOnce()
         return .newData
     }

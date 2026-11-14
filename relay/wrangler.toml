@@ -11,8 +11,9 @@ enabled = true
 
 [vars]
 APNS_BUNDLE_ID = "com.cinderandcrown.phoenixfox"
-# TestFlight and developer builds use the sandbox push host. Set this to "false" for a store build.
-APNS_USE_SANDBOX = "true"
+# TestFlight and App Store builds use production APNs (aps-environment production).
+# Set this to "true" only for an app installed from Xcode with a development profile.
+APNS_USE_SANDBOX = "false"
 
 # RELAY_TOKEN, APNS_KEY_P8, APNS_KEY_ID, and APPLE_TEAM_ID are wrangler secrets.
 # They are not written here.

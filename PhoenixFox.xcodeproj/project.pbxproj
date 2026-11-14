@@ -82,6 +82,7 @@
 		8BB3557D9BE4E9F2399BDBC1 /* VoiceAgentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 601D21AA8114E457F40C6C4A /* VoiceAgentView.swift */; };
 		91FCB6DAB24AAC4CC4CA9A47 /* GrokSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 179C0876BB1891478A806702 /* GrokSettingsView.swift */; };
 		9A7811CF026E8DF74F74C2A2 /* FrameChangeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B88E1A3CDAF6C7B3D7DF36FE /* FrameChangeTests.swift */; };
+		V1PTH1000000000000000001 /* V1PathTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = V1PTH2000000000000000002 /* V1PathTests.swift */; };
 		9AEDCA81BAF5BD24871A0ACB /* OAuthLoopbackServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = D24498E2857EF4ECE30EC011 /* OAuthLoopbackServer.swift */; };
 		9B82497FDA3685AA8B96A7CF /* ChatGPTSubscription.swift in Sources */ = {isa = PBXBuildFile; fileRef = C6625D7D26F2BE670A31997A /* ChatGPTSubscription.swift */; };
 		9C57BDC2BF482048DD9EDEBD /* TelemetrySettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5CF73163E29BE05564C2F719 /* TelemetrySettingsView.swift */; };
@@ -239,6 +240,7 @@
 		B2B78D6C28BEFF1F8426997C /* AudioCaptureService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioCaptureService.swift; sourceTree = "<group>"; };
 		B2FD4A9B156D92B468B28864 /* AppSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSettings.swift; sourceTree = "<group>"; };
 		B88E1A3CDAF6C7B3D7DF36FE /* FrameChangeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FrameChangeTests.swift; sourceTree = "<group>"; };
+		V1PTH2000000000000000002 /* V1PathTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = V1PathTests.swift; sourceTree = "<group>"; };
 		BDBE980F673E3077B58977E5 /* AppleNativeTools.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleNativeTools.swift; sourceTree = "<group>"; };
 		BE4D7E31C137C29246EB9281 /* NativeToolSupportTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativeToolSupportTests.swift; sourceTree = "<group>"; };
 		BE848862D72446F7BBDD3D89 /* KokoroTTSService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KokoroTTSService.swift; sourceTree = "<group>"; };
@@ -721,6 +723,7 @@
 			children = (
 				39552315579536D518404FED /* DocumentChunkingTests.swift */,
 				B88E1A3CDAF6C7B3D7DF36FE /* FrameChangeTests.swift */,
+				V1PTH2000000000000000002 /* V1PathTests.swift */,
 				3A5609ACD2D7FE78F322E775 /* GrokTests.swift */,
 				A2D0406DCB5F627611BBD2B4 /* SettingsSecretsTests.swift */,
 				5D73C5CCFE6382A4B4234D4A /* CloudTTSFallbackTests.swift */,
@@ -951,6 +954,7 @@
 			files = (
 				E9628B20FB4654FBBFC61EF9 /* DocumentChunkingTests.swift in Sources */,
 				9A7811CF026E8DF74F74C2A2 /* FrameChangeTests.swift in Sources */,
+				V1PTH1000000000000000001 /* V1PathTests.swift in Sources */,
 				41DD47E61F53A95E861466C1 /* GrokTests.swift in Sources */,
 				F999D96ED7C879D8C3826786 /* SettingsSecretsTests.swift in Sources */,
 				8A6467FB1A9E725FBEF8B262 /* CloudTTSFallbackTests.swift in Sources */,
@@ -1098,6 +1102,7 @@
 		00287CBDEB7CFD087BF2824B /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				APS_ENVIRONMENT = production;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = OpenVision/OpenVision.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
@@ -1184,6 +1189,7 @@
 				SDKROOT = iphoneos;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_STRICT_CONCURRENCY = complete;
 				SWIFT_VERSION = 5.9;
 			};
 			name = Debug;
@@ -1191,6 +1197,7 @@
 		E7B1CE542521A664F8D122A2 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				APS_ENVIRONMENT = development;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = OpenVision/OpenVision.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
@@ -1302,6 +1309,7 @@
 				SDKROOT = iphoneos;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_STRICT_CONCURRENCY = complete;
 				SWIFT_VERSION = 5.9;
 			};
 			name = Release;
