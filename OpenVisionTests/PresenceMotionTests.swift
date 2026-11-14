@@ -33,6 +33,22 @@ final class WornPostureTests: XCTestCase {
             ) ?? context
         }
         XCTAssertEqual(context?.posture, .lookingDown)
+        XCTAssertLessThan(context?.pitchDegrees ?? 0, 0)
+    }
+
+    func testLookingUpSettles() {
+        var tracker = WornPostureTracker()
+        // Tip back: more gravity on +Z.
+        let accel = Vector(x: 0, y: -6, z: 7)
+        var context: WornPostureContext?
+        for step in 0..<30 {
+            context = tracker.take(
+                HeadMotion(time: Double(step) / 30, turning: .zero, acceleration: accel),
+                worn: true
+            ) ?? context
+        }
+        XCTAssertEqual(context?.posture, .lookingUp)
+        XCTAssertGreaterThan(context?.pitchDegrees ?? 0, 0)
     }
 
     func testDoffClearsPosture() {

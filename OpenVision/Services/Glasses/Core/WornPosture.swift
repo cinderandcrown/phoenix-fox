@@ -93,8 +93,9 @@ struct WornPostureTracker: Sendable {
         let down = unit
         let horizontal = (down.x * down.x + down.z * down.z).squareRoot()
         guard horizontal > 0.05 || abs(down.y) > 0.05 else { return nil }
-        // Looking down increases the share of gravity on the forward axis.
-        let pitchRad = atan2(-down.z, -down.y)
+        // Tip-forward (looking down) puts more gravity on −Z → negative pitch.
+        // atan2(down.z, −down.y): level gravity (0,−1,0) → 0°; tip-forward z<0 → chin down.
+        let pitchRad = atan2(down.z, -down.y)
         return pitchRad * 180 / .pi
     }
 }
