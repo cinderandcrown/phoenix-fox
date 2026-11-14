@@ -1,7 +1,9 @@
 // OpenVision - CloudTTSFallbackTests.swift
 // A cloud-voice sentence that fails is spoken in the Apple voice, in its place in the reply (#62).
-// Uses a fake provider that returns short silent WAV clips and fails chosen sentences; the audio
-// really plays, so these run on a device or simulator with audio output.
+// Uses a fake provider that returns short silent WAV clips and fails chosen sentences. The cloud
+// clips really play, so these run on a device or simulator with audio output. The Apple voice
+// is replaced by a stand-in: on a CI simulator the system synthesizer may never report that it
+// finished, and every sentence would then wait out its five-second deadline.
 
 import XCTest
 @testable import PhoenixFox
@@ -19,7 +21,7 @@ final class CloudTTSFallbackTests: XCTestCase {
 
     func testAppleSentenceWaitsForTheCloudClipBeforeIt() async throws {
         // Sentence one plays for a full second; the Apple voice must not start over it.
-        let service = CloudTTSService(provider: Self.fakeProvider(failing: ["two"], clipSeconds: 1.0))
+        let service = CloudTTSService(provider: Self.fakeProvider(failing: ["two"], clipSeconds: 1.0), fallback: QuickSpeaker())
         var starts: [(sentence: String, apple: Bool, at: Date)] = []
         service.onSentenceStarted = { starts.append(($0, $1, Date())) }
         await service.speak("Sentence one. Sentence two.")
@@ -37,14 +39,22 @@ final class CloudTTSFallbackTests: XCTestCase {
 
     func testAfterTwoFailuresTheCloudIsNotAskedAgain() async throws {
         let requests = RequestLog()
-        let service = CloudTTSService(provider: Self.fakeProvider(failing: ["two", "three"], log: requests))
+        let service = CloudTTSService(provider: Self.fakeProvider(failing: ["two", "three"], log: requests), fallback: QuickSpeaker())
         await service.speak("One. Sentence two. Sentence three. Four. Five. Six.")
         try await waitUntilQuiet(service)
         XCTAssertFalse(requests.texts.contains("Six."), "sentence six was never sent: \(requests.texts)")
     }
 
+    func testEachFailedSentenceIsHandedToTheFallbackOnce() async throws {
+        let speaker = QuickSpeaker()
+        let service = CloudTTSService(provider: Self.fakeProvider(failing: ["two", "three"]), fallback: speaker)
+        await service.speak(reply)
+        try await waitUntilQuiet(service)
+        XCTAssertEqual(speaker.spoken, ["Sentence two.", "Sentence three.", "Sentence four."])
+    }
+
     func testStopDuringTheFallbackStopsEverything() async throws {
-        let service = CloudTTSService(provider: Self.fakeProvider(failing: ["two"]))
+        let service = CloudTTSService(provider: Self.fakeProvider(failing: ["two"]), fallback: QuickSpeaker())
         var events: [(String, Bool)] = []
         service.onSentenceStarted = { sentence, apple in
             events.append((sentence, apple))
@@ -59,7 +69,7 @@ final class CloudTTSFallbackTests: XCTestCase {
     }
 
     func testVoicePreviewDoesNotFallBack() async throws {
-        let service = CloudTTSService(provider: Self.fakeProvider(failing: ["one"]))
+        let service = CloudTTSService(provider: Self.fakeProvider(failing: ["one"]), fallback: QuickSpeaker())
         var events: [(String, Bool)] = []
         service.onSentenceStarted = { events.append(($0, $1)) }
         await service.speak("Sentence one.", voice: "test")
@@ -77,7 +87,7 @@ final class CloudTTSFallbackTests: XCTestCase {
     // MARK: - Helpers
 
     private func play(_ text: String, failing: Set<String>) async throws -> [(String, Bool)] {
-        let service = CloudTTSService(provider: Self.fakeProvider(failing: failing))
+        let service = CloudTTSService(provider: Self.fakeProvider(failing: failing), fallback: QuickSpeaker())
         var events: [(String, Bool)] = []
         service.onSentenceStarted = { events.append(($0, $1)) }
         await service.speak(text)
@@ -90,6 +100,26 @@ final class CloudTTSFallbackTests: XCTestCase {
         while service.isSpeaking {
             guard Date() < deadline else { return XCTFail("still speaking after \(timeout)s") }
             try await Task.sleep(for: .milliseconds(50))
+        }
+    }
+
+    /// Stands in for the Apple voice. Each sentence takes a tenth of a second, or less if stopped.
+    @MainActor private final class QuickSpeaker: FallbackSpeaking {
+        private(set) var spoken: [String] = []
+        private var current: Task<Void, Never>?
+        var utterances: Int { spoken.count }
+
+        func speak(_ sentence: String) async {
+            stop()
+            spoken.append(sentence)
+            let speaking = Task { _ = try? await Task.sleep(for: .milliseconds(100)) }
+            current = speaking
+            await speaking.value
+        }
+
+        func stop() {
+            current?.cancel()
+            current = nil
         }
     }
 

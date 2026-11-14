@@ -51,7 +51,7 @@ final class CloudTTSService: ObservableObject {
 
     /// Speaks failed sentences. Its own synthesizer, not TTSService: the voice agent reads
     /// TTSService finishing as the end of the reply.
-    private let fallback = AppleFallbackSpeaker()
+    private let fallback: any FallbackSpeaking
     /// Whether the current utterance falls back to the Apple voice (replies yes, voice previews
     /// no: a failed preview shows `lastFailure` instead).
     private var fallbackEnabled = true
@@ -63,8 +63,10 @@ final class CloudTTSService: ObservableObject {
     /// Test hook: how many sentences the Apple voice has actually been asked to speak.
     var fallbackUtterances: Int { fallback.utterances }
 
-    init(provider: CloudVoiceProvider) {
+    /// - Parameter fallback: Speaks a sentence the cloud voice could not. Nil uses the Apple voice.
+    init(provider: CloudVoiceProvider, fallback: (any FallbackSpeaking)? = nil) {
         self.provider = provider
+        self.fallback = fallback ?? AppleFallbackSpeaker()
     }
 
     // MARK: - Speak
@@ -347,9 +349,19 @@ extension CloudTTSService: NeuralSpeechEngine {}
 
 // MARK: - Apple voice fallback
 
+/// The voice that takes over a sentence the cloud voice failed to deliver.
+@MainActor
+protocol FallbackSpeaking: AnyObject {
+    /// How many sentences it has been asked to speak.
+    var utterances: Int { get }
+    /// Speaks one sentence. Returns when it has finished or been stopped.
+    func speak(_ sentence: String) async
+    func stop()
+}
+
 /// Speaks one sentence in the user's Apple voice and returns when it has finished or been stopped.
 @MainActor
-final class AppleFallbackSpeaker: NSObject, AVSpeechSynthesizerDelegate {
+final class AppleFallbackSpeaker: NSObject, FallbackSpeaking, AVSpeechSynthesizerDelegate {
     private let synthesizer = AVSpeechSynthesizer()
     /// The utterance being spoken and its waiter. A stopped utterance reports didCancel later,
     /// so callbacks only finish the utterance they're about.
