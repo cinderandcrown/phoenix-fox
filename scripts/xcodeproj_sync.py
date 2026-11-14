@@ -35,8 +35,32 @@ TARGETS = {
 GENERATED = {"OpenVision/Config/Config.swift"}
 
 
+# Xcode reads a value without quotes only when it is made of these characters. Anything
+# else, such as the "+" in "HapticCue+Play.swift", must be quoted, or Xcode reports that
+# it is unable to read the project.
+PLAIN = re.compile(r"[A-Za-z0-9_$./]+")
+UNQUOTED_VALUE = re.compile(r"(?<=\b(?:path|name) = )([^\"\n;][^\n;]*)(?=;)")
+
+
 def object_id(kind: str, path: str) -> str:
     return hashlib.sha1(f"{kind}:{path}".encode()).hexdigest()[:24].upper()
+
+
+def quoted(value: str) -> str:
+    """A value as Xcode writes it: bare when it can be, quoted when it must be."""
+    if PLAIN.fullmatch(value):
+        return value
+    escaped = value.replace("\\", "\\\\").replace('"', '\\"')
+    return f'"{escaped}"'
+
+
+def unreadable_values(text: str) -> list[str]:
+    """Paths and names written without quotes that Xcode refuses to read that way."""
+    return sorted({value for value in UNQUOTED_VALUE.findall(text) if not PLAIN.fullmatch(value)})
+
+
+def quote_unreadable_values(text: str) -> str:
+    return UNQUOTED_VALUE.sub(lambda match: quoted(match.group(1)), text)
 
 
 class Project:
@@ -154,7 +178,7 @@ class Project:
         self.insert_before_section_end(
             "PBXGroup",
             f"\t\t{identifier} /* {name} */ = {{\n\t\t\tisa = PBXGroup;\n\t\t\tchildren = (\n\t\t\t);\n"
-            f"\t\t\tpath = {name};\n\t\t\tsourceTree = \"<group>\";\n\t\t}};\n",
+            f"\t\t\tpath = {quoted(name)};\n\t\t\tsourceTree = \"<group>\";\n\t\t}};\n",
         )
         self.append_child(parent_id, identifier, name)
         return identifier
@@ -173,7 +197,7 @@ class Project:
         self.insert_before_section_end(
             "PBXFileReference",
             f"\t\t{reference} /* {name} */ = {{isa = PBXFileReference; lastKnownFileType = sourcecode.swift; "
-            f"path = {name}; sourceTree = \"<group>\"; }};\n",
+            f"path = {quoted(name)}; sourceTree = \"<group>\"; }};\n",
         )
         self.append_child(group_id, reference, name)
         self.compile(reference, build_file, name, target)
@@ -205,6 +229,9 @@ def sync(check_only: bool) -> int:
     added: list[str] = []
     removed: list[str] = []
     moved: list[str] = []
+    unreadable = unreadable_values(project.text)
+    if not check_only:
+        project.text = quote_unreadable_values(project.text)
 
     for source_root, target in TARGETS.items():
         on_disk = {
@@ -236,7 +263,10 @@ def sync(check_only: bool) -> int:
     for entry in moved:
         print(f"{'not compiled by its target' if check_only else 'now compiled by its target'}: {entry}")
 
-    changed = bool(added or removed or moved)
+    for value in unreadable:
+        print(f"{'needs quotes, or Xcode cannot read the project' if check_only else 'quoted'}: {value}")
+
+    changed = bool(added or removed or moved or unreadable)
     if check_only:
         return 1 if changed else 0
     if changed:
