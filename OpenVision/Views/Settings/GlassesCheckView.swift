@@ -15,6 +15,7 @@ struct GlassesCheckView: View {
 
     @State private var toneNote: String?
     @State private var captureNote: String?
+    @State private var parityNote: String?
     @State private var busy = false
     @State private var copied = false
 
@@ -50,7 +51,7 @@ struct GlassesCheckView: View {
                 if !glassesManager.isRegistered {
                     Text("Pair the glasses in Meta AI, turn on Developer Mode, then Register. Details: \(glassesManager.registrationDetails)")
                 } else if !glassesManager.deviceLinkConnected {
-                    Text("Registered is not enough for the camera. DAT needs LinkState.connected. Wear the glasses, unfold the arms, and keep Meta AI connected.")
+                    Text("Registered lists a device; the DAT BLE link may still be down. Use Run CameraAccess probe below. If it fails at session.start, toggle phone Bluetooth once (known DAT BLE budget issue).")
                 }
             }
 
@@ -95,6 +96,24 @@ struct GlassesCheckView: View {
                 Text("Audio route")
             } footer: {
                 Text("The glasses voice link (HFP) and the high-quality speaker link (A2DP) cannot run at the same time. HFP must settle before the camera starts. The glasses mic is mono 16 kHz.")
+            }
+
+            Section {
+                Button {
+                    Task { await runParityProbe() }
+                } label: {
+                    Label(busy ? "Running probe…" : "Run CameraAccess probe", systemImage: "stethoscope")
+                }
+                .disabled(busy || !glassesManager.isRegistered)
+                if let parityNote {
+                    Text(parityNote)
+                        .font(.system(.caption2, design: .monospaced))
+                        .textSelection(.enabled)
+                }
+            } header: {
+                Text("DAT sample parity")
+            } footer: {
+                Text("Runs Meta’s CameraAccess sequence only: AutoDeviceSelector → session.start → camera permission → short stream. Logs every state. Independent of our normal camera path.")
             }
 
             Section {
@@ -182,9 +201,17 @@ struct GlassesCheckView: View {
         }
     }
 
+    private func runParityProbe() async {
+        busy = true
+        parityNote = nil
+        defer { busy = false }
+        parityNote = await CameraAccessParity.runProbe(startStream: true)
+    }
+
     private func playTone() {
         busy = true
         toneNote = nil
+        try? AudioSessionManager.shared.ensurePhoneMicReady()
         AudioSessionManager.shared.logSpeaking()
         SoundService.shared.playWakeWordSound()
         toneNote = "Tone played on: \(audio.destination.title). Link: \(audio.linkMode.title)."

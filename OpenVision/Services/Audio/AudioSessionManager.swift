@@ -136,6 +136,25 @@ extension AudioSessionManager {
         )
     }
 
+    /// Forces a play-and-record session on the built-in mic/speaker so AVAudioEngine
+    /// can start. Call when glasses Bluetooth is absent or after a failed glasses route.
+    func ensurePhoneMicReady() throws {
+        let options: AVAudioSession.CategoryOptions = [.defaultToSpeaker, .mixWithOthers]
+        try audioSession.setCategory(.playAndRecord, mode: .default, options: options)
+        try audioSession.setActive(true, options: .notifyOthersOnDeactivation)
+        try? audioSession.overrideOutputAudioPort(.speaker)
+        // Clear a stuck HFP preference that leaves input at 0 Hz.
+        if let builtIn = (audioSession.availableInputs ?? []).first(where: { $0.portType == .builtInMic }) {
+            try? audioSession.setPreferredInput(builtIn)
+        }
+        usingGlassesMic = false
+        linkMode = .phone
+        destination = .phoneSpeaker
+        hfpSettled = true
+        routeDescription = snapshot().description
+        print("[AudioSession] ensurePhoneMicReady. \(routeDescription)")
+    }
+
     func configure(for mode: AudioMode) throws {
         guard mode != currentMode else { return }
         switch mode {

@@ -247,7 +247,7 @@ enum GlassesStatus: Equatable, Sendable {
     var spoken: String {
         switch self {
         case .notConnected: return "Glasses are not connected."
-        case .away: return "Glasses are registered but the Device Access link is not up. Wear them, unfold the arms, and keep Meta AI connected."
+        case .away: return "Glasses are registered but not linked for this app yet. Open Glasses check and run the CameraAccess probe, or toggle Bluetooth."
         case .ready: return "Glasses are connected and ready."
         case .cameraOn: return "The camera on your glasses is on."
         }

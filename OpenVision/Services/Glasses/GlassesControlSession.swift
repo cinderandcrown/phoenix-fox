@@ -320,6 +320,15 @@ final class GlassesControlSession {
 
     private func open() {
         guard let wearables, let id = deviceId else { return }
+        // DAT DeviceSession.start() requires LinkState.connected. Calling start() while
+        // disconnected burns the SDK's BLE connect budget (same failure mode as Android
+        // DAT issue #150) and can leave the link stuck disconnected for the process life.
+        if let device = wearables.deviceForIdentifier(id), device.linkState != .connected {
+            GlassesLink.shared.record(
+                "Control session deferred: link=\(device.linkState) (wait for connected before start)."
+            )
+            return
+        }
         opening = Task {
             let started = await Self.start(on: id, wearables: wearables)
             self.opening = nil
@@ -348,12 +357,19 @@ final class GlassesControlSession {
 
     /// Starts a session and waits until it runs. Nil when it did not.
     private static func start(on id: DeviceIdentifier, wearables: any WearablesInterface) async -> DeviceSession? {
+        if let device = wearables.deviceForIdentifier(id), device.linkState != .connected {
+            GlassesLink.shared.record("Control session start skipped: link=\(device.linkState)")
+            return nil
+        }
         do {
-            let session = try wearables.createSession(deviceSelector: SpecificDeviceSelector(device: id))
+            // Prefer AutoDeviceSelector (CameraAccess) so the SDK can choose a connected
+            // device; fall back to Specific if Auto is unavailable.
+            let selector: any DeviceSelector = AutoDeviceSelector(wearables: wearables)
+            let session = try wearables.createSession(deviceSelector: selector)
             // Taken before start() so the change to started cannot be missed.
             let states = session.stateStream()
             try session.start()
-            guard await first(of: [.started, .stopped], in: states, within: .seconds(12)) == .started else {
+            guard await first(of: [.started, .stopped], in: states, within: .seconds(20)) == .started else {
                 session.stop()
                 if !Task.isCancelled { GlassesLink.shared.record("Control session did not start.") }
                 return nil

@@ -235,6 +235,13 @@ final class VoiceCommandService: ObservableObject {
 
         guard !isListening else { return }
 
+        // A bad glasses HFP preference leaves the input at 0 Hz and AVAudioEngine cannot
+        // start ("Audio engine unavailable"). Prefer a valid phone mic first; Jarvis can
+        // re-route to glasses when Bluetooth actually appears.
+        if !AudioSessionManager.shared.isBluetoothHFPActive {
+            try? AudioSessionManager.shared.ensurePhoneMicReady()
+        }
+
         // Setup audio engine
         audioEngine = AVAudioEngine()
 
@@ -254,14 +261,18 @@ final class VoiceCommandService: ObservableObject {
         // Get input node
         let inputNode = audioEngine.inputNode
         inputNode.removeTap(onBus: 0) // defensive: never install over an existing tap
-        let recordingFormat = inputNode.outputFormat(forBus: 0)
+        var recordingFormat = inputNode.outputFormat(forBus: 0)
 
         // Guard against an invalid input format. This happens when the mic is unavailable —
-        // most commonly while the user is on a phone/FaceTime call, where the input route
-        // reports 0 Hz / 0 channels. Installing a tap with that format throws (SIGABRT),
-        // so bail gracefully instead of crashing.
+        // most commonly while the user is on a phone/FaceTime call, or after a failed glasses
+        // HFP route (0 Hz / 0 channels). Retry once on the built-in mic.
+        if recordingFormat.sampleRate <= 0 || recordingFormat.channelCount <= 0 {
+            print("[VoiceCommand] Input unavailable (format \(recordingFormat.sampleRate)Hz/\(recordingFormat.channelCount)ch) — resetting to phone mic.")
+            try? AudioSessionManager.shared.ensurePhoneMicReady()
+            recordingFormat = inputNode.outputFormat(forBus: 0)
+        }
         guard recordingFormat.sampleRate > 0, recordingFormat.channelCount > 0 else {
-            print("[VoiceCommand] Input unavailable (format \(recordingFormat.sampleRate)Hz/\(recordingFormat.channelCount)ch) — mic likely in use by a call. Skipping listen.")
+            print("[VoiceCommand] Input still unavailable after phone-mic reset. Skipping listen.")
             self.recognitionRequest = nil
             self.audioEngine = nil
             throw VoiceCommandError.audioEngineUnavailable
