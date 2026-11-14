@@ -134,6 +134,7 @@ final class CompanionRuntime: ObservableObject {
     }
 
     private var watchTask: Task<Void, Never>?
+    private var islandUpdate: Task<Void, Never>?
     private var lastThumb: [UInt8] = []
     private var watchSends = 0
     private var translating = false
@@ -367,8 +368,16 @@ final class CompanionRuntime: ObservableObject {
     private func refreshIsland() {
         let state = PhoenixActivityAttributes.ContentState(line: statusLine, cameraOn: cameraOn)
         let content = ActivityContent(state: state, staleDate: nil)
+        // Each update waits for the one before it, so the island never shows an older line last.
+        islandUpdate = Task { [previous = islandUpdate] in
+            await previous?.value
+            await Self.showIsland(content)
+        }
+    }
+
+    private nonisolated static func showIsland(_ content: ActivityContent<PhoenixActivityAttributes.ContentState>) async {
         if let activity = Activity<PhoenixActivityAttributes>.activities.first {
-            Task { await activity.update(content) }
+            await activity.update(content)
         } else {
             _ = try? Activity.request(attributes: PhoenixActivityAttributes(title: "Phoenix Fox"), content: content, pushType: nil)
         }
