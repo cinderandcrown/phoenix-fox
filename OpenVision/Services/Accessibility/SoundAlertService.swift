@@ -7,7 +7,8 @@
 //
 // The audio is classified on the phone by Apple's SoundAnalysis framework. Nothing is
 // recorded and nothing is sent anywhere. It shares the microphone that is already open for
-// the wake word, so it hears only while Phoenix Fox is listening.
+// the wake word, so it hears while Phoenix Fox is listening. In the owner's build it also
+// hears the sound that comes with the glasses' camera stream, while the camera is on.
 
 import AVFoundation
 import AudioToolbox
@@ -21,7 +22,14 @@ import UserNotifications
 /// The speech recognizer owns the tap. Opening a second audio engine for sound alerts would
 /// fight it for the microphone, so listeners register here instead.
 final class MicFanout: @unchecked Sendable {
+    /// The phone's open microphone tap, which is the glasses' hands-free microphone when
+    /// they are connected. That microphone is tuned to the wearer's own voice.
     static let shared = MicFanout()
+
+    /// Sound that arrives with the glasses' camera stream. It is the room as it sounds,
+    /// not narrowed to the wearer's voice, so it is the better source for sirens,
+    /// doorbells, and other people. It flows only while the camera is on with sound.
+    static let glasses = MicFanout()
 
     typealias Listener = @Sendable (AVAudioPCMBuffer, AVAudioTime) -> Void
 
@@ -49,9 +57,42 @@ final class MicFanout: @unchecked Sendable {
     func send(_ buffer: AVAudioPCMBuffer, at time: AVAudioTime) {
         lock.lock()
         let listeners = current
+        lastSent = ProcessInfo.processInfo.systemUptime
         lock.unlock()
         for listener in listeners { listener(buffer, time) }
     }
+
+    /// For a source that gives no sample position: counts the samples itself.
+    func send(_ buffer: AVAudioPCMBuffer) {
+        lock.lock()
+        let position = samplesSent
+        samplesSent += Int64(buffer.frameLength)
+        lock.unlock()
+        send(buffer, at: AVAudioTime(sampleTime: position, atRate: buffer.format.sampleRate))
+    }
+
+    /// Starts the sample count again, for a new stream.
+    func restart() {
+        lock.lock()
+        samplesSent = 0
+        lock.unlock()
+    }
+
+    var hasListeners: Bool {
+        lock.lock()
+        defer { lock.unlock() }
+        return !listeners.isEmpty
+    }
+
+    /// Whether a buffer came through in the last half second.
+    var isFlowing: Bool {
+        lock.lock()
+        defer { lock.unlock() }
+        return ProcessInfo.processInfo.systemUptime - lastSent < 0.5
+    }
+
+    private var samplesSent: Int64 = 0
+    private var lastSent: TimeInterval = -1_000
 }
 
 @MainActor
@@ -76,7 +117,14 @@ final class SoundAlertService: ObservableObject {
         }
         self.listener = listener
         self.kinds = kinds
-        MicFanout.shared.add("sound-alerts") { buffer, time in listener.hear(buffer, at: time) }
+        // One classifier, two possible sources. While the glasses' camera stream carries
+        // the sound of the room, that is used and the hands-free microphone is passed
+        // over: it is tuned to the wearer's voice and turns a siren down.
+        let room = MicFanout.glasses
+        MicFanout.shared.add("sound-alerts") { buffer, time in
+            if !room.isFlowing { listener.hear(buffer, at: time, from: .phone) }
+        }
+        room.add("sound-alerts") { buffer, time in listener.hear(buffer, at: time, from: .glasses) }
         // iOS mutes vibration while the microphone is recording unless asked not to.
         try? AVAudioSession.sharedInstance().setAllowHapticsAndSystemSoundsDuringRecording(true)
         Task { _ = try? await UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound]) }
@@ -86,6 +134,7 @@ final class SoundAlertService: ObservableObject {
 
     func stop() {
         MicFanout.shared.remove("sound-alerts")
+        MicFanout.glasses.remove("sound-alerts")
         listener = nil
         isOn = false
     }
@@ -133,6 +182,9 @@ private final class SoundListener: NSObject, SNResultsObserving, @unchecked Send
     // Everything below is touched only on `queue`.
     private var analyzer: SNAudioStreamAnalyzer?
     private var format: AVAudioFormat?
+    private var source: Source?
+
+    enum Source: Sendable { case phone, glasses }
     private var policy: SoundAlertPolicy
 
     init(enabled: Set<SoundKind>, onAlert: @escaping @Sendable (SoundAlert) -> Void) {
@@ -141,7 +193,7 @@ private final class SoundListener: NSObject, SNResultsObserving, @unchecked Send
         super.init()
     }
 
-    func hear(_ buffer: AVAudioPCMBuffer, at time: AVAudioTime) {
+    func hear(_ buffer: AVAudioPCMBuffer, at time: AVAudioTime, from source: Source) {
         // The tap hands over a buffer it does not touch again, so it is safe to carry it
         // to the analysis queue.
         let audio = Carried(value: buffer)
@@ -150,9 +202,12 @@ private final class SoundListener: NSObject, SNResultsObserving, @unchecked Send
             let buffer = audio.value
             // The route can change mid-session, phone microphone to glasses, and with it
             // the format. The analyzer is rebuilt for the new one.
-            if analyzer == nil || format != buffer.format {
+            // A change of source starts the sample positions again, even when the two
+            // happen to share a format.
+            if analyzer == nil || format != buffer.format || self.source != source {
                 analyzer = Self.makeAnalyzer(format: buffer.format, observer: self)
                 format = buffer.format
+                self.source = source
             }
             analyzer?.analyze(buffer, atAudioFramePosition: position)
         }

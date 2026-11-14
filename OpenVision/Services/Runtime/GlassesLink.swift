@@ -40,6 +40,10 @@ final class GlassesLink: ObservableObject {
     @Published private(set) var worn = false
     @Published private(set) var hingeOpen = false
     @Published private(set) var thermal = "unknown"
+    /// What the reported temperature means for the camera. See `StreamPlanner`.
+    @Published private(set) var heat: GlassesHeat = .normal
+    /// The glasses say they are not being worn. False when they do not say.
+    @Published private(set) var takenOff = false
     @Published private(set) var hardware = "Unknown glasses"
     @Published private(set) var displayCapable = false
     @Published private(set) var logs: [String] = []
@@ -83,11 +87,49 @@ final class GlassesLink: ObservableObject {
     func apply(_ state: DeviceState) {
         battery = state.batteryLevel
         charging = state.chargingState == .charging
-        worn = state.donState == .donned
         hingeOpen = state.hingeState == .open
         thermal = String(describing: state.thermalLevel)
-        if state.thermalLevel == .severe || state.thermalLevel == .critical || state.thermalLevel == .emergency {
-            record("Glasses are hot (\(thermal)). Camera stays off until they cool.")
+
+        let wasWorn = worn
+        let wasOff = takenOff
+        worn = state.donState == .donned
+        takenOff = state.donState == .doffed
+        if takenOff, !wasOff {
+            GlassesControlSession.shared.glassesTakenOff()
+        }
+        if worn, !wasWorn {
+            // Current firmware stops sending button and touchpad presses after the
+            // glasses are taken off and put back on. The controls are attached again.
+            GlassesControlSession.shared.glassesPutOn()
+        }
+
+        let now = Self.heat(for: state.thermalLevel)
+        guard now != heat else { return }
+        let rising = now > heat
+        heat = now
+        switch now {
+        case .normal, .light:
+            if !rising { record("The glasses have cooled (\(thermal)).") }
+        case .moderate:
+            record("The glasses are warm (\(thermal)). The camera uses a lighter stream.")
+        case .severe:
+            record("The glasses are hot (\(thermal)). The camera uses its lightest stream, and large photos wait.")
+        case .critical:
+            record("The glasses are too hot (\(thermal)). The camera stays off until they cool.")
+        }
+        Task { await GlassesManager.shared.heatChanged(to: now) }
+        GlassesControlSession.shared.heatChanged(to: now)
+    }
+
+    /// Meta's guidance for each level: reduce optional work at moderate, shed load at
+    /// severe, and treat the glasses as unavailable from critical on.
+    private static func heat(for level: ThermalLevel) -> GlassesHeat {
+        switch level {
+        case .unknown, .none: return .normal
+        case .light: return .light
+        case .moderate: return .moderate
+        case .severe: return .severe
+        case .critical, .emergency, .shutdown: return .critical
         }
     }
 
