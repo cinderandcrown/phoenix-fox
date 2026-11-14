@@ -17,7 +17,8 @@ final class AudioSessionManager: ObservableObject {
     static let shared = AudioSessionManager()
 
     private let audioSession = AVAudioSession.sharedInstance()
-    private var routeObserver: NSObjectProtocol?
+    /// Observer token lives off the main actor so `deinit` can remove it under Swift 6.
+    private let routeObserverBox = ObserverBox()
 
     @Published private(set) var destination: AudioDestination = .phoneSpeaker
     @Published private(set) var linkMode: GlassesLinkMode = .phone
@@ -41,21 +42,36 @@ final class AudioSessionManager: ObservableObject {
 
     private init() {
         refreshPublished(from: snapshot())
-        routeObserver = NotificationCenter.default.addObserver(
+        let token = NotificationCenter.default.addObserver(
             forName: AVAudioSession.routeChangeNotification,
             object: audioSession,
             queue: .main
         ) { [weak self] _ in
             Task { @MainActor in self?.routeDidChange() }
         }
+        routeObserverBox.token = token
     }
 
     deinit {
-        if let routeObserver {
-            NotificationCenter.default.removeObserver(routeObserver)
-        }
+        routeObserverBox.remove()
     }
 
+}
+
+/// Holds a NotificationCenter token for removal from a nonisolated `deinit`.
+private final class ObserverBox: @unchecked Sendable {
+    var token: NSObjectProtocol?
+
+    func remove() {
+        if let token {
+            NotificationCenter.default.removeObserver(token)
+            self.token = nil
+        }
+    }
+}
+
+@MainActor
+extension AudioSessionManager {
     // MARK: - Apply
 
     @discardableResult
