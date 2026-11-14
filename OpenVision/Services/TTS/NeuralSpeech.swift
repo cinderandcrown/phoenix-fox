@@ -25,6 +25,9 @@ protocol NeuralSpeechEngine: AnyObject {
 @MainActor
 enum NeuralSpeech {
     /// The selected neural engine if it can speak right now, else nil (→ Apple system voice).
+    ///
+    /// Default engine is Kokoro: when its model is on disk it speaks; otherwise we fall through
+    /// to Apple's best Premium/Enhanced voice. Cloud engines stay opt-in and need a key.
     static func active(_ settings: AppSettings) -> NeuralSpeechEngine? {
         switch settings.ttsEngine {
         case .appleSystem: return nil

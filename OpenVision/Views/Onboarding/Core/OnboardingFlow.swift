@@ -59,7 +59,7 @@ enum OnboardingStep: Int, CaseIterable, Sendable {
         case .assistants:
             return "If you run your own assistants behind a relay, enter its details and they will answer you. You can also add a Grok key for fast looks. If you skip both, Jarvis answers on this phone."
         case .ready:
-            return "Put your glasses on and say the wake word."
+            return "Put your glasses on, tap Hear how I sound to check the voice through the glasses speakers, then say the wake word."
         }
     }
 

@@ -41,17 +41,40 @@ final class TTSService: NSObject, ObservableObject {
 
     private var selectedVoice: AVSpeechSynthesisVoice? { Self.userVoice }
 
-    /// The Apple voice chosen in Settings, or the default English voice. Also used by the cloud
-    /// voices' Apple fallback, so the choice lives in one place.
+    /// The Apple voice chosen in Settings, or the most natural installed English voice.
+    /// Never prefers a compact/default voice when a Premium or Enhanced voice is installed.
+    /// Also used by the cloud voices' Apple fallback, so the choice lives in one place.
     static var userVoice: AVSpeechSynthesisVoice? {
-        // Check if user has selected a specific voice
-        if let identifier = SettingsManager.shared.settings.selectedVoiceIdentifier,
-           let voice = AVSpeechSynthesisVoice(identifier: identifier) {
-            return voice
+        let preferred = SettingsManager.shared.settings.selectedVoiceIdentifier
+        let candidates = voiceCandidates()
+        guard let choice = AppleVoiceChoice.pick(from: candidates, preferredIdentifier: preferred) else {
+            // Last resort only when the system reports no voices at all.
+            return AVSpeechSynthesisVoice(language: "en-US")
         }
+        return AVSpeechSynthesisVoice(identifier: choice.identifier)
+            ?? AVSpeechSynthesisVoice(language: "en-US")
+    }
 
-        // Fall back to default English voice
-        return AVSpeechSynthesisVoice(language: "en-US")
+    /// Snapshot of installed voices for ranking and Settings.
+    static func voiceCandidates() -> [AppleVoiceCandidate] {
+        AVSpeechSynthesisVoice.speechVoices().map { voice in
+            var personal = false
+            if #available(iOS 17.0, *) {
+                personal = voice.voiceTraits.contains(.isPersonalVoice)
+            }
+            return AppleVoiceCandidate(
+                identifier: voice.identifier,
+                name: voice.name,
+                qualityRank: AppleVoiceChoice.qualityRank(rawValue: voice.quality.rawValue),
+                isPersonal: personal,
+                language: voice.language
+            )
+        }
+    }
+
+    /// True when only compact/default English voices are installed.
+    static var needsBetterVoicesHint: Bool {
+        AppleVoiceChoice.needsBetterVoicesHint(voices: voiceCandidates())
     }
 
     /// Get all available voices for a language
@@ -70,10 +93,46 @@ final class TTSService: NSObject, ObservableObject {
     /// Get display name for a voice quality
     static func qualityDisplayName(_ quality: AVSpeechSynthesisVoiceQuality) -> String {
         switch quality {
-        case .default: return "Default"
+        case .default: return "Standard (robotic)"
         case .enhanced: return "Enhanced"
         case .premium: return "Premium"
         @unknown default: return "Unknown"
+        }
+    }
+
+    /// Ask iOS for Personal Voice access when the wearer has one. Safe to call repeatedly.
+    static func requestPersonalVoiceAccessIfNeeded() {
+        guard #available(iOS 17.0, *) else { return }
+        let status = AVSpeechSynthesizer.personalVoiceAuthorizationStatus
+        guard status == .notDetermined else { return }
+        AVSpeechSynthesizer.requestPersonalVoiceAuthorization { _ in }
+    }
+
+    /// One-shot notice when the only installed English voices are compact/default.
+    /// Never silently settle on a robotic voice without telling the wearer once.
+    private static let compactWarnKey = "ov.didWarnCompactVoice"
+
+    static func warnOnceIfOnlyCompactVoices() {
+        guard needsBetterVoicesHint else { return }
+        guard !UserDefaults.standard.bool(forKey: compactWarnKey) else { return }
+        UserDefaults.standard.set(true, forKey: compactWarnKey)
+        AccessBanner.shared.show(
+            "Using a basic system voice. Download a Premium English voice in iOS Settings → Accessibility → Spoken Content for a more natural sound.",
+            urgent: false
+        )
+    }
+
+    /// Sample line for Settings preview and the onboarding glasses voice check.
+    static let glassesSample = "Hi — I'm Jarvis. This is how I sound on your glasses."
+
+    /// Speak the glasses sample on the active audio route (glasses speakers when connected).
+    static func playGlassesSample() {
+        requestPersonalVoiceAccessIfNeeded()
+        let settings = SettingsManager.shared.settings
+        if let neural = NeuralSpeech.active(settings) {
+            Task { await neural.speak(glassesSample) }
+        } else {
+            shared.speak(glassesSample)
         }
     }
 
@@ -155,13 +214,26 @@ final class TTSService: NSObject, ObservableObject {
 
     /// Build an utterance with the selected voice and hand it to the synthesizer's queue.
     private func enqueue(_ text: String) {
-        let utterance = AVSpeechUtterance(string: text)
+        // Strip markup / emoji / URLs so the ear never hears "asterisk asterisk".
+        let spoken = SpokenReply.plain(text)
+        guard !spoken.isEmpty else { return }
+        Self.warnOnceIfOnlyCompactVoices()
+        let utterance = AVSpeechUtterance(string: spoken)
         utterance.voice = selectedVoice
-        // The wearer's "speak slower" or "speak faster" choice.
-        let pace = SettingsManager.shared.settings.accessibility.pace.rate
-        utterance.rate = min(max(AVSpeechUtteranceDefaultSpeechRate * pace, AVSpeechUtteranceMinimumSpeechRate), AVSpeechUtteranceMaximumSpeechRate)
+        // Natural rate: AVSpeechUtteranceDefaultSpeechRate × Voice speed × accessibility pace.
+        // Pitch stays 1.0 — never pitch-shift; a wrong multiplier sounds uncanny/scary.
+        let settings = SettingsManager.shared.settings
+        let pace = settings.accessibility.pace.rate
+        let speed = settings.voiceSpeed
+        utterance.rate = min(
+            max(AVSpeechUtteranceDefaultSpeechRate * speed * pace, AVSpeechUtteranceMinimumSpeechRate),
+            AVSpeechUtteranceMaximumSpeechRate
+        )
         utterance.pitchMultiplier = 1.0
         utterance.volume = 1.0
+        // Slight pause between sentences for natural prosody.
+        utterance.preUtteranceDelay = pendingUtterances == 0 ? 0 : 0.05
+        utterance.postUtteranceDelay = 0.12
         pendingUtterances += 1
         synthesizer.speak(utterance)
     }

@@ -79,6 +79,16 @@ final class SpokenReplyTests: XCTestCase {
         XCTAssertEqual(SpokenReply.plain("  \n \n"), "")
     }
 
+    func testThousandsSeparatorsAreRemovedForSpeech() {
+        XCTAssertEqual(SpokenReply.plain("About 1,200 steps left."), "About 1200 steps left.")
+        XCTAssertEqual(SpokenReply.plain("Cost is $12,500 today."), "Cost is $12500 today.")
+    }
+
+    func testClockTimesAreLeftForTheVoiceEngine() {
+        XCTAssertEqual(SpokenReply.plain("Leave by 4:15."), "Leave by 4:15.")
+        XCTAssertEqual(SpokenReply.plain("Meet at 15:30 at the gate."), "Meet at 15:30 at the gate.")
+    }
+
     func testPlainTwiceIsTheSameAsOnce() {
         let written = "## Plan\n- **Call** [Sam](tel:555)\n- Check https://example.com/x.\n\nThen rest 😀"
         let once = SpokenReply.plain(written)
@@ -256,6 +266,29 @@ final class SpokenReplyTests: XCTestCase {
         }
         XCTAssertEqual(Set(lines), Set(Acknowledgement.plain))
         XCTAssertEqual(Acknowledgement.line(targetBot: nil, bots: bots, photo: false, turn: -1), "Right away.")
+    }
+
+    func testGenericAcknowledgementsBecomeEarcons() {
+        XCTAssertEqual(
+            Acknowledgement.cue(targetBot: nil, bots: bots, photo: false, turn: 0),
+            .earcon
+        )
+        let fallback = AssistantRoster.defaultBot(in: bots).name
+        XCTAssertEqual(
+            Acknowledgement.cue(targetBot: fallback, bots: bots, photo: false, turn: 1),
+            .earcon
+        )
+    }
+
+    func testNamedAndLookAcknowledgementsStaySpoken() {
+        XCTAssertEqual(
+            Acknowledgement.cue(targetBot: "Indy", bots: bots, photo: false, turn: 0),
+            .speak("Asking Indy.")
+        )
+        XCTAssertEqual(
+            Acknowledgement.cue(targetBot: nil, bots: bots, photo: true, turn: 0),
+            .speak("Taking a look.")
+        )
     }
 
     func testEveryAcknowledgementIsThreeWordsOrFewer() {
