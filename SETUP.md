@@ -106,6 +106,8 @@ A build from the TestFlight workflow is the owner build: every feature starts sw
 
 **Settings → Owner build** has three things: **Glasses limits**, **Workshop**, and **Turn everything on again** for after you have switched things off. What each glasses switch does, and what it costs, is in [docs/GLASSES_SDK.md](docs/GLASSES_SDK.md).
 
+Nothing is for sale in this build. **Settings → Plan** says "Everything is unlocked" and shows the plans a public build could sell, for reading only. The build never asks the App Store for anything. The plan behind it is in [docs/BUSINESS_MODEL.md](docs/BUSINESS_MODEL.md).
+
 Do these once:
 
 1. Open **Settings → Glasses → Glasses limits** and tap **Allow the glasses' microphone**. Meta AI opens and asks. Without it, speech on the glasses stays quiet and everything else works.

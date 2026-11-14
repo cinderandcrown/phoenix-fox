@@ -49,30 +49,24 @@ One protocol (`AIBackend` plus `BrainCatalog`). Providers are peers:
 - Google Gemini Live
 - Your own assistant, over the relay. That is how his Grok Bots connect. The same protocol fits a future assistant platform, including anything Anthropic ships later. No vendor is hard-wired into the glasses loop.
 
-Fast mode sends short talk and "what am I looking at" to the cheapest configured instant model (Grok fast non-reasoning, Claude Haiku, or `gpt-4o-mini`). Tasks, notes, briefings, and all-hands go to the relay. Silence stays on the phone: wake word and voice activity detection, Apple speech as the fallback, Apple voice as the default speaker.
+Fast mode sends short talk and "what am I looking at" to the configured vendor's quick model. The defaults (`grok-4.20-non-reasoning`, `claude-haiku-4-5`, and `gpt-4o-mini`) are no longer the cheapest each vendor sells. [BUSINESS_MODEL.md](BUSINESS_MODEL.md) has the prices and what to change. Tasks, notes, briefings, and all-hands go to the relay. Silence stays on the phone: wake word and voice activity detection, Apple speech as the fallback, Apple voice as the default speaker.
 
 ## Money
 
-Free: one assistant, on-device or his own API key, wake word, one-photo look.  
-Pro, suggested **$12.99 a month or $99 a year**: more than one assistant, all-hands, priority alerts, and a hosted relay with a cap of about 200 cheap cloud turns a month. Past the cap, he uses his own key.
+The plan, the prices, what each feature costs to run, and the margins are in [BUSINESS_MODEL.md](BUSINESS_MODEL.md). That page replaces the earlier sketch here, which had one paid tier at $12.99 and cost figures with no sources.
+
+In short:
+
+- **Free:** the whole accessibility suite, the wake word, and the model on the phone. It costs nothing for each use and is never locked.
+- **Own AI:** cloud models with the subscriber's own key.
+- **Included AI:** a model paid for by Cinder & Crown, inside a monthly allowance. Not offered until a metered service exists.
+- **Bot Team:** more than one assistant, by name, and all hands.
+
+One thing changed from the earlier sketch: using your own key was free there and is the lowest paid plan now. That is the owner's call, and [BUSINESS_MODEL.md](BUSINESS_MODEL.md) says how to make it free again.
+
+The subscription code is in the app and switched off. The owner's TestFlight build has everything unlocked and nothing for sale.
 
 Do not put his relay URL, token, or bot names in the binary. He types those after install.
-
-### Cost, per request (planning estimates, recheck before charging anyone)
-
-Figures are order-of-magnitude for a cheap vision model in late 2026, not a quote. On-device work is $0. A relay task is billed by whoever runs his assistant, not by Cinder & Crown, unless he is on the hosted cap.
-
-| What he does | Leaves the phone? | Who is paid | Rough cost |
-| --- | --- | --- | --- |
-| Glasses idle, wake word listening | No. Voice activity detection drops silence. | Nobody | $0 |
-| Short question, no photo | A few hundred tokens | Cheap instant model | about $0.001 |
-| "What am I looking at" | One compressed JPEG, camera off again | Cheap instant model | about $0.003 to $0.008 |
-| "Look at this" or a task (email, order, schedule) | Text, plus a photo only if he asked | His assistant, via the relay | his bill |
-| Briefing or all-hands | One request, spoken in sequence | His assistants | his bill |
-| Alert while the app is open | Long-poll, not a poll every second | Cloudflare, pennies | under $0.01 |
-| Snapshot mode | Off unless he turns it on | Same as a photo | do not leave it on |
-
-**Target:** $0 cloud cost for a free user who stays on-device. **Under $3 a month** of model and relay cost for a hosted Pro user inside the 200-turn cap. Price Pro at $12.99 so the cap, not a heavy user, sets the cost. Adventurer's camera stays off except for an explicit look, which is the main battery and upload saving.
 
 ## Launch steps, when Meta opens the store
 
@@ -80,5 +74,6 @@ Figures are order-of-magnitude for a cheap vision model in late 2026, not a quot
 2. Confirm the iOS guide no longer blocks App Store submission, and that Meta has either dropped the MFi protocol or authorized this bundle id.
 3. Pass Meta Integration Review for this app id. Adventurer (Meta glasses, firmware on the 1.0.1 table) is the hardware named in the review notes.
 4. Enroll Cinder & Crown's Apple Developer account, create the App Store Connect API key, and let GitHub Actions upload. He does not need a Mac. Steps are in SETUP.md.
-5. Host the privacy policy and terms, and paste the review notes from this folder.
-6. Turn the hosted relay on only after the cost cap is enforced. Until then, buyers bring their own key or their own assistant.
+5. Host the privacy policy and terms, and paste the review notes from this folder. The app will not sell anything until the privacy policy's address is in `StoreCatalog.privacyURL`.
+6. Create the subscription group and products, and build with `PHOENIX_FOX_STORE=YES`. The steps are in [BUSINESS_MODEL.md](BUSINESS_MODEL.md).
+7. Turn anything hosted on only after its allowance is enforced on the server. Until then, buyers bring their own key or their own assistants.
