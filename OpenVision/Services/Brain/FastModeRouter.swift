@@ -27,6 +27,7 @@ enum JarvisRoute: Equatable {
 enum FastModeRouter {
     struct Context {
         var fastMode: Bool
+        /// Whether the plan covers more than one assistant. See `PaidFeature.botTeam`.
         var isPro: Bool
         var bots: [AssistantBot]
         var instantReady: Bool
@@ -40,7 +41,7 @@ enum FastModeRouter {
         if let mind = mind(lower, bots: context.bots) { return .mind(mind) }
 
         if contains(lower, ["status report", "all hands", "everyone check in", "everyone report"]) {
-            guard context.isPro else { return .needsPro("All hands is a Pro feature.") }
+            guard context.isPro else { return .needsPro(PaidFeature.botTeam.refusal) }
             return .relay(RelayTurn(intent: "status", targetBot: AssistantBot.allBots, text: text, photo: false, clip: false, cacheable: false))
         }
         if contains(lower, ["brief me", "morning digest", "what's my day", "whats my day", "daily briefing"]) {
@@ -61,7 +62,7 @@ enum FastModeRouter {
 
         let addressed = AssistantRoster.address(in: text, bots: context.bots)
         if addressed.explicit && !addressed.bot.isDefault && !context.isPro {
-            return .needsPro("More than one assistant is a Pro feature.")
+            return .needsPro(PaidFeature.botTeam.refusal)
         }
         let target = addressed.bot.name
         let body = addressed.remainder

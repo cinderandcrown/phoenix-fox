@@ -27,15 +27,7 @@ enum BuildFlavor: Equatable, Sendable {
     /// Reads the Info.plist value. A build setting that was never set arrives as an empty
     /// string, or as the unexpanded `$(…)` text, and both mean a standard build.
     init(infoValue: Any?) {
-        switch infoValue {
-        case let flag as Bool:
-            self = flag ? .owner : .standard
-        case let text as String:
-            let word = text.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
-            self = ["yes", "true", "1"].contains(word) ? .owner : .standard
-        default:
-            self = .standard
-        }
+        self = InfoFlag.isOn(infoValue) ? .owner : .standard
     }
 
     /// Whether toolkit capabilities Meta still calls beta may run.
@@ -45,6 +37,21 @@ enum BuildFlavor: Equatable, Sendable {
         switch self {
         case .owner: return "Owner build"
         case .standard: return "Standard build"
+        }
+    }
+}
+
+/// A yes-or-no build setting as it arrives through Info.plist. Only a clear yes is on.
+enum InfoFlag {
+    static func isOn(_ value: Any?) -> Bool {
+        switch value {
+        case let flag as Bool:
+            return flag
+        case let text as String:
+            let word = text.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+            return ["yes", "true", "1"].contains(word)
+        default:
+            return false
         }
     }
 }
