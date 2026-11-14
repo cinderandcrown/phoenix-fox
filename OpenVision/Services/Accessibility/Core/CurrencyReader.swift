@@ -23,7 +23,7 @@ enum CurrencyReader {
             case .unsure(let currency):
                 return "This looks like a \(currency) note, but I can't read its value. Hold it flat, a little closer, and ask again."
             case .notMoney:
-                return "I don't see a banknote I know. I can read US dollars, euros, British pounds, and Canadian dollars. Hold the note flat and ask again."
+                return "I don't see a banknote I know. I can read US dollars, euros, British pounds, and Canadian dollars, but not coins. Hold the note flat and ask again."
             }
         }
 

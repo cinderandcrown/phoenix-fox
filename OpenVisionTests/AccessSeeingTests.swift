@@ -80,6 +80,22 @@ final class ReadingOrderTests: XCTestCase {
 }
 
 final class ColorNamerTests: XCTestCase {
+    /// Vivid colors sit far from their muted namesakes: a strong blue is nearer to purple
+    /// than to a workaday blue unless it has a reference of its own.
+    func testVividColorsKeepTheirEverydayNames() {
+        XCTAssertEqual(ColorNamer.name(RGB(255, 0, 0)), "red")
+        XCTAssertEqual(ColorNamer.name(RGB(0, 0, 255)), "blue")
+        XCTAssertEqual(ColorNamer.name(RGB(13, 51, 217)), "blue")
+        XCTAssertEqual(ColorNamer.name(RGB(0, 71, 171)), "blue")
+        XCTAssertEqual(ColorNamer.name(RGB(30, 144, 255)), "blue")
+        XCTAssertEqual(ColorNamer.name(RGB(255, 255, 0)), "yellow")
+        XCTAssertEqual(ColorNamer.name(RGB(255, 128, 0)), "orange")
+        XCTAssertEqual(ColorNamer.name(RGB(255, 0, 255)), "magenta")
+        XCTAssertEqual(ColorNamer.name(RGB(128, 0, 255)), "purple")
+        XCTAssertEqual(ColorNamer.name(RGB(100, 40, 140)), "purple")
+        XCTAssertEqual(ColorNamer.name(RGB(34, 139, 34)), "green")
+    }
+
     func testEverydayColorsGetTheirNames() {
         XCTAssertEqual(ColorNamer.name(RGB(0, 0, 0)), "black")
         XCTAssertEqual(ColorNamer.name(RGB(255, 255, 255)), "white")
@@ -93,6 +109,7 @@ final class ColorNamerTests: XCTestCase {
     func testDarkNavyIsNotCalledBlack() {
         // The case that matters for matching clothes: raw RGB distance says black.
         XCTAssertEqual(ColorNamer.name(RGB(24, 34, 80)), "navy blue")
+        XCTAssertEqual(ColorNamer.name(RGB(0, 0, 128)), "navy blue")
     }
 
     func testLabMatchesKnownReferenceValues() {

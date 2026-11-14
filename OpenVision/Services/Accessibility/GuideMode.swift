@@ -147,8 +147,11 @@ final class GuideMode: ObservableObject {
 }
 
 /// Describes a photo with the best model available, on the phone first.
+///
+/// A model can be wrong about where and how far, so what it says about position is spoken
+/// as a guess. Text, money, and labels never come through here: those are read, not described.
 enum SceneDescriber {
-    private static let scenePrompt = "Describe this scene for a blind person in two or three short sentences. Start with anything that affects safe movement, then the layout, then people and any readable text. Say only what is clearly visible."
+    private static let scenePrompt = "Describe this scene for a blind person in two or three short sentences. Start with anything that affects safe movement, then the layout, then people and any readable text. Say only what is clearly visible. If the photo is blurred or dark, say so instead of describing it."
     private static let hazardPrompt = "You are helping a blind pedestrian. In one short sentence, name only hazards within a few steps: stairs, a curb or drop, a pole, a low obstacle, a door, or a vehicle, and say whether it is left, ahead, or right. If there is none, answer with the single word clear."
 
     /// A full description, or nil when no model can be reached.
@@ -162,7 +165,7 @@ enum SceneDescriber {
     static func hazards(in jpeg: Data) async -> String? {
         guard let answer = await ask(hazardPrompt, jpeg: jpeg, tokens: 40) else { return nil }
         let trimmed = answer.trimmingCharacters(in: .whitespacesAndNewlines)
-        return trimmed.lowercased().hasPrefix("clear") || trimmed.isEmpty ? nil : trimmed
+        return trimmed.lowercased().hasPrefix("clear") || trimmed.isEmpty ? nil : "Possible hazard. " + trimmed
     }
 
     /// Where something is, for "find the …" when the phone's own detectors did not see it.
@@ -171,7 +174,7 @@ enum SceneDescriber {
         let prompt = "Is there a \(thing) in this photo? If so, say in one short sentence whether it is to the left, ahead, or to the right, and roughly how far. If not, answer with the single word no."
         guard let answer = await ask(prompt, jpeg: jpeg, tokens: 40) else { return nil }
         let trimmed = answer.trimmingCharacters(in: .whitespacesAndNewlines)
-        return trimmed.lowercased().hasPrefix("no") || trimmed.isEmpty ? nil : trimmed
+        return trimmed.lowercased().hasPrefix("no") || trimmed.isEmpty ? nil : "My best guess: " + trimmed
     }
 
     /// The on-device vision model when one is loaded, which costs nothing and works with no
@@ -183,7 +186,7 @@ enum SceneDescriber {
             return local
         }
         guard SettingsManager.shared.settings.isGrokConfigured else { return nil }
-        let system = "You are the eyes of a blind person. Be brief, concrete, and never guess."
+        let system = "You are the eyes of a blind person. Be brief and concrete. Never guess, and never agree with something you cannot see: when you are not sure, say you are not sure."
         return try? await GrokService.shared.complete(prompt, imageData: jpeg, system: system)
     }
 }

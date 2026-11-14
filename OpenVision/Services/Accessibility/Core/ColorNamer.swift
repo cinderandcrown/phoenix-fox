@@ -119,7 +119,9 @@ enum ColorNamer {
         var lab: Lab
     }
 
-    /// Names a person would use for clothes. Each has one reference color; the nearest wins.
+    /// Names a person would use for clothes. The nearest reference color wins. A name has
+    /// more than one reference where its vivid and its muted form sit far apart: a saturated
+    /// blue is nearer to purple than to a workaday blue, and would be misnamed without its own.
     private static let palette: [Entry] = [
         ("red", RGB(204, 30, 36)), ("dark red", RGB(128, 20, 28)), ("maroon", RGB(96, 24, 40)),
         ("pink", RGB(244, 150, 180)), ("hot pink", RGB(232, 50, 130)), ("light pink", RGB(250, 205, 215)),
@@ -134,5 +136,10 @@ enum ColorNamer {
         ("sky blue", RGB(100, 170, 235)), ("denim blue", RGB(74, 104, 150)),
         ("purple", RGB(118, 50, 160)), ("dark purple", RGB(64, 28, 88)), ("lavender", RGB(196, 176, 232)),
         ("magenta", RGB(196, 40, 160)), ("burgundy", RGB(110, 20, 50)),
+        ("red", RGB(255, 0, 0)), ("green", RGB(0, 200, 0)), ("lime green", RGB(0, 255, 0)),
+        ("blue", RGB(0, 0, 255)), ("blue", RGB(20, 50, 220)), ("blue", RGB(0, 90, 255)),
+        ("yellow", RGB(255, 255, 0)), ("turquoise", RGB(0, 255, 255)), ("magenta", RGB(255, 0, 255)),
+        ("orange", RGB(255, 128, 0)), ("purple", RGB(128, 0, 255)),
+        ("navy blue", RGB(0, 0, 128)), ("navy blue", RGB(12, 24, 110)),
     ].map { Entry(name: $0.0, lab: Lab($0.1)) }
 }
