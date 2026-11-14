@@ -561,7 +561,7 @@ final class GlassesManager: ObservableObject {
         if let permission = error as? PermissionError {
             switch permission {
             case .noDeviceWithConnection:
-                return "Glasses are listed but the Device Access link is not connected. Wear them, unfold the arms, keep Meta AI connected, then try again. (DAT: noDeviceWithConnection)"
+                return "Glasses are listed but not linked yet (link=disconnected). If Developer Mode was turned on after registering, use Glasses → Disconnect & re-register once. Otherwise wear/unfold the glasses, keep Meta AI connected, or toggle phone Bluetooth. (DAT: noDeviceWithConnection / LinkState not connected)"
             case .noDevice:
                 return "No glasses found for this app yet. Register in Meta AI, then try again. (DAT: noDevice)"
             case .connectionError:

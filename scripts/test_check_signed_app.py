@@ -210,10 +210,19 @@ class SignedAppTests(unittest.TestCase):
         with open(os.path.join(root, "OpenVision/OpenVision.entitlements"), "rb") as file:
             entitlements = plistlib.load(file)
         found = run(info, entitlements)
-        for fixed in ("ITSAppUsesNonExemptEncryption", "AppLinkURLScheme", "MetaAppID", "BGTaskSchedulerPermittedIdentifiers", "Associated domain",
+        # MetaAppID and ClientToken come from build settings ($(META_APP_ID) /
+        # $(META_CLIENT_TOKEN)); they are expanded only in the signed app, so the
+        # source plist is not checked for digits/token the way TestFlight is.
+        for fixed in ("ITSAppUsesNonExemptEncryption", "AppLinkURLScheme", "BGTaskSchedulerPermittedIdentifiers", "Associated domain",
                       "bluetooth-central", "NSBluetoothAlwaysUsageDescription", "NSLocalNetworkUsageDescription", "NSBonjourServices",
                       "Hotspot Configuration", "Access Wi-Fi Information"):
             self.assertFalse(any(fixed in problem for problem in found), f"{fixed}: {found}")
+        meta = info.get("MWDAT") or {}
+        app_id = str(meta.get("MetaAppID", ""))
+        self.assertTrue(
+            app_id.isdigit() or app_id == "$(META_APP_ID)",
+            f"MetaAppID should be digits or $(META_APP_ID), got {app_id!r}",
+        )
 
     def test_the_workflow_turns_on_the_capability_for_each_wifi_entitlement(self):
         # An entitlement whose capability is off on the App ID is left out of the App
