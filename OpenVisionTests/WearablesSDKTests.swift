@@ -41,4 +41,20 @@ final class WearablesSDKTests: XCTestCase {
             "The glasses software did not start. Close Phoenix Fox and open it again."
         )
     }
+
+    /// Meta DAT #177: never call startRegistration when already registered or in flight.
+    func testRegistrationSkipsWhenAlreadyRegisteredOrRegistering() {
+        XCTAssertTrue(GlassesManager.shouldSkipStartRegistration(.registered))
+        XCTAssertTrue(GlassesManager.shouldSkipStartRegistration(.registering))
+        XCTAssertFalse(GlassesManager.shouldSkipStartRegistration(.available))
+        XCTAssertFalse(GlassesManager.shouldSkipStartRegistration(.unavailable))
+        XCTAssertFalse(GlassesManager.shouldSkipStartRegistration(.notRunning))
+    }
+
+    func testMetaAppIDIsReadableWithoutToken() {
+        let id = DATEligibility.configuredMetaAppID
+        // Under tests the plist may be missing MWDAT; either a real id or (missing) is fine.
+        XCTAssertFalse(id.contains("CLIENT"), "Copy log must never include the client token")
+        XCTAssertFalse(id.isEmpty)
+    }
 }

@@ -28,6 +28,9 @@ struct GlassesCheckView: View {
                 row("Registration", glassesManager.isRegistered ? "Registered" : "Not registered")
                 row("SDK stage", glassesManager.registrationStage.rawValue)
                 row("Attempt", attemptPhaseLabel)
+                row("MetaAppID", DATEligibility.configuredMetaAppID)
+                row("isDevMode", DATEligibility.isDevModeLabel(from: WearablesSDK.interface))
+                row("Bluetooth", WearablesSDK.bluetoothAtConfigure)
                 row("Devices listed", "\(glassesManager.connectedDeviceCount)")
                 row("DAT link", glassesManager.deviceLinkStateLabel)
                 row("Link ready", glassesManager.deviceLinkConnected ? "yes" : "no")
@@ -51,7 +54,7 @@ struct GlassesCheckView: View {
                 if !glassesManager.isRegistered {
                     Text("Pair the glasses in Meta AI, turn on Developer Mode, then Register. Details: \(glassesManager.registrationDetails)")
                 } else if !glassesManager.deviceLinkConnected {
-                    Text("Registered lists a device; the DAT BLE link may still be down. Use Run CameraAccess probe below. If it fails at session.start, toggle phone Bluetooth once (known DAT BLE budget issue).")
+                    Text("Registered lists a device; the DAT BLE link may still be down. Real MetaAppID builds need a Wearables Developer Center release-channel invite accepted in Meta AI (Settings → Release Channel). Dev Mode alone is for MetaAppID 0. Use Run CameraAccess probe below. If session.start fails while link=disconnected, toggle phone Bluetooth once (DAT #150).")
                 }
             }
 
@@ -181,19 +184,23 @@ struct GlassesCheckView: View {
     }
 
     private func copyLog() {
-        let header = [
+        var header = [
             "Phoenix Fox glasses log",
             glassesManager.registrationDetails,
             "Registered: \(glassesManager.isRegistered)",
             "Devices listed: \(glassesManager.connectedDeviceCount)",
-            "DAT link: \(glassesManager.deviceLinkStateLabel)",
-            "Link ready: \(glassesManager.deviceLinkConnected)",
-            "Last SDK error: \(glassesManager.lastSDKError ?? "(none)")",
             "Audio: \(audio.destination.title)",
             "Link mode: \(audio.linkMode.title)",
-            "---",
-        ].joined(separator: "\n")
-        UIPasteboard.general.string = header + "\n" + link.logs.joined(separator: "\n")
+        ]
+        header.append(contentsOf: DATEligibility.snapshotLines(
+            wearables: WearablesSDK.interface,
+            bluetooth: WearablesSDK.bluetoothAtConfigure,
+            linkLabel: glassesManager.deviceLinkStateLabel,
+            linkConnected: glassesManager.deviceLinkConnected,
+            lastSDKError: glassesManager.lastSDKError
+        ))
+        header.append("---")
+        UIPasteboard.general.string = header.joined(separator: "\n") + "\n" + link.logs.joined(separator: "\n")
         copied = true
         Task {
             try? await Task.sleep(for: .seconds(2))

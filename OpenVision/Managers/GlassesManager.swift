@@ -117,8 +117,28 @@ final class GlassesManager: ObservableObject {
     private init() {
         print("[GlassesManager] Initializing")
         if wearables == nil { errorMessage = WearablesSDK.failure }
-        setupRegistrationListener()
-        setupDevicesListener()
+        // Listeners attach when Wearables.configure finishes (Bluetooth-first bootstrap).
+        if wearables != nil {
+            setupRegistrationListener()
+            setupDevicesListener()
+        }
+    }
+
+    /// Called after `WearablesSDK.startAfterBluetoothPermission()` so streams attach once
+    /// the SDK is actually running. Safe if already attached.
+    func wearablesDidBecomeAvailable() {
+        guard wearables != nil else {
+            errorMessage = WearablesSDK.failure
+            return
+        }
+        if errorMessage == WearablesSDK.failure || errorMessage == "The glasses connection is not running." {
+            errorMessage = nil
+        }
+        if registrationTask == nil { setupRegistrationListener() }
+        if devicesTask == nil { setupDevicesListener() }
+        GlassesLink.shared.record(
+            "DAT ready. MetaAppID=\(DATEligibility.configuredMetaAppID) isDevMode=\(DATEligibility.isDevModeLabel(from: wearables))"
+        )
     }
 
     // MARK: - Registration
@@ -127,6 +147,9 @@ final class GlassesManager: ObservableObject {
     ///
     /// The outcome is in `registration`, not in a thrown error: Meta AI can refuse a build
     /// and tell the SDK nothing, so the try is judged when the wearer comes back.
+    ///
+    /// Never calls `startRegistration` when already `.registered` or `.registering`.
+    /// Re-registering clears Developer Mode for the process (Meta DAT Android #177).
     func register() async {
         registration.begin()
         guard let wearables else {
@@ -136,9 +159,14 @@ final class GlassesManager: ObservableObject {
         let stage = Self.stage(for: wearables.registrationState)
         registrationStage = stage
         noteRegistration("Connect asked for.")
-        if stage == .registered {
-            isRegistered = true
-            registration.registered()
+        if Self.shouldSkipStartRegistration(stage) {
+            if stage == .registered {
+                isRegistered = true
+                registration.registered()
+            }
+            noteRegistration(
+                "Skipped startRegistration (stage=\(stage.rawValue); re-register clears isDevMode per Meta #177)."
+            )
             return
         }
         do {
@@ -154,6 +182,11 @@ final class GlassesManager: ObservableObject {
                 noteRegistration("Already connected.")
             }
         }
+    }
+
+    /// Meta #177: only call startRegistration when not already registered (or in flight).
+    static func shouldSkipStartRegistration(_ stage: RegistrationStage) -> Bool {
+        stage == .registered || stage == .registering
     }
 
     /// The app went to the background. During a try, that means Meta AI opened.
@@ -1048,10 +1081,16 @@ final class GlassesManager: ObservableObject {
         devicesTask = Task {
             for await devices in wearables.devicesStream() {
                 await MainActor.run {
+                    let previousCount = self.connectedDeviceCount
                     self.connectedDeviceCount = devices.count
                     self.refreshDeviceLink(from: wearables)
                     // Prefer a linked device for session/camera work.
                     self.connectedDevice = self.linkedDeviceID(in: wearables) ?? devices.first
+                    if devices.count != previousCount {
+                        for line in DATEligibility.deviceLines(from: wearables) {
+                            GlassesLink.shared.record("Device list: \(line)")
+                        }
+                    }
                     GlassesLink.shared.noteDeviceCount(devices.count)
                     if let id = self.connectedDevice {
                         GlassesControlSession.shared.deviceAppeared(id)
@@ -1086,6 +1125,7 @@ final class GlassesManager: ObservableObject {
 
     private func applyLinkState(_ state: LinkState, deviceName: String) {
         let wasConnected = deviceLinkConnected
+        let previousLabel = deviceLinkStateLabel
         switch state {
         case .connected:
             deviceLinkConnected = true
@@ -1100,24 +1140,32 @@ final class GlassesManager: ObservableObject {
             deviceLinkConnected = false
             deviceLinkStateLabel = String(describing: state)
         }
-        if deviceLinkConnected != wasConnected {
-            GlassesLink.shared.record("DAT link \(deviceLinkStateLabel) (\(deviceName)).")
-            if deviceLinkConnected {
-                // Control session was deferred until link-up — open it now if wanted.
-                if let id = connectedDevice ?? wearables?.devices.first {
-                    GlassesControlSession.shared.deviceAppeared(id)
+        // Log every transition (not only connected↔not), for Copy log / #116/#150 diagnosis.
+        if deviceLinkStateLabel != previousLabel {
+            var extras = ""
+            if let wearables, let id = wearables.devices.first,
+               let device = wearables.deviceForIdentifier(id) {
+                extras = " compat=\(device.compatibility()) type=\(device.deviceType())"
+            }
+            GlassesLink.shared.record(
+                "DAT link \(previousLabel)→\(deviceLinkStateLabel) (\(deviceName))\(extras). isDevMode=\(DATEligibility.isDevModeLabel(from: wearables))"
+            )
+        }
+        if deviceLinkConnected, !wasConnected {
+            // Control session was deferred until link-up — open it now if wanted.
+            if let id = connectedDevice ?? wearables?.devices.first {
+                GlassesControlSession.shared.deviceAppeared(id)
+            }
+            // Activate HFP/A2DP only when a Bluetooth port is actually present;
+            // otherwise keep the phone mic so AVAudioEngine can start.
+            do {
+                if AudioSessionManager.shared.isBluetoothAvailable {
+                    _ = try AudioSessionManager.shared.configureForGlasses()
+                } else {
+                    try AudioSessionManager.shared.ensurePhoneMicReady()
                 }
-                // Activate HFP/A2DP only when a Bluetooth port is actually present;
-                // otherwise keep the phone mic so AVAudioEngine can start.
-                do {
-                    if AudioSessionManager.shared.isBluetoothAvailable {
-                        _ = try AudioSessionManager.shared.configureForGlasses()
-                    } else {
-                        try AudioSessionManager.shared.ensurePhoneMicReady()
-                    }
-                } catch {
-                    GlassesLink.shared.record("Audio route after link: \(error.localizedDescription)")
-                }
+            } catch {
+                GlassesLink.shared.record("Audio route after link: \(error.localizedDescription)")
             }
         }
     }

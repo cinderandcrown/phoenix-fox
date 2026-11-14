@@ -25,14 +25,11 @@ enum CameraAccessParity {
             return lines.joined(separator: "\n")
         }
 
+        log("MetaAppID=\(DATEligibility.configuredMetaAppID) isDevMode=\(DATEligibility.isDevModeLabel(from: wearables)) bt=\(WearablesSDK.bluetoothAtConfigure)")
         let devices = wearables.devices
         log("devices listed: \(devices.count)")
-        for id in devices {
-            if let device = wearables.deviceForIdentifier(id) {
-                log("  \(device.nameOrId()) link=\(device.linkState) compat=\(device.compatibility()) type=\(device.deviceType())")
-            } else {
-                log("  \(id) (deviceForIdentifier nil)")
-            }
+        for line in DATEligibility.deviceLines(from: wearables) {
+            log("  \(line)")
         }
 
         let selector = AutoDeviceSelector(wearables: wearables)

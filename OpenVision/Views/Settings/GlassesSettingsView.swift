@@ -74,7 +74,7 @@ struct GlassesSettingsView: View {
             } header: {
                 Text("Registration")
             } footer: {
-                Text("Registration opens the Meta AI app, where you grant Phoenix Fox access to your glasses.")
+                Text("Registration opens the Meta AI app, where you grant Phoenix Fox access to your glasses. Once Registered, do not register again — that can clear Developer Mode for this process (Meta DAT #177). Real MetaAppID builds also need a Wearables Developer Center release-channel invite.")
             }
 
             // Device Status Section
