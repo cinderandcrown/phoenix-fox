@@ -145,7 +145,8 @@ struct VoiceAgentView: View {
         model.glasses = GlassesStatus(
             registered: glassesManager.isRegistered,
             devicesInReach: glassesManager.connectedDeviceCount,
-            cameraOn: cameraOn
+            cameraOn: cameraOn,
+            linkConnected: glassesManager.deviceLinkConnected
         )
         if settings.aiBackend != .ownAssistant {
             model.team = .brain(settings.backendDisplayName)

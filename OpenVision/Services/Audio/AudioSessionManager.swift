@@ -326,7 +326,7 @@ extension AudioSessionManager {
     /// Lines for the Glasses check screen. No secrets.
     var diagnosticLines: [String] {
         [
-            destination.title,
+            "Speaking through \(destination.title)",
             "Link: \(linkMode.title)",
             "Mic: \(usingGlassesMic ? "glasses (mono 16 kHz HFP)" : "phone")",
             "HFP settled: \(hfpSettled ? "yes" : "no")",

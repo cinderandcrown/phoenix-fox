@@ -98,18 +98,19 @@ enum AudioDestination: Equatable, Sendable {
     case glasses(name: String, link: GlassesLinkMode)
     case phoneSpeaker
 
+    /// Route label only — Home prefixes with "Speaking through" once.
     var title: String {
         switch self {
         case .glasses(let name, let link):
             let short = name.trimmingCharacters(in: .whitespacesAndNewlines)
             let who = short.isEmpty ? "glasses" : short
             switch link {
-            case .hfpConversation: return "Speaking through: \(who) (voice link)"
-            case .a2dpPlayback: return "Speaking through: \(who) (speaker)"
-            case .phone: return "Speaking through: \(who)"
+            case .hfpConversation: return "\(who) (voice link)"
+            case .a2dpPlayback: return "\(who) (speaker)"
+            case .phone: return who
             }
         case .phoneSpeaker:
-            return "Speaking through: iPhone speaker"
+            return "iPhone speaker"
         }
     }
 
