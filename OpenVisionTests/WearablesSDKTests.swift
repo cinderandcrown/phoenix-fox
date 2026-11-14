@@ -57,4 +57,9 @@ final class WearablesSDKTests: XCTestCase {
         XCTAssertFalse(id.contains("CLIENT"), "Copy log must never include the client token")
         XCTAssertFalse(id.isEmpty)
     }
+
+    /// Disconnect & re-register is opt-in only — never armed at launch (#177).
+    func testPendingReregisterIsOffAtLaunch() {
+        XCTAssertFalse(GlassesManager.shared.pendingReregisterAfterUnregister)
+    }
 }

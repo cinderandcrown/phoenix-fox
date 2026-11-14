@@ -54,7 +54,7 @@ struct GlassesCheckView: View {
                 if !glassesManager.isRegistered {
                     Text("Pair the glasses in Meta AI, turn on Developer Mode, then Register. Details: \(glassesManager.registrationDetails)")
                 } else if !glassesManager.deviceLinkConnected {
-                    Text("Registered lists a device; the DAT BLE link may still be down. Real MetaAppID builds need a Wearables Developer Center release-channel invite accepted in Meta AI (Settings → Release Channel). Dev Mode alone is for MetaAppID 0. Use Run CameraAccess probe below. If session.start fails while link=disconnected, toggle phone Bluetooth once (DAT #150).")
+                    Text("Registered lists a device; DAT link still down. If Phoenix Fox is missing under Meta AI → Developer mode apps, use Glasses → Disconnect & re-register once (Dev Mode after prior register). Else Path B: release-channel invite with Dev Mode off. MetaAppID 0 is optional local-only. Probe below; if session.start fails while disconnected, toggle phone Bluetooth (DAT #150).")
                 }
             }
 
@@ -102,6 +102,19 @@ struct GlassesCheckView: View {
             }
 
             Section {
+                if glassesManager.isRegistered {
+                    Button {
+                        Task { await glassesManager.disconnectAndReregister() }
+                    } label: {
+                        Label(
+                            glassesManager.pendingReregisterAfterUnregister
+                                ? "Disconnecting…"
+                                : "Disconnect & re-register",
+                            systemImage: "arrow.triangle.2.circlepath"
+                        )
+                    }
+                    .disabled(busy || glassesManager.pendingReregisterAfterUnregister || glassesManager.registration.isWorking)
+                }
                 Button {
                     Task { await runParityProbe() }
                 } label: {
@@ -116,7 +129,7 @@ struct GlassesCheckView: View {
             } header: {
                 Text("DAT sample parity")
             } footer: {
-                Text("Runs Meta’s CameraAccess sequence only: AutoDeviceSelector → session.start → camera permission → short stream. Logs every state. Independent of our normal camera path.")
+                Text("Disconnect & re-register is for Dev Mode turned on after a prior register (Meta #177/#197) — once, not every launch. The probe runs Meta’s CameraAccess sequence only.")
             }
 
             Section {

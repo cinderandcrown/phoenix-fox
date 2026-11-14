@@ -20,7 +20,9 @@ enum DATEligibility {
         return id
     }
 
-    /// True when MetaAppID is 0 / empty — Developer Mode path (no attestation).
+    /// True when MetaAppID is 0 / empty — pure Developer Mode binary (no attestation).
+    /// A real MetaAppID can still register as a Dev Mode app while Meta AI Developer Mode
+    /// is on (Meta Android DAT #197); that is not the same as shipping MetaAppID 0.
     static var usesDeveloperModeAppID: Bool {
         let id = configuredMetaAppID.trimmingCharacters(in: .whitespacesAndNewlines)
         return id == "0" || id == "$(META_APP_ID)" || id.isEmpty || id == "(missing)"

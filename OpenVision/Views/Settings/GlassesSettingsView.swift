@@ -12,6 +12,7 @@ struct GlassesSettingsView: View {
     // MARK: - State
 
     @State private var showingUnregisterConfirmation: Bool = false
+    @State private var showingReregisterConfirmation: Bool = false
 
     // MARK: - Body
 
@@ -32,6 +33,33 @@ struct GlassesSettingsView: View {
                         .foregroundColor(.red)
                         .font(.caption)
                     }
+
+                    Button {
+                        showingReregisterConfirmation = true
+                    } label: {
+                        HStack {
+                            Spacer()
+                            if glassesManager.pendingReregisterAfterUnregister
+                                || glassesManager.registration.isWorking {
+                                ProgressView()
+                                    .padding(.trailing, 8)
+                                Text(
+                                    glassesManager.pendingReregisterAfterUnregister
+                                        ? "Disconnecting, then Meta AI…"
+                                        : "Opening Meta AI…"
+                                )
+                            } else {
+                                Image(systemName: "arrow.triangle.2.circlepath")
+                                Text("Disconnect & re-register")
+                            }
+                            Spacer()
+                        }
+                    }
+                    .buttonStyle(.bordered)
+                    .disabled(
+                        glassesManager.registration.isWorking
+                            || glassesManager.pendingReregisterAfterUnregister
+                    )
                 } else {
                     VStack(alignment: .leading, spacing: 12) {
                         Text("Register with Meta AI app to access your glasses")
@@ -74,7 +102,7 @@ struct GlassesSettingsView: View {
             } header: {
                 Text("Registration")
             } footer: {
-                Text("Registration opens the Meta AI app, where you grant Phoenix Fox access to your glasses. Once Registered, do not register again — that can clear Developer Mode for this process (Meta DAT #177). Real MetaAppID builds also need a Wearables Developer Center release-channel invite.")
+                Text("Register once. Do not tap Register on every launch (Meta DAT #177). If you turned on Developer Mode after registering and Phoenix Fox is missing under Meta AI → App connections → Developer mode apps, use Disconnect & re-register once. Real MetaAppID builds can still register as a Dev Mode app while Developer Mode is on (Meta #197); for the production-like path turn Developer Mode off and use a Wearables Developer Center release-channel invite.")
             }
 
             // Device Status Section
@@ -234,6 +262,18 @@ struct GlassesSettingsView: View {
         } message: {
             Text("This disconnects your glasses from Phoenix Fox. You will need to pair them again to use them.")
         }
+        .confirmationDialog(
+            "Disconnect & re-register?",
+            isPresented: $showingReregisterConfirmation,
+            titleVisibility: .visible
+        ) {
+            Button("Disconnect & re-register", role: .destructive) {
+                Task { await glassesManager.disconnectAndReregister() }
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("Use this when Developer Mode was turned on after you first registered. Meta AI will disconnect Phoenix Fox, then open again to register fresh so the app can appear under Developer mode apps. Do not do this on every launch.")
+        }
         .alert("Error", isPresented: .constant(glassesManager.errorMessage != nil)) {
             Button("OK") {
                 glassesManager.errorMessage = nil
@@ -273,8 +313,8 @@ struct TroubleshootingView: View {
                     solution: GlassesPreparation.steps.joined(separator: " ") + " " + GlassesPreparation.reason
                 )
                 TroubleshootingItem(
-                    title: "App not appearing in Meta AI",
-                    solution: "Check that your Meta App ID is correctly configured."
+                    title: "App not appearing under Developer mode apps",
+                    solution: "Turn Developer Mode on first, then Settings → Glasses → Disconnect & re-register once. A register done before Dev Mode will not list the app there (Meta #197). Real MetaAppID TestFlight builds can appear as Dev Mode apps while Dev Mode is on; MetaAppID 0 is only for pure local builds. For the release-channel path, turn Dev Mode off and accept the Wearables Developer Center Beta invite."
                 )
             }
 

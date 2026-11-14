@@ -71,6 +71,10 @@ final class GlassesManager: ObservableObject {
     /// Nothing is connected until `answerPendingRegistration(approve:)` says so.
     @Published private(set) var pendingRegistration: RegistrationRequest?
 
+    /// True while Disconnect & re-register is waiting for Meta AI to finish unregister,
+    /// then will call `startRegistration` once. Never set on launch — only by that button.
+    @Published private(set) var pendingReregisterAfterUnregister = false
+
     // MARK: - Private Properties
 
     /// Nil when the glasses SDK did not start. See `WearablesSDK`.
@@ -264,15 +268,35 @@ final class GlassesManager: ObservableObject {
 
     /// Unregister app from Meta AI
     func unregister() async {
-        print("[GlassesManager] Starting unregistration")
+        await startUnregistration(thenReregister: false)
+    }
+
+    /// Explicit Disconnect & re-register for when Developer Mode was turned on *after*
+    /// a prior registration (Meta #177 / #197). Unregisters via Meta AI, then starts a
+    /// fresh `startRegistration` once — never on launch.
+    func disconnectAndReregister() async {
+        noteRegistration("Disconnect & re-register asked for (Dev Mode after prior register).")
+        await startUnregistration(thenReregister: true)
+    }
+
+    /// Cancels a pending re-register after unregister (e.g. user backs out).
+    func cancelPendingReregister() {
+        pendingReregisterAfterUnregister = false
+        noteRegistration("Pending re-register cancelled.")
+    }
+
+    private func startUnregistration(thenReregister: Bool) async {
+        print("[GlassesManager] Starting unregistration (thenReregister=\(thenReregister))")
 
         await stopStreaming()
 
         guard let wearables else {
             errorMessage = GlassesUnavailable().reason
+            pendingReregisterAfterUnregister = false
             return
         }
         dismissRegistrationTrouble()
+        pendingReregisterAfterUnregister = thenReregister
         do {
             try await wearables.startUnregistration()
             isRegistered = false
@@ -282,11 +306,29 @@ final class GlassesManager: ObservableObject {
             deviceLinkStateLabel = "none"
             linkStateToken = nil
             errorMessage = nil
+            noteRegistration("Unregistration handed to Meta AI.")
             print("[GlassesManager] Unregistration successful")
+            // If Meta AI completes without a state stream beat (already unregistered),
+            // try the follow-up register once state is no longer registered.
+            if thenReregister {
+                await maybeContinueReregister(wearables: wearables)
+            }
         } catch {
+            pendingReregisterAfterUnregister = false
             errorMessage = "Unregister failed: \(error.localizedDescription)"
+            noteRegistration("Unregistration failed: \(error.localizedDescription)")
             print("[GlassesManager] Unregistration error: \(error)")
         }
+    }
+
+    /// After unregister, when the SDK leaves `.registered`, start a one-shot register.
+    private func maybeContinueReregister(wearables: any WearablesInterface) async {
+        guard pendingReregisterAfterUnregister else { return }
+        let stage = Self.stage(for: wearables.registrationState)
+        guard stage != .registered, stage != .registering else { return }
+        pendingReregisterAfterUnregister = false
+        noteRegistration("Unregister done; starting fresh registration.")
+        await register()
     }
 
     /// Hands off to the Meta AI app to install or update the app's component on the glasses.
@@ -1065,12 +1107,19 @@ final class GlassesManager: ObservableObject {
                         self.registrationWait?.cancel()
                         self.registration.registered()
                         GlassesLink.shared.noteRegistration(true)
+                        // Fresh register completed — clear any stale re-register flag.
+                        self.pendingReregisterAfterUnregister = false
                     } else {
                         self.isRegistered = false
                         GlassesLink.shared.noteRegistration(false)
                     }
                     if changed { self.noteRegistration("State changed.") }
                     print("[GlassesManager] Registration state: \(stage.rawValue)")
+                    if self.pendingReregisterAfterUnregister,
+                       stage != .registered,
+                       stage != .registering {
+                        Task { await self.maybeContinueReregister(wearables: wearables) }
+                    }
                 }
             }
         }

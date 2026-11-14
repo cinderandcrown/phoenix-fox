@@ -10,3 +10,12 @@ META_CLIENT_TOKEN =
 // YES makes the owner's build: every feature on, and the glasses toolkit's beta
 // capabilities allowed. Leave it out for a standard build.
 // PHOENIX_FOX_OWNER_BUILD = YES
+
+// Pure DAT Developer Mode (MetaAppID 0, no attestation). Uncomment both lines for a
+// local/sideload build that should appear under Meta AI → App connections →
+// Developer mode apps without a Wearables Developer Center release channel.
+// For owner TestFlight with the real App ID, leave these alone: enable Developer Mode
+// in Meta AI and use Disconnect & re-register, OR invite the tester to the Beta
+// release channel (and typically leave Developer Mode off for the channel path).
+// META_APP_ID = 0
+// META_CLIENT_TOKEN = 0
