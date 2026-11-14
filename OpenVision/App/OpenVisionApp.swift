@@ -35,10 +35,9 @@ struct OpenVisionApp: App {
         // then re-downloaded ~GBs at "connecting…" time). Must run before any HubClient exists.
         GemmaLocalService.bootstrapModelStore()
 
-        WearablesSDK.start()
-        if let failure = WearablesSDK.failure {
-            print("[OpenVisionApp] Glasses SDK did not start: \(failure)")
-        }
+        // Wearables.configure waits for Bluetooth permission (see .task below). Configuring
+        // before the system grants Bluetooth can leave DAT linkState stuck disconnected
+        // for the process life (Meta DAT Android #116; same configure-once BLE path on iOS).
         print("[OpenVisionApp] Initialized")
     }
 
@@ -76,6 +75,11 @@ struct OpenVisionApp: App {
             // Telemetry settings persist, but the sink lives in memory — without this a
             // relaunch (or a jetsam kill during a model switch) silently stopped pushing.
             MetricsCollector.shared.restoreAtLaunch()
+            // Bluetooth first, then Wearables.configure (Meta DAT #116).
+            await WearablesSDK.startAfterBluetoothPermission()
+            if let failure = WearablesSDK.failure {
+                print("[OpenVisionApp] Glasses SDK did not start: \(failure)")
+            }
         }
         .onChange(of: scenePhase) { _, phase in
             // Connecting the glasses sends the wearer to the Meta AI app. Meta AI can

@@ -50,6 +50,12 @@ final class IncomingLinkTests: XCTestCase {
         let configured = try XCTUnwrap(mwdat["AppLinkURLScheme"] as? String)
         XCTAssertEqual(configured, "https://\(IncomingLink.host)/dat")
         XCTAssertNotNil(link(configured))
-        XCTAssertEqual(mwdat["MetaAppID"] as? String, "1651172483404286")
+        // Owner / DAT Developer Mode builds expand META_APP_ID to "0"; release-channel
+        // builds use the Wearables Developer Center id. Both are valid.
+        let appID = try XCTUnwrap(mwdat["MetaAppID"] as? String)
+        XCTAssertTrue(
+            appID == "0" || appID == "1651172483404286" || appID == "$(META_APP_ID)",
+            "Unexpected MetaAppID \(appID)"
+        )
     }
 }

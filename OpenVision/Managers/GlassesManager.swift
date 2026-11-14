@@ -71,6 +71,10 @@ final class GlassesManager: ObservableObject {
     /// Nothing is connected until `answerPendingRegistration(approve:)` says so.
     @Published private(set) var pendingRegistration: RegistrationRequest?
 
+    /// True while Disconnect & re-register is waiting for Meta AI to finish unregister,
+    /// then will call `startRegistration` once. Never set on launch — only by that button.
+    @Published private(set) var pendingReregisterAfterUnregister = false
+
     // MARK: - Private Properties
 
     /// Nil when the glasses SDK did not start. See `WearablesSDK`.
@@ -117,8 +121,28 @@ final class GlassesManager: ObservableObject {
     private init() {
         print("[GlassesManager] Initializing")
         if wearables == nil { errorMessage = WearablesSDK.failure }
-        setupRegistrationListener()
-        setupDevicesListener()
+        // Listeners attach when Wearables.configure finishes (Bluetooth-first bootstrap).
+        if wearables != nil {
+            setupRegistrationListener()
+            setupDevicesListener()
+        }
+    }
+
+    /// Called after `WearablesSDK.startAfterBluetoothPermission()` so streams attach once
+    /// the SDK is actually running. Safe if already attached.
+    func wearablesDidBecomeAvailable() {
+        guard wearables != nil else {
+            errorMessage = WearablesSDK.failure
+            return
+        }
+        if errorMessage == WearablesSDK.failure || errorMessage == "The glasses connection is not running." {
+            errorMessage = nil
+        }
+        if registrationTask == nil { setupRegistrationListener() }
+        if devicesTask == nil { setupDevicesListener() }
+        GlassesLink.shared.record(
+            "DAT ready. MetaAppID=\(DATEligibility.configuredMetaAppID) isDevMode=\(DATEligibility.isDevModeLabel(from: wearables))"
+        )
     }
 
     // MARK: - Registration
@@ -127,33 +151,53 @@ final class GlassesManager: ObservableObject {
     ///
     /// The outcome is in `registration`, not in a thrown error: Meta AI can refuse a build
     /// and tell the SDK nothing, so the try is judged when the wearer comes back.
+    ///
+    /// Never calls `startRegistration` when already `.registered` or `.registering`
+    /// (Meta DAT #177). Does **not** begin a fake attempt when skipped — that produced
+    /// Copy-log lines like "Meta AI opened: no" while still Registered after a no-op Register.
     func register() async {
-        registration.begin()
         guard let wearables else {
+            registration.begin()
             endRegistration(with: .notRunning(GlassesUnavailable().reason))
             return
         }
         let stage = Self.stage(for: wearables.registrationState)
         registrationStage = stage
-        noteRegistration("Connect asked for.")
-        if stage == .registered {
-            isRegistered = true
-            registration.registered()
+        if Self.shouldSkipStartRegistration(stage) {
+            if stage == .registered { isRegistered = true }
+            // No registration.begin() — leave Attempt: idle so the log is honest.
+            noteRegistration(
+                "Register ignored (already \(stage.rawValue)). Use Disconnect & re-register so Meta AI opens."
+            )
+            errorMessage =
+                "Still registered with Meta AI. Use Disconnect & re-register (not Register) so unregister finishes and Meta AI opens for a fresh connect."
             return
         }
+        registration.begin()
+        noteRegistration("Connect asked for — calling startRegistration().")
         do {
             try await wearables.startRegistration()
             startWait(registration.handedOff())
-            noteRegistration("Meta AI was asked to open.")
+            noteRegistration("startRegistration() returned; Meta AI should open.")
         } catch {
             if let stall = Self.stall(for: error) {
                 endRegistration(with: stall)
             } else {
                 isRegistered = true
                 registration.registered()
-                noteRegistration("Already connected.")
+                noteRegistration("Already connected (SDK: \(error.localizedDescription)).")
             }
         }
+    }
+
+    /// Meta #177: only call startRegistration when not already registered (or in flight).
+    static func shouldSkipStartRegistration(_ stage: RegistrationStage) -> Bool {
+        stage == .registered || stage == .registering
+    }
+
+    /// True when the SDK says we are past a completed registration.
+    static func isRegisteredStage(_ stage: RegistrationStage) -> Bool {
+        stage == .registered || stage == .registering
     }
 
     /// The app went to the background. During a try, that means Meta AI opened.
@@ -229,31 +273,129 @@ final class GlassesManager: ObservableObject {
         }
     }
 
-    /// Unregister app from Meta AI
+    /// Unregister via Meta AI. Waits until the SDK leaves `.registered` (callback /
+    /// state stream). Does **not** clear local Registered until the SDK confirms —
+    /// clearing early made Register a no-op ("Meta AI opened: no" while still Registered).
     func unregister() async {
-        print("[GlassesManager] Starting unregistration")
+        await startUnregistration(thenReregister: false)
+    }
+
+    /// Unregister (wait for SDK), then `startRegistration` so Meta AI opens again.
+    /// Never on launch — only this explicit action (or the Glasses check button).
+    func disconnectAndReregister() async {
+        noteRegistration("Disconnect & re-register asked for.")
+        await startUnregistration(thenReregister: true)
+    }
+
+    /// Cancels a pending re-register after unregister (e.g. user backs out).
+    func cancelPendingReregister() {
+        pendingReregisterAfterUnregister = false
+        noteRegistration("Pending re-register cancelled.")
+    }
+
+    private func startUnregistration(thenReregister: Bool) async {
+        print("[GlassesManager] Starting unregistration (thenReregister=\(thenReregister))")
 
         await stopStreaming()
 
         guard let wearables else {
             errorMessage = GlassesUnavailable().reason
+            pendingReregisterAfterUnregister = false
             return
         }
         dismissRegistrationTrouble()
+        pendingReregisterAfterUnregister = thenReregister
+
+        let stage = Self.stage(for: wearables.registrationState)
+        registrationStage = stage
+        if !Self.isRegisteredStage(stage) {
+            noteRegistration("Already unregistered (stage=\(stage.rawValue)); skipping startUnregistration.")
+            applyLocalUnregisteredState()
+            if thenReregister {
+                pendingReregisterAfterUnregister = false
+                await register()
+            }
+            return
+        }
+
+        // Track Meta AI open the same way as register (background → leftApp).
+        registration.begin()
+        noteRegistration("Calling startUnregistration() — Meta AI must open.")
         do {
             try await wearables.startUnregistration()
-            isRegistered = false
-            connectedDevice = nil
-            connectedDeviceCount = 0
-            deviceLinkConnected = false
-            deviceLinkStateLabel = "none"
-            linkStateToken = nil
-            errorMessage = nil
-            print("[GlassesManager] Unregistration successful")
+            startWait(registration.handedOff())
+            noteRegistration("startUnregistration() returned; waiting for SDK to leave registered…")
+            let confirmed = await waitUntilNotRegistered(wearables: wearables, seconds: 90)
+            if confirmed {
+                registration.dismiss()
+                applyLocalUnregisteredState()
+                noteRegistration(
+                    "Unregister confirmed (SDK stage=\(Self.stage(for: wearables.registrationState).rawValue))."
+                )
+                // Only one follow-up register (listener may also see the state change).
+                let shouldReregister = thenReregister && pendingReregisterAfterUnregister
+                pendingReregisterAfterUnregister = false
+                if shouldReregister {
+                    await register()
+                }
+            } else {
+                pendingReregisterAfterUnregister = false
+                registration.failed(.returnedUnconnected)
+                errorMessage =
+                    "Unregister did not finish — SDK still Registered. Complete disconnect in Meta AI, come back, then Disconnect & re-register again."
+                noteRegistration(
+                    "Unregister timed out; SDK still \(Self.stage(for: wearables.registrationState).rawValue). Meta AI opened: \(registration.details(stage: registrationStage))"
+                )
+            }
+        } catch UnregistrationError.alreadyUnregistered {
+            pendingReregisterAfterUnregister = false
+            registration.dismiss()
+            applyLocalUnregisteredState()
+            noteRegistration("SDK alreadyUnregistered.")
+            if thenReregister { await register() }
         } catch {
+            pendingReregisterAfterUnregister = false
+            endRegistration(with: .refused(error.localizedDescription))
             errorMessage = "Unregister failed: \(error.localizedDescription)"
+            noteRegistration("Unregistration failed: \(error.localizedDescription)")
             print("[GlassesManager] Unregistration error: \(error)")
         }
+    }
+
+    private func applyLocalUnregisteredState() {
+        isRegistered = false
+        connectedDevice = nil
+        connectedDeviceCount = 0
+        deviceLinkConnected = false
+        deviceLinkStateLabel = "none"
+        linkStateToken = nil
+        errorMessage = nil
+    }
+
+    /// Waits until `registrationState` is not registered/registering (Meta AI finished
+    /// unregistration / handleUrl). Polls on the main actor to avoid Swift 6 task-group
+    /// isolation warnings on the existential WearablesInterface stream.
+    private func waitUntilNotRegistered(wearables: any WearablesInterface, seconds: Double) async -> Bool {
+        let deadline = ContinuousClock.now + .seconds(seconds)
+        while ContinuousClock.now < deadline {
+            let stage = Self.stage(for: wearables.registrationState)
+            registrationStage = stage
+            if !Self.isRegisteredStage(stage) { return true }
+            try? await Task.sleep(for: .milliseconds(250))
+        }
+        let final = Self.stage(for: wearables.registrationState)
+        registrationStage = final
+        return !Self.isRegisteredStage(final)
+    }
+
+    /// After unregister completes via the state listener (e.g. callback while waiting).
+    private func maybeContinueReregister(wearables: any WearablesInterface) async {
+        guard pendingReregisterAfterUnregister else { return }
+        let stage = Self.stage(for: wearables.registrationState)
+        guard !Self.isRegisteredStage(stage) else { return }
+        pendingReregisterAfterUnregister = false
+        noteRegistration("Unregister done (listener); starting fresh registration.")
+        await register()
     }
 
     /// Hands off to the Meta AI app to install or update the app's component on the glasses.
@@ -486,7 +628,7 @@ final class GlassesManager: ObservableObject {
         if let permission = error as? PermissionError {
             switch permission {
             case .noDeviceWithConnection:
-                return "Glasses are listed but the Device Access link is not connected. Wear them, unfold the arms, keep Meta AI connected, then try again. (DAT: noDeviceWithConnection)"
+                return "Glasses are listed but not linked yet (link=disconnected). If Developer Mode was turned on after registering, use Glasses → Disconnect & re-register once. Otherwise wear/unfold the glasses, keep Meta AI connected, or toggle phone Bluetooth. (DAT: noDeviceWithConnection / LinkState not connected)"
             case .noDevice:
                 return "No glasses found for this app yet. Register in Meta AI, then try again. (DAT: noDevice)"
             case .connectionError:
@@ -1032,12 +1174,17 @@ final class GlassesManager: ObservableObject {
                         self.registrationWait?.cancel()
                         self.registration.registered()
                         GlassesLink.shared.noteRegistration(true)
+                        // Fresh register completed — clear any stale re-register flag.
+                        self.pendingReregisterAfterUnregister = false
                     } else {
                         self.isRegistered = false
                         GlassesLink.shared.noteRegistration(false)
                     }
                     if changed { self.noteRegistration("State changed.") }
                     print("[GlassesManager] Registration state: \(stage.rawValue)")
+                    if self.pendingReregisterAfterUnregister, !Self.isRegisteredStage(stage) {
+                        Task { await self.maybeContinueReregister(wearables: wearables) }
+                    }
                 }
             }
         }
@@ -1048,10 +1195,16 @@ final class GlassesManager: ObservableObject {
         devicesTask = Task {
             for await devices in wearables.devicesStream() {
                 await MainActor.run {
+                    let previousCount = self.connectedDeviceCount
                     self.connectedDeviceCount = devices.count
                     self.refreshDeviceLink(from: wearables)
                     // Prefer a linked device for session/camera work.
                     self.connectedDevice = self.linkedDeviceID(in: wearables) ?? devices.first
+                    if devices.count != previousCount {
+                        for line in DATEligibility.deviceLines(from: wearables) {
+                            GlassesLink.shared.record("Device list: \(line)")
+                        }
+                    }
                     GlassesLink.shared.noteDeviceCount(devices.count)
                     if let id = self.connectedDevice {
                         GlassesControlSession.shared.deviceAppeared(id)
@@ -1086,6 +1239,7 @@ final class GlassesManager: ObservableObject {
 
     private func applyLinkState(_ state: LinkState, deviceName: String) {
         let wasConnected = deviceLinkConnected
+        let previousLabel = deviceLinkStateLabel
         switch state {
         case .connected:
             deviceLinkConnected = true
@@ -1100,24 +1254,32 @@ final class GlassesManager: ObservableObject {
             deviceLinkConnected = false
             deviceLinkStateLabel = String(describing: state)
         }
-        if deviceLinkConnected != wasConnected {
-            GlassesLink.shared.record("DAT link \(deviceLinkStateLabel) (\(deviceName)).")
-            if deviceLinkConnected {
-                // Control session was deferred until link-up — open it now if wanted.
-                if let id = connectedDevice ?? wearables?.devices.first {
-                    GlassesControlSession.shared.deviceAppeared(id)
+        // Log every transition (not only connected↔not), for Copy log / #116/#150 diagnosis.
+        if deviceLinkStateLabel != previousLabel {
+            var extras = ""
+            if let wearables, let id = wearables.devices.first,
+               let device = wearables.deviceForIdentifier(id) {
+                extras = " compat=\(device.compatibility()) type=\(device.deviceType())"
+            }
+            GlassesLink.shared.record(
+                "DAT link \(previousLabel)→\(deviceLinkStateLabel) (\(deviceName))\(extras). isDevMode=\(DATEligibility.isDevModeLabel(from: wearables))"
+            )
+        }
+        if deviceLinkConnected, !wasConnected {
+            // Control session was deferred until link-up — open it now if wanted.
+            if let id = connectedDevice ?? wearables?.devices.first {
+                GlassesControlSession.shared.deviceAppeared(id)
+            }
+            // Activate HFP/A2DP only when a Bluetooth port is actually present;
+            // otherwise keep the phone mic so AVAudioEngine can start.
+            do {
+                if AudioSessionManager.shared.isBluetoothAvailable {
+                    _ = try AudioSessionManager.shared.configureForGlasses()
+                } else {
+                    try AudioSessionManager.shared.ensurePhoneMicReady()
                 }
-                // Activate HFP/A2DP only when a Bluetooth port is actually present;
-                // otherwise keep the phone mic so AVAudioEngine can start.
-                do {
-                    if AudioSessionManager.shared.isBluetoothAvailable {
-                        _ = try AudioSessionManager.shared.configureForGlasses()
-                    } else {
-                        try AudioSessionManager.shared.ensurePhoneMicReady()
-                    }
-                } catch {
-                    GlassesLink.shared.record("Audio route after link: \(error.localizedDescription)")
-                }
+            } catch {
+                GlassesLink.shared.record("Audio route after link: \(error.localizedDescription)")
             }
         }
     }

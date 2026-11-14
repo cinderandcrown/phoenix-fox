@@ -28,6 +28,10 @@ struct GlassesCheckView: View {
                 row("Registration", glassesManager.isRegistered ? "Registered" : "Not registered")
                 row("SDK stage", glassesManager.registrationStage.rawValue)
                 row("Attempt", attemptPhaseLabel)
+                row("MetaAppID", DATEligibility.configuredMetaAppID)
+                row("DAT path", DATEligibility.usesDeveloperModeAppID ? "Dev Mode (AppID 0)" : "Release channel")
+                row("isDevMode", DATEligibility.isDevModeLabel(from: WearablesSDK.interface))
+                row("Bluetooth", WearablesSDK.bluetoothAtConfigure)
                 row("Devices listed", "\(glassesManager.connectedDeviceCount)")
                 row("DAT link", glassesManager.deviceLinkStateLabel)
                 row("Link ready", glassesManager.deviceLinkConnected ? "yes" : "no")
@@ -51,7 +55,7 @@ struct GlassesCheckView: View {
                 if !glassesManager.isRegistered {
                     Text("Pair the glasses in Meta AI, turn on Developer Mode, then Register. Details: \(glassesManager.registrationDetails)")
                 } else if !glassesManager.deviceLinkConnected {
-                    Text("Registered lists a device; the DAT BLE link may still be down. Use Run CameraAccess probe below. If it fails at session.start, toggle phone Bluetooth once (known DAT BLE budget issue).")
+                    Text("Registered lists a device; DAT link still down. If Phoenix Fox is missing under Meta AI → Developer mode apps, use Glasses → Disconnect & re-register once (Dev Mode after prior register). Else Path B: release-channel invite with Dev Mode off. MetaAppID 0 is optional local-only. Probe below; if session.start fails while disconnected, toggle phone Bluetooth (DAT #150).")
                 }
             }
 
@@ -99,6 +103,19 @@ struct GlassesCheckView: View {
             }
 
             Section {
+                if glassesManager.isRegistered {
+                    Button {
+                        Task { await glassesManager.disconnectAndReregister() }
+                    } label: {
+                        Label(
+                            glassesManager.pendingReregisterAfterUnregister
+                                ? "Disconnecting…"
+                                : "Disconnect & re-register",
+                            systemImage: "arrow.triangle.2.circlepath"
+                        )
+                    }
+                    .disabled(busy || glassesManager.pendingReregisterAfterUnregister || glassesManager.registration.isWorking)
+                }
                 Button {
                     Task { await runParityProbe() }
                 } label: {
@@ -113,7 +130,7 @@ struct GlassesCheckView: View {
             } header: {
                 Text("DAT sample parity")
             } footer: {
-                Text("Runs Meta’s CameraAccess sequence only: AutoDeviceSelector → session.start → camera permission → short stream. Logs every state. Independent of our normal camera path.")
+                Text("Disconnect & re-register is for Dev Mode turned on after a prior register (Meta #177/#197) — once, not every launch. The probe runs Meta’s CameraAccess sequence only.")
             }
 
             Section {
@@ -181,19 +198,23 @@ struct GlassesCheckView: View {
     }
 
     private func copyLog() {
-        let header = [
+        var header = [
             "Phoenix Fox glasses log",
             glassesManager.registrationDetails,
             "Registered: \(glassesManager.isRegistered)",
             "Devices listed: \(glassesManager.connectedDeviceCount)",
-            "DAT link: \(glassesManager.deviceLinkStateLabel)",
-            "Link ready: \(glassesManager.deviceLinkConnected)",
-            "Last SDK error: \(glassesManager.lastSDKError ?? "(none)")",
             "Audio: \(audio.destination.title)",
             "Link mode: \(audio.linkMode.title)",
-            "---",
-        ].joined(separator: "\n")
-        UIPasteboard.general.string = header + "\n" + link.logs.joined(separator: "\n")
+        ]
+        header.append(contentsOf: DATEligibility.snapshotLines(
+            wearables: WearablesSDK.interface,
+            bluetooth: WearablesSDK.bluetoothAtConfigure,
+            linkLabel: glassesManager.deviceLinkStateLabel,
+            linkConnected: glassesManager.deviceLinkConnected,
+            lastSDKError: glassesManager.lastSDKError
+        ))
+        header.append("---")
+        UIPasteboard.general.string = header.joined(separator: "\n") + "\n" + link.logs.joined(separator: "\n")
         copied = true
         Task {
             try? await Task.sleep(for: .seconds(2))

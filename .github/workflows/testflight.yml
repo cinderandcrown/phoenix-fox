@@ -123,11 +123,18 @@ jobs:
         run: |
           umask 077
           cp OpenVision/Config/Config.swift.example OpenVision/Config/Config.swift
+          # Owner TestFlight uses MetaAppID 0 + ClientToken 0 (DAT Developer Mode).
+          # Meta iOS docs: "Unless using Developer Mode, set MetaAppID from the Wearables
+          # Developer Center." Real App ID + ClientToken is for the release-channel path
+          # (Developer Mode off). Nicholas's re-register with real App ID + Dev Mode on
+          # left link=disconnected; App ID 0 is the Dev Mode binary identity.
           cat > Config.xcconfig <<EOF
           DEVELOPMENT_TEAM = ${APPLE_TEAM_ID}
           PRODUCT_BUNDLE_IDENTIFIER = ${BUNDLE_ID}
-          META_APP_ID = 1651172483404286
-          META_CLIENT_TOKEN = ${META_CLIENT_TOKEN}
+          META_APP_ID = 0
+          META_CLIENT_TOKEN = 0
+          PHOENIX_FOX_OWNER_BUILD = YES
+          PHOENIX_FOX_STORE = NO
           EOF
           # altool looks for the key by this name in this folder.
           mkdir -p "$HOME/.appstoreconnect/private_keys"

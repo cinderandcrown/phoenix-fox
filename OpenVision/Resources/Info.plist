@@ -172,8 +172,11 @@
     <dict>
         <key>AppLinkURLScheme</key>
         <string>https://phoenix-fox-links.cinderandcrown.workers.dev/dat</string>
+        <!-- $(META_APP_ID) from Config.xcconfig / TestFlight. Use 0 (and ClientToken 0)
+             only for pure Developer Mode builds that skip attestation. Real App ID
+             1651172483404286 needs either Dev Mode + fresh register, or a release channel. -->
         <key>MetaAppID</key>
-        <string>1651172483404286</string>
+        <string>$(META_APP_ID)</string>
         <key>ClientToken</key>
         <string>$(META_CLIENT_TOKEN)</string>
         <key>TeamID</key>

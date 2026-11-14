@@ -289,6 +289,8 @@
 		51DC379730E532EDC5A9FD24 /* ClaudeSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEC14BA021F1D9079985414D /* ClaudeSettingsView.swift */; };
 		53668B6AD58B7F2F8D2C4FF5 /* ProviderKeyTestButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D2890A98299C4B809AE20C7 /* ProviderKeyTestButton.swift */; };
 		5578999EC921B1B1771043B0 /* CameraAccessParity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A417E52B040B8C61E6555DC /* CameraAccessParity.swift */; };
+		AA6F41FFAD7992A75AEC2F95 /* BluetoothPermission.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10D5636B418FD9CE564ECAAD /* BluetoothPermission.swift */; };
+		735361DAEF13C6F8780AF70E /* DATEligibility.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2ED198064CFDAE75A0B57C5A /* DATEligibility.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -578,6 +580,8 @@
 		CEC14BA021F1D9079985414D /* ClaudeSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClaudeSettingsView.swift; sourceTree = "<group>"; };
 		4D2890A98299C4B809AE20C7 /* ProviderKeyTestButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProviderKeyTestButton.swift; sourceTree = "<group>"; };
 		6A417E52B040B8C61E6555DC /* CameraAccessParity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraAccessParity.swift; sourceTree = "<group>"; };
+		10D5636B418FD9CE564ECAAD /* BluetoothPermission.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BluetoothPermission.swift; sourceTree = "<group>"; };
+		2ED198064CFDAE75A0B57C5A /* DATEligibility.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DATEligibility.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -1104,6 +1108,8 @@
 				D3A02A6407C18B263A7FA388 /* WearablesSDK.swift */,
 				2740DE07E1607A475F0D9CBC /* Core */,
 				6A417E52B040B8C61E6555DC /* CameraAccessParity.swift */,
+				10D5636B418FD9CE564ECAAD /* BluetoothPermission.swift */,
+				2ED198064CFDAE75A0B57C5A /* DATEligibility.swift */,
 			);
 			path = Glasses;
 			sourceTree = "<group>";
@@ -1778,6 +1784,8 @@
 				51DC379730E532EDC5A9FD24 /* ClaudeSettingsView.swift in Sources */,
 				53668B6AD58B7F2F8D2C4FF5 /* ProviderKeyTestButton.swift in Sources */,
 				5578999EC921B1B1771043B0 /* CameraAccessParity.swift in Sources */,
+				AA6F41FFAD7992A75AEC2F95 /* BluetoothPermission.swift in Sources */,
+				735361DAEF13C6F8780AF70E /* DATEligibility.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

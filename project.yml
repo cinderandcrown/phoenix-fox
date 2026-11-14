@@ -33,8 +33,9 @@ settings:
     PHOENIX_FOX_STORE: "NO"
     INFOPLIST_FILE: OpenVision/Resources/Info.plist
     PRODUCT_BUNDLE_IDENTIFIER: com.cinderandcrown.phoenixfox
-    META_APP_ID: "1651172483404286"
-    META_CLIENT_TOKEN: ${META_CLIENT_TOKEN}
+    # 0 = DAT Developer Mode (owner TestFlight). Real App ID + ClientToken = release-channel path.
+    META_APP_ID: "0"
+    META_CLIENT_TOKEN: "0"
 
 configs:
   Debug:
