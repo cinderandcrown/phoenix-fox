@@ -53,11 +53,11 @@ There is no public App Store build. The owner's builds are made by GitHub Action
 | Path | What it holds |
 | --- | --- |
 | `OpenVision/` | The iOS app. The folder keeps the name of the project it started from. |
-| `OpenVisionTests/` | Unit tests. They run on a simulator in CI. |
+| `OpenVisionTests/` | Unit tests and snapshot tests of the home screen and first run. They run on a simulator in CI. |
 | `relay/` | The Cloudflare Worker that carries asks, replies, and alerts between the phone and the bots, with its own tests. |
 | `scripts/` | Project-file sync, App Store Connect calls, the signed-app check, and the cost model behind the business plan, with their tests. |
 | `Vendor/` | Kokoro text to speech and its dependencies, kept as their authors ship them. |
-| `docs/` | Feature status, the relay interface, notes on the glasses SDK, the business model, and design notes inherited from OpenVision. |
+| `docs/` | Feature status, the relay interface, notes on the glasses SDK, the business model, the design of the app ([DESIGN.md](docs/DESIGN.md)), and design notes inherited from OpenVision. |
 | `.github/workflows/` | `ci.yml` builds and tests the app. `testflight.yml` signs and uploads it. |
 
 ## Building

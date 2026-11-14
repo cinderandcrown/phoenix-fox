@@ -82,7 +82,24 @@ final class OwnAssistantService: ObservableObject {
         onProcessingChanged?(true)
         defer { onProcessingChanged?(false) }
         let client = self.client
-        return try await value(of: Task { try await client.ask(ask, to: endpoint) })
+        // The home screen shows who has been asked and who has answered.
+        let board = TeamBoardStore.shared
+        board.sync(roster: settings.assistantBots)
+        board.asked(targetBot, task: cleaned)
+        do {
+            let replies = try await value(of: Task { try await client.ask(ask, to: endpoint) })
+            for reply in replies {
+                board.answered(by: reply.fromBot.isEmpty ? targetBot : reply.fromBot, text: reply.text)
+            }
+            board.settled(targetBot)
+            return replies
+        } catch let stopped as CancellationError {
+            board.settled(targetBot)
+            throw stopped
+        } catch {
+            board.failed(targetBot, reason: error.localizedDescription)
+            throw error
+        }
     }
 
     /// Asks every bot at the same time. `onEach` runs as that bot's reply arrives, so speech
@@ -124,7 +141,12 @@ final class OwnAssistantService: ObservableObject {
         defer { inFlight[id] = nil }
         // The stream also ends when this caller is cancelled, so the bots are stopped either way.
         defer { task.cancel() }
+        let board = TeamBoardStore.shared
+        board.sync(roster: settings.assistantBots)
+        for bot in bots { board.asked(bot, task: cleaned) }
+        defer { for bot in bots { board.settled(bot) } }
         for await answer in answers {
+            board.answered(by: answer.bot, text: answer.text)
             onEach(answer.bot, answer.text)
         }
     }
@@ -218,6 +240,9 @@ final class OwnAssistantService: ObservableObject {
         for item in items {
             InboxThread.lastId = item.id
             InboxThread.lastFrom = item.fromBot
+            if item.priority != .low {
+                TeamBoardStore.shared.alerted(by: item.fromBot, text: item.text, urgent: item.priority == .urgent)
+            }
             CompanionRuntime.shared.notePush(text: item.text, from: item.fromBot.isEmpty ? "Fire Fox" : item.fromBot, priority: item.priority.rawValue)
         }
     }

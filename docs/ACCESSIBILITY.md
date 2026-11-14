@@ -65,7 +65,7 @@ Nothing in this table has been run on a pair of glasses yet. The words mean:
 | Personal command phrases | Not started | |
 | Answering without speaking | Written, owner build | With **Nod and shake** on, a shake of the head says no to any question Jarvis is waiting on, and stops Jarvis talking when no question is waiting (not during Guide mode or a walk, where the head turns to look around). Two nods say yes only to a question about your own lists: setting the emergency contact or deleting a routine. A yes that calls someone, saves or erases a face, starts Guide mode, or lets an assistant act must still be spoken. It works from the wake word until about twenty seconds after the answer. |
 | Touchpad, buttons, and Neural Band | Partial | In the owner build the touchpad's double tap, a swipe back, and the capture button enter the same turn as speech through `GestureMap`, while Jarvis is busy with you. No gesture is mapped to "next step" yet. The band is listened for only on display glasses and cannot be tested on Adventurer. |
-| iPhone screens with VoiceOver, Voice Control, Switch Control | Partial | The Accessibility and Captions screens use standard controls with labels and hints, and nothing depends on color or on a swipe. The rest of the app has not had a full pass. |
+| iPhone screens with VoiceOver, Voice Control, Switch Control | Partial | The Accessibility and Captions screens use standard controls with labels and hints, and nothing depends on color or on a swipe. The home screen and first run were written for VoiceOver, Dynamic Type, Reduce Motion, Increase Contrast, and light and dark mode, with contrast held by tests; [DESIGN.md](DESIGN.md) has the decisions. None of it has been tried with VoiceOver on a phone yet. The other Settings screens and History are system lists and have not had a full pass. |
 
 ### Memory and tasks
 
@@ -192,4 +192,4 @@ These are the checks that decide whether a row moves to Done. Start listening on
 8. Say "Jarvis, start captions" and have someone talk to you. Check the text, check that Phoenix Fox's own voice is not captioned, then "what did they say?".
 9. Turn on sound alerts and ring the doorbell, knock, and play a siren from another device, once with the glasses microphone and once with the phone's.
 10. Say "Jarvis, new routine called tea, the steps are fill the kettle, switch it on, pour the water". Then "start my tea routine", "next", "repeat", and "what was I doing?".
-11. Turn on VoiceOver and go through Settings, then Accessibility, and the Captions screen.
+11. Turn on VoiceOver and go through first run (delete and reinstall the app to see it again), the home screen, Settings, then Accessibility, and the Captions screen. Set the text size to its largest and check that nothing on the home screen or in first run is cut off.

@@ -9,6 +9,8 @@ xcuserdata/
 *.moved-aside
 *.xcuserstate
 DerivedData/
+# Snapshot pictures that did not match their reference. CI uploads them; they are never committed.
+OpenVisionTests/__Snapshots__/failed/
 *.hmap
 *.ipa
 *.dSYM.zip
