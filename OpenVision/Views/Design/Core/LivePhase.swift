@@ -117,7 +117,7 @@ enum LivePhase: Equatable, Sendable {
         case .working(let tool):
             return tool ?? "One moment."
         case .replying:
-            return "Talk over me or tap to stop."
+            return "Say “\(signals.wakeWord), stop” or tap."
         case .liveVideo:
             return "Say “stop video” to end."
         }

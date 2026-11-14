@@ -78,7 +78,10 @@ final class LivePhaseTests: XCTestCase {
     }
 
     func testTheReplyingHintSaysHowToInterrupt() {
-        XCTAssertEqual(LivePhase.replying.hint(LiveSignals()), "Talk over me or tap to stop.")
+        // Speech alone does not stop an answer, because the microphone also hears the
+        // answer. The wake word does, so the hint names it.
+        XCTAssertEqual(LivePhase.replying.hint(LiveSignals()), "Say “Jarvis, stop” or tap.")
+        XCTAssertEqual(LivePhase.replying.hint(LiveSignals(wakeWord: "Friday")), "Say “Friday, stop” or tap.")
     }
 
     // MARK: - The tap

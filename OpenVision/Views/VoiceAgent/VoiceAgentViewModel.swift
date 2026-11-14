@@ -279,8 +279,8 @@ final class VoiceAgentViewModel: ObservableObject {
         stopTalking()
     }
 
-    /// Stops the answer and nothing else, exactly as talking over it does. The conversation
-    /// stays open and the microphone listens again.
+    /// Stops the answer and nothing else. The conversation stays open and the microphone
+    /// listens again.
     func stopTalking() {
         guard ttsService.isSpeaking || NeuralSpeech.isAnySpeaking else { return }
         voiceCommandService.onInterruption?()
