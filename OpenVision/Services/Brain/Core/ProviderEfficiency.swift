@@ -64,7 +64,7 @@ enum TurnClassifier {
         "set a timer", "set timer", "cancel timer", "stop timer", "how much time",
         "set an alarm", "volume up", "volume down", "brightness",
         "pause music", "play music", "skip song", "next song",
-        "thank you", "thanks", "good night", "good morning", "hello", "hi jarvis",
+        "thank you", "thanks", "good night", "good morning", "hello", "hi phoenix", "hey phoenix",
     ]
 
     static func need(for text: String) -> TurnNeed {

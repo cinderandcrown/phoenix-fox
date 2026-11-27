@@ -120,7 +120,7 @@ final class CompanionRuntime: ObservableObject {
     static let shared = CompanionRuntime()
 
     @Published var cameraOn = false
-    @Published var statusLine = "Listening for Jarvis. The mic indicator stays visible."
+    @Published var statusLine = "Listening for Hey Phoenix. The mic indicator stays visible."
     @Published var caption = ""
 
     /// True while watch-this or translation should keep the conversation open.
@@ -150,7 +150,7 @@ final class CompanionRuntime: ObservableObject {
         if on {
             statusLine = Self.guideLine
         } else if !cameraOn {
-            statusLine = "Listening for Jarvis. The mic indicator stays visible."
+            statusLine = "Listening for Hey Phoenix. The mic indicator stays visible."
             caption = ""
         }
         refreshIsland()
@@ -199,7 +199,7 @@ final class CompanionRuntime: ObservableObject {
         if lower.contains("stop recording") {
             NotificationCenter.default.post(name: .phoenixStopRecord, object: nil)
             cameraOn = false
-            statusLine = "Listening for Jarvis. The mic dot stays visible."
+            statusLine = "Listening for Hey Phoenix. The mic dot stays visible."
             return "Stopped. The clip saves to Photos if the recorder finished."
         }
         if lower.contains("translate to ") || lower.contains("start translating")
@@ -244,7 +244,7 @@ final class CompanionRuntime: ObservableObject {
 
     func noteListening() {
         if !cameraOn {
-            statusLine = "Listening for Jarvis. The mic indicator stays visible."
+            statusLine = "Listening for Hey Phoenix. The mic indicator stays visible."
         }
         refreshIsland()
     }
@@ -325,7 +325,7 @@ final class CompanionRuntime: ObservableObject {
             TTSService.shared.speakChunk(spoken)
         }
         TTSService.shared.endStreaming()
-        statusLine = "Listening for Jarvis. The mic indicator stays visible."
+        statusLine = "Listening for Hey Phoenix. The mic indicator stays visible."
         refreshIsland()
         return heard.lines.isEmpty ? "No one answered." : ""
     }
@@ -393,7 +393,7 @@ final class CompanionRuntime: ObservableObject {
             statusLine = Self.guideLine
         } else {
             Task { await GlassesManager.shared.stopStreaming() }
-            statusLine = "Listening for Jarvis. The mic indicator stays visible."
+            statusLine = "Listening for Hey Phoenix. The mic indicator stays visible."
         }
         refreshIsland()
     }
@@ -435,7 +435,7 @@ final class CompanionRuntime: ObservableObject {
 
     private func summarizeMeeting() async -> String {
         let notes = TranscriptLog.recent()
-        guard !notes.isEmpty else { return "There's no transcript yet. Say start translating or just talk after Jarvis." }
+        guard !notes.isEmpty else { return "There's no transcript yet. Say start translating or just talk after Hey Phoenix." }
         guard SettingsManager.shared.settings.isOwnAssistantConfigured else {
             return "I saved the transcript on the phone. Add the relay if you want Fire Fox to summarize it."
         }
@@ -633,8 +633,8 @@ enum JarvisWake {
 }
 
 struct JarvisWakeIntent: AppIntent {
-    static let title: LocalizedStringResource = "Jarvis"
-    static let description = IntentDescription("Wake Phoenix Fox. Jarvis is the spoken name, not the app name.")
+    static let title: LocalizedStringResource = "Phoenix"
+    static let description = IntentDescription("Wake Phoenix Fox. Phoenix is the spoken name, and Hey Phoenix is the wake word.")
     static let openAppWhenRun = true
 
     @MainActor
@@ -649,8 +649,8 @@ struct PhoenixShortcuts: AppShortcutsProvider {
     static var appShortcuts: [AppShortcut] {
         AppShortcut(
             intent: JarvisWakeIntent(),
-            phrases: ["Wake Jarvis in \(.applicationName)", "Start Jarvis in \(.applicationName)"],
-            shortTitle: "Jarvis",
+            phrases: ["Wake Phoenix in \(.applicationName)", "Start Phoenix in \(.applicationName)"],
+            shortTitle: "Phoenix",
             systemImageName: "waveform"
         )
     }

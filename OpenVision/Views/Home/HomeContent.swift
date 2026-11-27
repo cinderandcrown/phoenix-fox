@@ -379,7 +379,7 @@ struct ExchangeCard: View {
                 line(who: "You", text: heard, color: Theme.inkSoft)
             }
             if !reply.isEmpty {
-                line(who: "Jarvis", text: reply, color: Theme.ink)
+                line(who: "Phoenix", text: reply, color: Theme.ink)
             }
         }
         .card()
@@ -430,7 +430,7 @@ struct BrainCard: View {
             Label(name, systemImage: "brain.head.profile")
                 .font(.headline)
                 .foregroundStyle(Theme.ink)
-            Text("Jarvis answers with this AI. Choose My assistants to talk to your own team.")
+            Text("Phoenix answers with this AI. Choose My assistants to talk to your own team.")
                 .font(.subheadline)
                 .foregroundStyle(Theme.inkSoft)
             Button("Choose who answers", action: onChoose)

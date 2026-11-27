@@ -155,7 +155,7 @@ enum FastModeRouter {
     private static func isTask(_ lower: String) -> Bool {
         let keys = ["order", "orders", "store", "email", "schedule", "calendar", "remind", "reminder",
                     "tell my assistant", "buy ", "tiktok", "amazon", "slack", "book ", "reservation",
-                    "inbox", "text ", "message ", "do this", "jarvis do"]
+                    "inbox", "text ", "message ", "do this", "phoenix do"]
         return keys.contains { lower.contains($0) }
     }
 

@@ -82,7 +82,7 @@ enum AccessCommand: Equatable, Sendable {
             .trimmingCharacters(in: .whitespacesAndNewlines)
         var text = String(loose.map { $0.isLetter || $0.isNumber || $0 == "'" || $0 == " " ? $0 : " " })
             .split(separator: " ").joined(separator: " ")
-        for lead in ["hey jarvis ", "jarvis ", "please ", "can you ", "could you ", "would you ", "i want you to ", "i need you to "] {
+        for lead in ["hey phoenix ", "ok phoenix ", "okay phoenix ", "phoenix ", "please ", "can you ", "could you ", "would you ", "i want you to ", "i need you to "] {
             if text.hasPrefix(lead) { text = String(text.dropFirst(lead.count)) }
         }
         if text.hasSuffix(" please") { text = String(text.dropLast(7)) }

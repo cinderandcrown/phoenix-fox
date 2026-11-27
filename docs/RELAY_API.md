@@ -28,7 +28,7 @@ An ask is kept for 15 minutes. A pushed message is kept for 24 hours or until th
 {
   "id": "3F2504E0-4F89-11D3-9A0C-0305E82C3301",
   "text": "book a table",
-  "transcript": "Jarvis, book a table",
+  "transcript": "Hey Phoenix, book a table",
   "timestamp": "2026-11-14T12:00:00Z",
   "intent": "message",
   "target_bot": "Fire Fox",
@@ -128,7 +128,7 @@ X-Relay-Signature: v1=8ca5221428c4b93d4ae4544da031735322fa553401ca9fbe7cbeb0cae1
   "ask": {
     "id": "…",
     "text": "book a table",
-    "transcript": "Jarvis, book a table",
+    "transcript": "Hey Phoenix, book a table",
     "timestamp": "2026-11-14T12:00:00Z",
     "intent": "message",
     "target_bot": "Indy",
@@ -179,7 +179,7 @@ function verified(headers, rawBody, secret) {
   "asks": [{
     "id": "…",
     "text": "book a table",
-    "transcript": "Jarvis, book a table",
+    "transcript": "Hey Phoenix, book a table",
     "intent": "message",
     "target_bot": "Fire Fox",
     "context": [],

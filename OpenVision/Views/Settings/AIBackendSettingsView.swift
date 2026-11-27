@@ -95,7 +95,7 @@ struct AIBackendSettingsView: View {
                     step: 5
                 )
                 if usage.softCapReached {
-                    Text("Soft cap reached. Jarvis still answers; expensive top models stay available — this is a warning only.")
+                    Text("Soft cap reached. Phoenix still answers; expensive top models stay available — this is a warning only.")
                         .font(.footnote)
                         .foregroundStyle(.secondary)
                 }

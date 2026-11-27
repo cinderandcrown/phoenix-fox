@@ -114,9 +114,9 @@ final class OnboardingFlowTests: XCTestCase {
     func testVoiceOverHearsTheNameTheAnswerAndTheReason() {
         XCTAssertEqual(
             OnboardingPermission.speech.spoken(.allowed),
-            "Speech recognition. Allowed. So Jarvis can hear its wake word and turn what you say into text."
+            "Speech recognition. Allowed. So Phoenix can hear its wake word and turn what you say into text."
         )
-        XCTAssertTrue(OnboardingPermission.speech.spoken(.notAsked).hasPrefix("Speech recognition. So Jarvis"))
+        XCTAssertTrue(OnboardingPermission.speech.spoken(.notAsked).hasPrefix("Speech recognition. So Phoenix"))
     }
 
     // MARK: - Who answers
@@ -147,10 +147,10 @@ final class OnboardingFlowTests: XCTestCase {
     // MARK: - The last step
 
     func testEverythingDone() {
-        let summary = OnboardingSummary(glassesConnected: true, microphone: .allowed, speech: .allowed, brain: .assistants, wakeWord: "Jarvis")
+        let summary = OnboardingSummary(glassesConnected: true, microphone: .allowed, speech: .allowed, brain: .assistants, wakeWord: "Hey Phoenix")
         XCTAssertTrue(summary.lines.allSatisfy(\.done))
         XCTAssertTrue(summary.canTalk)
-        XCTAssertEqual(summary.tryThis, "Say “Jarvis, what should I do next?”")
+        XCTAssertEqual(summary.tryThis, "Say “Hey Phoenix, what should I do next?”")
     }
 
     func testWithoutGlassesJarvisStillWorksOnThePhone() {
@@ -162,20 +162,20 @@ final class OnboardingFlowTests: XCTestCase {
     }
 
     func testADeniedMicrophoneIsSaidPlainlyAndNothingIsPromised() {
-        let summary = OnboardingSummary(glassesConnected: true, microphone: .denied, speech: .allowed, brain: .assistants, wakeWord: "Jarvis")
+        let summary = OnboardingSummary(glassesConnected: true, microphone: .denied, speech: .allowed, brain: .assistants, wakeWord: "Hey Phoenix")
         XCTAssertFalse(summary.canTalk)
-        XCTAssertEqual(summary.lines[1].text, "Jarvis cannot hear you yet. Allow the microphone and speech recognition in Settings.")
+        XCTAssertEqual(summary.lines[1].text, "Phoenix cannot hear you yet. Allow the microphone and speech recognition in Settings.")
         XCTAssertTrue(summary.tryThis.hasPrefix("Finish the steps above"))
     }
 
     func testNoAIIsSaidPlainly() {
-        let summary = OnboardingSummary(glassesConnected: true, microphone: .allowed, speech: .allowed, brain: .none, wakeWord: "Jarvis")
+        let summary = OnboardingSummary(glassesConnected: true, microphone: .allowed, speech: .allowed, brain: .none, wakeWord: "Hey Phoenix")
         XCTAssertFalse(summary.canTalk)
         XCTAssertEqual(summary.lines[2], .init(id: "brain", done: false, text: "Nothing is set to answer yet. Choose an AI in Settings."))
     }
 
     func testTheChecklistLinesHaveUniqueIds() {
-        let summary = OnboardingSummary(glassesConnected: true, microphone: .allowed, speech: .allowed, brain: .keepCurrent, wakeWord: "Jarvis")
+        let summary = OnboardingSummary(glassesConnected: true, microphone: .allowed, speech: .allowed, brain: .keepCurrent, wakeWord: "Hey Phoenix")
         XCTAssertEqual(Set(summary.lines.map(\.id)).count, summary.lines.count)
     }
 }

@@ -92,7 +92,7 @@ final class CouncilTests: XCTestCase {
 
 final class RelayRaceTests: XCTestCase {
     func testAChainNamesEachAssistantAndItsTask() {
-        let plan = RelayRace.plan("Jarvis, ask Indy to find three caterers near the office, then have Driver book the cheapest.", bots: team)
+        let plan = RelayRace.plan("Phoenix, ask Indy to find three caterers near the office, then have Driver book the cheapest.", bots: team)
         XCTAssertEqual(plan?.steps, [
             RelayRace.Step(bot: "Indy", task: "Find three caterers near the office"),
             RelayRace.Step(bot: "Driver", task: "Book the cheapest"),
@@ -176,7 +176,7 @@ final class StandingOrderTests: XCTestCase {
     }
 
     func testAnOrderIsReadFromOneSentence() {
-        let order = StandingOrders.parse("Jarvis, whenever I put my glasses on, ask Fire Fox for my brief.", bots: team)
+        let order = StandingOrders.parse("Phoenix, whenever I put my glasses on, ask Fire Fox for my brief.", bots: team)
         XCTAssertEqual(order?.trigger, .putOn)
         XCTAssertEqual(order?.action, .ask(bot: "Fire Fox", text: "Give me my brief"))
         XCTAssertEqual(order?.summary, "When the glasses go on, ask Fire Fox: Give me my brief")
@@ -375,9 +375,9 @@ final class SkillTests: XCTestCase {
         let price = try Skill.decode(priceCheck)
         let skills = [price, expense]
 
-        XCTAssertEqual(Skills.match("Hey Jarvis, price check.", in: skills), Skills.Match(skill: price, slot: nil))
+        XCTAssertEqual(Skills.match("Hey Phoenix, price check.", in: skills), Skills.Match(skill: price, slot: nil))
         XCTAssertEqual(
-            Skills.match("Jarvis, log an expense: $42 lunch with Dana at Luigi's", in: skills),
+            Skills.match("Phoenix, log an expense: $42 lunch with Dana at Luigi's", in: skills),
             Skills.Match(skill: expense, slot: "$42 lunch with Dana at Luigi's")
         )
         XCTAssertNil(Skills.match("price check on aisle five", in: skills))

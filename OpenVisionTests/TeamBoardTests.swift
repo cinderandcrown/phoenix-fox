@@ -196,9 +196,9 @@ final class TeamBoardTests: XCTestCase {
 
     func testWhatToSayToReachAnAssistant() {
         let board = board()
-        XCTAssertEqual(TeamBoard.example(for: board.members[0], wakeWord: "Jarvis"), "“Jarvis, what should I do next?”")
+        XCTAssertEqual(TeamBoard.example(for: board.members[0], wakeWord: "Hey Phoenix"), "“Hey Phoenix, what should I do next?”")
         XCTAssertEqual(TeamBoard.example(for: board.members[1], wakeWord: "Friday"), "“Friday, ask Indy to check on it.”")
-        XCTAssertEqual(TeamBoard.exampleForEveryone(wakeWord: "Jarvis"), "“Jarvis, all hands.”")
+        XCTAssertEqual(TeamBoard.exampleForEveryone(wakeWord: "Hey Phoenix"), "“Hey Phoenix, all hands.”")
     }
 
     func testTheExamplesAreSentencesTheRouterSendsWhereTheySay() {

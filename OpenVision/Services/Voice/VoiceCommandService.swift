@@ -338,7 +338,7 @@ final class VoiceCommandService: ObservableObject {
     private func configureRecognitionRequest(_ request: SFSpeechAudioBufferRecognitionRequest) {
         request.shouldReportPartialResults = true
         request.taskHint = .search
-        var phrases = ["Jarvis", "Hey Jarvis", "Ok Jarvis", "Ok Vision", "Okay Vision", "Hey Vision", "Vision"]
+        var phrases = ["Hey Phoenix", "Ok Phoenix", "Okay Phoenix"]
         if !wakeWord.isEmpty { phrases.insert(wakeWord, at: 0) }
         request.contextualStrings = phrases
         if prefersOnDeviceRecognition, supportsOnDeviceRecognition {
@@ -598,7 +598,7 @@ final class VoiceCommandService: ObservableObject {
         case .listening, .conversationMode:
             // Strip wake word from transcription (like xmeta does)
             var command = transcription
-            for ww in [wakeWord.lowercased(), "jarvis", "hey jarvis", "ok jarvis", "okay jarvis", "hi jarvis"] {
+            for ww in ([wakeWord.lowercased()] + WakePhrase.variations).filter({ !$0.isEmpty }) {
                 if let range = command.lowercased().range(of: ww) {
                     command = String(command[range.upperBound...]).trimmingCharacters(in: .whitespaces)
                     break
@@ -699,27 +699,23 @@ final class VoiceCommandService: ObservableObject {
         return stopWords.contains { lower.contains($0) }
     }
 
-    /// True when a Jarvis wake-word variation sits at (or very near) the START of the transcript.
+    /// True when a wake-word variation sits at (or very near) the START of the transcript.
     /// Mid-phrase matches are ignored — the mic hearing TTS/echo must not re-trigger.
     private func wakeWordAtStart(_ text: String) -> Bool {
         let lower = text.lowercased()
-        for v in Self.jarvisWakeVariations(including: wakeWord) {
+        for v in Self.wakeVariations(including: wakeWord) {
             if let r = lower.range(of: v) {
-                // A little leeway ("uh, jarvis") is fine; a whole sentence in front is echo.
+                // A little leeway ("uh, hey phoenix") is fine; a whole sentence in front is echo.
                 if lower.distance(from: lower.startIndex, to: r.lowerBound) <= 12 { return true }
             }
         }
         return false
     }
 
-    /// Jarvis-focused wake phrases (and common mishears). "Vision" variants were dropped —
-    /// they false-fired on TTS echo and ambient speech.
-    private static func jarvisWakeVariations(including configured: String) -> [String] {
-        [
-            configured.lowercased(),
-            "jarvis", "hey jarvis", "ok jarvis", "okay jarvis", "hi jarvis",
-            "jarvies", "jarvus", "jarvahs", "charvis",
-        ]
+    /// Hey Phoenix and its common mishears. Bare "phoenix" is left out on purpose: the city and
+    /// the app's own name come up in ordinary talk. "Jarvis" was retired.
+    private static func wakeVariations(including configured: String) -> [String] {
+        ([configured.lowercased()] + WakePhrase.variations).filter { !$0.isEmpty }
     }
 
     /// Detect wake word in transcription
@@ -727,7 +723,7 @@ final class VoiceCommandService: ObservableObject {
         guard bypassCooldown || !wakeWordCooldownActive else { return false }
 
         let lowercased = text.lowercased()
-        let detected = Self.jarvisWakeVariations(including: wakeWord).contains { lowercased.contains($0) }
+        let detected = Self.wakeVariations(including: wakeWord).contains { lowercased.contains($0) }
         if detected {
             print("[VoiceCommand] Detected wake word in: '\(text)'")
         }
@@ -738,7 +734,7 @@ final class VoiceCommandService: ObservableObject {
     private func extractCommandAfterWakeWord(_ text: String) -> String {
         let lowercased = text.lowercased()
 
-        for variation in Self.jarvisWakeVariations(including: wakeWord) {
+        for variation in Self.wakeVariations(including: wakeWord) {
             if let range = lowercased.range(of: variation) {
                 let afterWakeWord = String(text[range.upperBound...])
                 return Self.dropWakePunctuation(afterWakeWord)
@@ -747,7 +743,7 @@ final class VoiceCommandService: ObservableObject {
         return ""
     }
 
-    /// "Jarvis, ask Indy" leaves a comma. The bot router only matches a name at the start.
+    /// "Hey Phoenix, ask Indy" leaves a comma. The bot router only matches a name at the start.
     private static func dropWakePunctuation(_ text: String) -> String {
         text.trimmingCharacters(in: .whitespacesAndNewlines)
             .trimmingCharacters(in: CharacterSet(charactersIn: ",.;:!?\"'"))
@@ -787,7 +783,7 @@ final class VoiceCommandService: ObservableObject {
         var command = text
         let wakeWordLower = wakeWord.lowercased()
 
-        for prefix in [wakeWordLower, "hey jarvis", "ok jarvis", "okay jarvis", "hi jarvis"] {
+        for prefix in ([wakeWordLower] + WakePhrase.variations).filter({ !$0.isEmpty }) {
             if command.lowercased().hasPrefix(prefix) {
                 command = Self.dropWakePunctuation(String(command.dropFirst(prefix.count)))
                 break

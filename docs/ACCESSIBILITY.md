@@ -28,7 +28,7 @@ Nothing in this table has been run on a pair of glasses yet. The words mean:
 
 ### Presence checklist (each accessibility feature)
 
-- Shared experience; live follow-ups (“more”, “again”) without re-waking; memory of the open document / last label; context where safe; proactive callouts only when on-device-triggered, Interrupt-aware, tunable, and quiet-period gated; consistent Jarvis voice; privacy; honest limits. Full list: [DESIGN_PRINCIPLES.md](DESIGN_PRINCIPLES.md#presence-checklist-every-feature).
+- Shared experience; live follow-ups (“more”, “again”) without re-waking; memory of the open document / last label; context where safe; proactive callouts only when on-device-triggered, Interrupt-aware, tunable, and quiet-period gated; consistent Phoenix voice; privacy; honest limits. Full list: [DESIGN_PRINCIPLES.md](DESIGN_PRINCIPLES.md#presence-checklist-every-feature).
 
 ### Blind and low vision
 
@@ -69,8 +69,8 @@ Nothing in this table has been run on a pair of glasses yet. The words mean:
 | Speaking speed | Written | "Speak slower", "speak faster". Uses the built-in voice, because the neural voices have one speed. |
 | Atypical speech | Not started | Recognition is Apple's recognizer and on-device Whisper, with no personal adaptation. |
 | Personal command phrases | Not started | |
-| Answering without speaking | Written, owner build | With **Nod and shake** on, a shake of the head says no to any question Jarvis is waiting on, and stops Jarvis talking when no question is waiting (not during Guide mode or a walk, where the head turns to look around). Two nods say yes only to a question about your own lists: setting the emergency contact or deleting a routine. A yes that calls someone, saves or erases a face, starts Guide mode, or lets an assistant act must still be spoken. It works from the wake word until about twenty seconds after the answer. |
-| Touchpad, buttons, and Neural Band | Partial | In the owner build the touchpad's double tap, a swipe back, and the capture button enter the same turn as speech through `GestureMap`, while Jarvis is busy with you. No gesture is mapped to "next step" yet. The band is listened for only on display glasses and cannot be tested on Adventurer. |
+| Answering without speaking | Written, owner build | With **Nod and shake** on, a shake of the head says no to any question Phoenix is waiting on, and stops Phoenix talking when no question is waiting (not during Guide mode or a walk, where the head turns to look around). Two nods say yes only to a question about your own lists: setting the emergency contact or deleting a routine. A yes that calls someone, saves or erases a face, starts Guide mode, or lets an assistant act must still be spoken. It works from the wake word until about twenty seconds after the answer. |
+| Touchpad, buttons, and Neural Band | Partial | In the owner build the touchpad's double tap, a swipe back, and the capture button enter the same turn as speech through `GestureMap`, while Phoenix is busy with you. No gesture is mapped to "next step" yet. The band is listened for only on display glasses and cannot be tested on Adventurer. |
 | iPhone screens with VoiceOver, Voice Control, Switch Control | Partial | The Accessibility and Captions screens use standard controls with labels and hints, and nothing depends on color or on a swipe. The home screen and first run were written for VoiceOver, Dynamic Type, Reduce Motion, Increase Contrast, and light and dark mode, with contrast held by tests; [DESIGN.md](DESIGN.md) has the decisions. None of it has been tried with VoiceOver on a phone yet. The other Settings screens and History are system lists and have not had a full pass. |
 
 ### Memory and tasks
@@ -87,7 +87,7 @@ Nothing in this table has been run on a pair of glasses yet. The words mean:
 
 ## What to say
 
-Say "Jarvis" first, or speak inside the few seconds after a reply.
+Say "Hey Phoenix" first, or speak inside the few seconds after a reply.
 
 | To do this | Say |
 | --- | --- |
@@ -188,14 +188,14 @@ In rough order of value.
 
 These are the checks that decide whether a row moves to Done. Start listening on the main screen first.
 
-1. Hold a printed page and say "Jarvis, read this". Then "more", "back", and "stop".
-2. Hold a medicine box and say "Jarvis, read the label". Compare every number with the box.
-3. Hold a banknote and say "Jarvis, what bill is this?". Try each denomination you have, both sides, and a coin, which it should refuse.
-4. Hold up clothes in daylight and under a warm bulb and say "Jarvis, what color is this?".
-5. Indoors with a sighted person beside you, say "Jarvis, start guide mode". Check that the notice is read, the capture light is on, people, stairs, and doors are called with the right side, and "stop guide mode" turns the light off.
+1. Hold a printed page and say "Hey Phoenix, read this". Then "more", "back", and "stop".
+2. Hold a medicine box and say "Hey Phoenix, read the label". Compare every number with the box.
+3. Hold a banknote and say "Hey Phoenix, what bill is this?". Try each denomination you have, both sides, and a coin, which it should refuse.
+4. Hold up clothes in daylight and under a warm bulb and say "Hey Phoenix, what color is this?".
+5. Indoors with a sighted person beside you, say "Hey Phoenix, start guide mode". Check that the notice is read, the capture light is on, people, stairs, and doors are called with the right side, and "stop guide mode" turns the light off.
 6. With a friend's agreement, say "turn on face recognition", then "remember this person as" and their name. Check that it asks first, then "who is this?", then "forget" their face.
-7. Outdoors with a sighted person, say "Jarvis, walk me to" a nearby place. Check the turns and the distances.
-8. Say "Jarvis, start captions" and have someone talk to you. Check the text, check that Phoenix Fox's own voice is not captioned, then "what did they say?".
+7. Outdoors with a sighted person, say "Hey Phoenix, walk me to" a nearby place. Check the turns and the distances.
+8. Say "Hey Phoenix, start captions" and have someone talk to you. Check the text, check that Phoenix Fox's own voice is not captioned, then "what did they say?".
 9. Turn on sound alerts and ring the doorbell, knock, and play a siren from another device, once with the glasses microphone and once with the phone's.
-10. Say "Jarvis, new routine called tea, the steps are fill the kettle, switch it on, pour the water". Then "start my tea routine", "next", "repeat", and "what was I doing?".
+10. Say "Hey Phoenix, new routine called tea, the steps are fill the kettle, switch it on, pour the water". Then "start my tea routine", "next", "repeat", and "what was I doing?".
 11. Turn on VoiceOver and go through first run (delete and reinstall the app to see it again), the home screen, Settings, then Accessibility, and the Captions screen. Set the text size to its largest and check that nothing on the home screen or in first run is cut off.

@@ -71,7 +71,7 @@ No field may contain a web address, an internet address in numbers, or anything 
 - Capitals and punctuation do not matter. The wake word, "please", and "can you" in front are ignored.
 - A phrase may end with one slot in braces: `"log an expense {what}"`. The slot takes everything said after the phrase, in the wearer's own words. A slot name is plain letters. A slot can only come last.
 - A phrase without a slot matches only when it is the whole sentence. A phrase with a slot matches when the sentence starts with it and something follows.
-- A phrase cannot start with a word kept for commands that must always work: stop, cancel, quiet, call, text, message, emergency, help, yes, no, jarvis, hey, undo.
+- A phrase cannot start with a word kept for commands that must always work: stop, cancel, quiet, call, text, message, emergency, help, yes, no, phoenix, hey, undo.
 - A phrase cannot be one that another added skill already uses.
 - When two phrases match, the longer one wins. A built-in command always wins over a skill.
 

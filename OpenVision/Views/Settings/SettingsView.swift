@@ -207,7 +207,7 @@ struct SettingsView: View {
                 } header: {
                     Text("About")
                 } footer: {
-                    Text("Phoenix Fox is built on OpenVision, which is MIT licensed. Say Jarvis to wake it.")
+                    Text("Phoenix Fox is built on OpenVision, which is MIT licensed. Say Hey Phoenix to wake it.")
                 }
             }
             .navigationTitle("Settings")

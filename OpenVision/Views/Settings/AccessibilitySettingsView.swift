@@ -42,7 +42,7 @@ struct AccessibilitySettingsView: View {
             } header: {
                 Text("By voice")
             } footer: {
-                Text("Say \"Jarvis, what can I say?\" to hear this list.")
+                Text("Say \"Hey Phoenix, what can I say?\" to hear this list.")
             }
         }
         .navigationTitle("Accessibility")
@@ -112,7 +112,7 @@ struct AccessibilitySettingsView: View {
         } header: {
             Text("Emergency contact")
         } footer: {
-            Text("Say \"Jarvis, call my emergency contact\". Phoenix Fox asks you to confirm, then starts the call. iPhone shows a Call button that has to be tapped, so if you can't reach the phone, say \"Hey Meta, call\" and the name.")
+            Text("Say \"Hey Phoenix, call my emergency contact\". Phoenix Fox asks you to confirm, then starts the call. iPhone shows a Call button that has to be tapped, so if you can't reach the phone, say \"Hey Meta, call\" and the name.")
         }
     }
 
@@ -211,7 +211,7 @@ private struct SavedFacesView: View {
     var body: some View {
         List {
             if faces.records.isEmpty {
-                Text("No one is saved. With the person's permission, say \"Jarvis, remember this person as\" and their name while you face them.")
+                Text("No one is saved. With the person's permission, say \"Hey Phoenix, remember this person as\" and their name while you face them.")
             }
             ForEach(faces.records) { record in
                 VStack(alignment: .leading, spacing: 6) {
@@ -305,7 +305,7 @@ private struct RoutinesView: View {
             } header: {
                 Text("New routine")
             } footer: {
-                Text("Start one by saying \"Jarvis, start my morning routine\". Phoenix Fox says one step, then waits for \"next\", \"back\", or \"repeat\".")
+                Text("Start one by saying \"Hey Phoenix, start my morning routine\". Phoenix Fox says one step, then waits for \"next\", \"back\", or \"repeat\".")
             }
             ForEach(coordinator.routines) { routine in
                 Section(routine.name) {
@@ -331,7 +331,7 @@ private struct PersonRemindersView: View {
     var body: some View {
         List {
             if coordinator.reminders.isEmpty {
-                Text("None waiting. Say \"Jarvis, when I see Sam, remind me to return the keys\". It is said when Phoenix Fox recognizes that person, so their face must be saved and face recognition must be on.")
+                Text("None waiting. Say \"Hey Phoenix, when I see Sam, remind me to return the keys\". It is said when Phoenix Fox recognizes that person, so their face must be saved and face recognition must be on.")
             }
             ForEach(Array(coordinator.reminders.enumerated()), id: \.offset) { _, reminder in
                 VStack(alignment: .leading, spacing: 6) {

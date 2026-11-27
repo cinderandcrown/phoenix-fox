@@ -101,7 +101,7 @@ final class RelayClientTests: XCTestCase {
         RelayAsk(
             id: "ask-1",
             text: "book a table",
-            transcript: "Jarvis, book a table",
+            transcript: "Phoenix, book a table",
             timestamp: "2026-11-14T12:00:00Z",
             intent: "message",
             targetBot: "Indy",
@@ -151,7 +151,7 @@ final class RelayClientTests: XCTestCase {
         let json = try body(relay.requests[0])
         XCTAssertEqual(json["id"], "ask-1")
         XCTAssertEqual(json["text"], "book a table")
-        XCTAssertEqual(json["transcript"], "Jarvis, book a table")
+        XCTAssertEqual(json["transcript"], "Phoenix, book a table")
         XCTAssertEqual(json["timestamp"], "2026-11-14T12:00:00Z")
         XCTAssertEqual(json["intent"], "message")
         XCTAssertEqual(json["target_bot"], "Indy")

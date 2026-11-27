@@ -2,7 +2,7 @@
 
 Phoenix Fox is an iOS companion app for Meta AI glasses. You talk to it through the glasses, it can look through their camera when you ask, and it hands work to your own team of assistants: Fire Fox, Indy, Driver, and Rally.
 
-Say **Jarvis** to wake it. Jarvis is only the spoken wake word inside the app. "Hey Meta" stays Meta's.
+Say **Hey Phoenix** to wake it. Hey Phoenix is only the spoken wake word inside the app. "Hey Meta" stays Meta's.
 
 [![CI](https://github.com/cinderandcrown/phoenix-fox/actions/workflows/ci.yml/badge.svg)](https://github.com/cinderandcrown/phoenix-fox/actions/workflows/ci.yml)
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
@@ -40,7 +40,7 @@ The first target is Meta Glasses Adventurer, which has a camera, microphones, an
 
 - The camera runs only when you ask for a look, a picture, a recording, a watch session, or Guide mode, and the glasses' capture light is on whenever it runs. That light is Meta's hardware. Phoenix Fox cannot turn it off and does not try to.
 - There is no hidden recording and no firmware change.
-- The microphone is on while Jarvis is listening, and iOS shows its orange indicator the whole time.
+- The microphone is on while Phoenix is listening, and iOS shows its orange indicator the whole time.
 - Face recognition is off until you turn it on. A face is saved only after you confirm aloud that the person agreed, and face data never leaves the phone.
 - Notes you ask it to remember are encrypted on the phone. "Mind meld", the running log of what you said, is off until you turn it on, and it keeps words and not photos.
 - API keys and the relay token are stored in the Keychain. No secret is in this repository.

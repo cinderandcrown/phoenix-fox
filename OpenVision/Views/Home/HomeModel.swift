@@ -162,7 +162,7 @@ enum HomeSamples {
             glasses: .away,
             team: .brain("On this phone"),
             now: now,
-            trouble: "No connection. Jarvis will answer on this phone until it is back.",
+            trouble: "No connection. Phoenix will answer on this phone until it is back.",
             fixedTime: 0
         )
     }

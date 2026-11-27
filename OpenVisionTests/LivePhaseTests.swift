@@ -80,7 +80,7 @@ final class LivePhaseTests: XCTestCase {
     func testTheReplyingHintSaysHowToInterrupt() {
         // Speech alone does not stop an answer, because the microphone also hears the
         // answer. The wake word does, so the hint names it.
-        XCTAssertEqual(LivePhase.replying.hint(LiveSignals()), "Say “Jarvis, stop” or tap.")
+        XCTAssertEqual(LivePhase.replying.hint(LiveSignals()), "Say “Hey Phoenix, stop” or tap.")
         XCTAssertEqual(LivePhase.replying.hint(LiveSignals(wakeWord: "Friday")), "Say “Friday, stop” or tap.")
     }
 
@@ -120,7 +120,7 @@ final class LivePhaseTests: XCTestCase {
 
     func testTheStageIsOneElementThatSaysThePhaseAndWhatATapDoes() {
         let description = StageDescription(phase: .listening, signals: LiveSignals())
-        XCTAssertEqual(description.label, "Jarvis")
+        XCTAssertEqual(description.label, "Phoenix")
         XCTAssertEqual(description.value, "Listening. Go ahead.")
         XCTAssertEqual(description.hint, "Ends the conversation.")
     }

@@ -39,9 +39,9 @@ enum OnboardingStep: Int, CaseIterable, Sendable {
 
     var title: String {
         switch self {
-        case .welcome: return "Meet Jarvis"
+        case .welcome: return "Meet Phoenix"
         case .glasses: return "Connect your glasses"
-        case .permissions: return "Let Jarvis hear you"
+        case .permissions: return "Let Phoenix hear you"
         case .assistants: return "Connect your assistants"
         case .ready: return "You're set"
         }
@@ -51,13 +51,13 @@ enum OnboardingStep: Int, CaseIterable, Sendable {
     var summary: String {
         switch self {
         case .welcome:
-            return "Phoenix Fox puts your assistants in your glasses. Say “Jarvis”, ask for what you need, and hear the answer. Setting up takes about a minute."
+            return "Phoenix Fox puts your assistants in your glasses. Say “Hey Phoenix”, ask for what you need, and hear the answer. Setting up takes about a minute."
         case .glasses:
             return "Before you tap Open Meta AI, pair your glasses in the Meta AI app, update Meta AI and your glasses, and turn on Developer Mode. The steps are below. Then Meta AI asks you to allow Phoenix Fox and brings you back here."
         case .permissions:
             return "Phoenix Fox asks for three things now. Anything else, such as your location, is asked for the first time you use a feature that needs it."
         case .assistants:
-            return "If you run your own assistants behind a relay, enter its details and they will answer you. You can also add a Grok key for fast looks. If you skip both, Jarvis answers on this phone."
+            return "If you run your own assistants behind a relay, enter its details and they will answer you. You can also add a Grok key for fast looks. If you skip both, Phoenix answers on this phone."
         case .ready:
             return "Put your glasses on and say the wake word."
         }
@@ -79,7 +79,7 @@ enum OnboardingStep: Int, CaseIterable, Sendable {
     var promise: String? {
         switch self {
         case .glasses:
-            return "The camera is used only when you ask Jarvis to look. The capture light on the glasses is on whenever the camera is. Phoenix Fox cannot turn that light off."
+            return "The camera is used only when you ask Phoenix to look. The capture light on the glasses is on whenever the camera is. Phoenix Fox cannot turn that light off."
         case .assistants:
             return "The relay token is kept in this phone's Keychain."
         case .welcome, .permissions, .ready:
@@ -134,9 +134,9 @@ enum OnboardingPermission: String, CaseIterable, Sendable {
     var reason: String {
         switch self {
         case .microphone:
-            return "So Jarvis can hear you through your glasses. Without it, voice does not work."
+            return "So Phoenix can hear you through your glasses. Without it, voice does not work."
         case .speech:
-            return "So Jarvis can hear its wake word and turn what you say into text."
+            return "So Phoenix can hear its wake word and turn what you say into text."
         case .notifications:
             return "So an assistant can tell you when a task is finished. You can leave this off."
         }
@@ -214,10 +214,10 @@ struct OnboardingSummary: Equatable, Sendable {
         var lines = [
             Line(id: "glasses", done: glassesConnected, text: glassesConnected
                  ? "Glasses connected."
-                 : "Glasses not connected yet. Until then, Jarvis uses this phone's microphone."),
+                 : "Glasses not connected yet. Until then, Phoenix uses this phone's microphone."),
             Line(id: "voice", done: hears, text: hears
-                 ? "Jarvis can hear you."
-                 : "Jarvis cannot hear you yet. Allow the microphone and speech recognition in Settings."),
+                 ? "Phoenix can hear you."
+                 : "Phoenix cannot hear you yet. Allow the microphone and speech recognition in Settings."),
         ]
         switch brain {
         case .assistants:
@@ -225,7 +225,7 @@ struct OnboardingSummary: Equatable, Sendable {
         case .keepCurrent:
             lines.append(Line(id: "brain", done: true, text: "Your chosen AI is ready."))
         case .onDevice:
-            lines.append(Line(id: "brain", done: true, text: "Jarvis answers on this phone. Connect your assistants any time in Settings."))
+            lines.append(Line(id: "brain", done: true, text: "Phoenix answers on this phone. Connect your assistants any time in Settings."))
         case .none:
             lines.append(Line(id: "brain", done: false, text: "Nothing is set to answer yet. Choose an AI in Settings."))
         }

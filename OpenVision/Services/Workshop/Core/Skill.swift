@@ -151,7 +151,7 @@ enum SkillError: Error, Equatable, Sendable {
 extension Skill {
     /// Words a phrase cannot start with: they belong to commands that must always work.
     static let reservedLeads: Set<String> = [
-        "stop", "cancel", "quiet", "call", "text", "message", "emergency", "help", "yes", "no", "jarvis", "hey", "undo",
+        "stop", "cancel", "quiet", "call", "text", "message", "emergency", "help", "yes", "no", "phoenix", "hey", "undo",
     ]
 
     /// A phrase as it is matched, and the name of the slot it ends with, if it has one.

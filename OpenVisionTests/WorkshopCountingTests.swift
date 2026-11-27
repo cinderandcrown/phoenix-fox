@@ -54,13 +54,13 @@ final class SpokenNumberTests: XCTestCase {
 
 final class SaidTests: XCTestCase {
     func testTheWakeWordAndPolitenessAreDropped() {
-        XCTAssertEqual(Said("Hey Jarvis, please start a tally.").text, "start a tally")
-        XCTAssertEqual(Said("Jarvis, can you check the ingredients please?").text, "check the ingredients")
-        XCTAssertEqual(Said("Jarvis").text, "jarvis")
+        XCTAssertEqual(Said("Hey Phoenix, please start a tally.").text, "start a tally")
+        XCTAssertEqual(Said("Phoenix, can you check the ingredients please?").text, "check the ingredients")
+        XCTAssertEqual(Said("Phoenix").text, "phoenix")
     }
 
     func testWhatFollowsACommandKeepsItsCapitals() {
-        let said = Said("Jarvis, note Dana wants the Elm Street permit by Friday")
+        let said = Said("Phoenix, note Dana wants the Elm Street permit by Friday")
         XCTAssertEqual(said.after(["note"]), "Dana wants the Elm Street permit by Friday")
         XCTAssertEqual(said.after(["flag"]), nil)
         XCTAssertEqual(Said("note").after(["note"]), "")

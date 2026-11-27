@@ -83,7 +83,7 @@ struct OwnAssistantSettingsView: View {
             } header: {
                 Text("Voice")
             } footer: {
-                Text("The app is Phoenix Fox. Jarvis is only the wake word. With short spoken replies on, a long answer pauses after about half a minute. Say “go on” to hear the rest. The whole answer is always in History. Mind meld keeps what you say on this phone. It does not keep a photo unless you say remember, and the capture light is on for that shot.")
+                Text("The app is Phoenix Fox. Hey Phoenix is only the wake word. With short spoken replies on, a long answer pauses after about half a minute. Say “go on” to hear the rest. The whole answer is always in History. Mind meld keeps what you say on this phone. It does not keep a photo unless you say remember, and the capture light is on for that shot.")
             }
 
             Section("Assistants") {

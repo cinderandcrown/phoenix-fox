@@ -4,7 +4,7 @@ Phoenix Fox defaults every capability to the phone’s Neural Engine and the gla
 
 The same rows live in code as `CapabilityMatrix` (`OpenVision/Services/Brain/Core/OfflineCapability.swift`) so the app, this document, and the tests stay aligned.
 
-**Why this matters for presence:** proactive nudges and shared context must be *cheap and local* so Jarvis can stay with the wearer without burning credits or waiting on the network. See [DESIGN_PRINCIPLES.md](DESIGN_PRINCIPLES.md).
+**Why this matters for presence:** proactive nudges and shared context must be *cheap and local* so Phoenix can stay with the wearer without burning credits or waiting on the network. See [DESIGN_PRINCIPLES.md](DESIGN_PRINCIPLES.md).
 
 Cloud chat brains are provider-agnostic (`AIProvider` + `model_catalog.json`). **Grok is the default**; Claude, OpenAI, and Gemini swap without app-logic changes. The relay bots are not a model provider.
 

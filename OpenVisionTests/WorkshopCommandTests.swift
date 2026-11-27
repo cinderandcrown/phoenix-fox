@@ -65,7 +65,7 @@ final class WorkshopCommandTests: XCTestCase {
     // MARK: - Walk-through
 
     func testAWalkThroughIsStartedWithOrWithoutAName() {
-        XCTAssertEqual(parse("Jarvis, start a walk-through of the Elm Street house"), .walkStart("Elm Street house"))
+        XCTAssertEqual(parse("Phoenix, start a walk-through of the Elm Street house"), .walkStart("Elm Street house"))
         XCTAssertEqual(parse("start a walkthrough"), .walkStart(nil))
         XCTAssertEqual(parse("begin an inspection at Unit 4B"), .walkStart("Unit 4B"))
     }
@@ -136,7 +136,7 @@ final class WorkshopCommandTests: XCTestCase {
     // MARK: - Ingredient watch
 
     func testIngredientCommands() {
-        XCTAssertEqual(parse("Jarvis, check the ingredients"), .checkIngredients)
+        XCTAssertEqual(parse("Phoenix, check the ingredients"), .checkIngredients)
         XCTAssertEqual(parse("can I eat this?"), .checkIngredients)
         XCTAssertEqual(parse("add peanuts to my allergies"), .allergyAdd("peanuts"))
         XCTAssertEqual(parse("I'm allergic to tree nuts"), .allergyAdd("tree nuts"))

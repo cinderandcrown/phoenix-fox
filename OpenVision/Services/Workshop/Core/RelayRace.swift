@@ -43,7 +43,7 @@ enum RelayRace {
             .split(whereSeparator: \.isWhitespace)
             .joined(separator: " ")
         let lower = text.lowercased()
-        for lead in ["hey jarvis ", "jarvis ", "please "] where lower.hasPrefix(lead) {
+        for lead in ["hey phoenix ", "ok phoenix ", "okay phoenix ", "phoenix ", "please "] where lower.hasPrefix(lead) {
             text = String(text.dropFirst(lead.count))
             break
         }

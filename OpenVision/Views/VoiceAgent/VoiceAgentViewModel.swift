@@ -262,11 +262,19 @@ final class VoiceAgentViewModel: ObservableObject {
     /// A sentence the glasses turned into text. It counts only when it starts with the
     /// wake word and the phone did not hear it too. See `GlassesSpeechGate`.
     private func hearFromGlasses(_ text: String) {
-        let heard = GlassesSpeechGate.hear(
+        let listening = voiceCommandService.isListening
+        var heard = GlassesSpeechGate.hear(
             text,
             wakeWord: settingsManager.settings.wakeWord,
-            phoneListening: voiceCommandService.isListening
+            phoneListening: listening
         )
+        // "Ok Phoenix" and the usual mishearings of "Phoenix" wake it too.
+        if heard == .nothing {
+            for phrase in WakePhrase.variations {
+                heard = GlassesSpeechGate.hear(text, wakeWord: phrase, phoneListening: listening)
+                if heard != .nothing { break }
+            }
+        }
         switch heard {
         case .nothing:
             break

@@ -21,7 +21,7 @@ CI is the only compiler. Until it runs this branch, treat the layout as a carefu
 
 Presence and personality rules: [DESIGN_PRINCIPLES.md](DESIGN_PRINCIPLES.md). For the phone UI specifically:
 
-1. **The glasses are the product. The phone is the dashboard.** The wearer is usually not looking at the phone. So the home screen answers three questions at a glance: are my glasses there, what is Jarvis doing, and what is my team doing.
+1. **The glasses are the product. The phone is the dashboard.** The wearer is usually not looking at the phone. So the home screen answers three questions at a glance: are my glasses there, what is Phoenix doing, and what is my team doing.
 2. **Say what is happening in one or two words.** Listening. Looking. Asking Indy. Replying. A person should never wonder whether they were heard.
 3. **The camera is never a surprise.** Red means the glasses camera is on, and nothing else in the app is red.
 4. **Fire, kept under control.** The brand is warm and bright, but only one thing on a screen burns: the orb, or the one main button. Everything else is quiet ground and ink.
@@ -29,7 +29,7 @@ Presence and personality rules: [DESIGN_PRINCIPLES.md](DESIGN_PRINCIPLES.md). Fo
 
 ## Brand
 
-**The name.** The app is Phoenix Fox. Jarvis is the wake word and the voice. The screen says "Phoenix Fox" once, in the header, and "Jarvis" where it is the voice that is meant.
+**The name.** The app is Phoenix Fox. Hey Phoenix is the wake word, and Phoenix is the voice. The screen says "Phoenix Fox" once, in the header, and "Phoenix" where it is the voice that is meant.
 
 **The mark.** A fox's face whose ears are flames, with a pale blaze down the muzzle. It is drawn from one list of numbers in `FoxMarkGeometry.swift`. The app draws it with `FoxMark`, and `scripts/make_app_icon.py` reads the same numbers to draw the app icon, so the two cannot drift. Tests check that the mark is the same on both sides and stays inside its square. The code is Apache-2.0 like the rest of the app, but the name and the mark are reserved branding; see [NOTICE](../NOTICE).
 
@@ -84,7 +84,7 @@ Our own use of glass is one rule: **glass is for a control that floats over cont
 `HomeContent` draws it from a `HomeModel`. `VoiceAgentView` fills the model in from the running app. From the top:
 
 1. **Header.** The mark, the name, a record button when glasses are connected, and the glasses chip: "Connect glasses", "Glasses away", "Glasses ready", or "Camera on". A tap opens the glasses settings. At large text sizes the name gives way so the chip always fits.
-2. **The stage.** The orb, one or two words for what Jarvis is doing, and one line of help. The whole stage is one button.
+2. **The stage.** The orb, one or two words for what Phoenix is doing, and one line of help. The whole stage is one button.
 3. **What is happening.** Shown only when there is something to show: the camera banner, a saved recording, the open document, live captions, and the last thing you said with the last answer.
 4. **Your team.** A card for each assistant, or a card that offers to connect them, or the name of the other AI that is answering.
 
@@ -97,19 +97,19 @@ Trouble appears as a banner at the bottom, in words, with a button to dismiss it
 | Phase | Title | Line under it | Orb | A tap |
 | --- | --- | --- | --- | --- |
 | Loading the voice model | Getting ready | Loading the voice on this phone. | Resting | Starts a conversation |
-| Waiting | Ready | Say "Jarvis" or tap. | Resting | Starts a conversation |
+| Waiting | Ready | Say "Hey Phoenix" or tap. | Resting | Starts a conversation |
 | Connecting | Waking up | One moment. | Thinking | Ends the conversation |
 | Hearing you | Listening | Go ahead. | Listening | Ends the conversation |
 | Thinking about what the camera shows | Looking | Through your glasses. | Thinking, with a red ring | Ends the conversation |
 | Thinking | Thinking | One moment. | Thinking | Ends the conversation |
 | An assistant has the question | Asking Indy | Waiting for the answer. | Thinking | Ends the conversation |
 | A tool is running | Working | The tool's name | Thinking | Ends the conversation |
-| Speaking | Replying | Say "Jarvis, stop" or tap. | Replying | Stops the answer and listens again |
+| Speaking | Replying | Say "Hey Phoenix, stop" or tap. | Replying | Stops the answer and listens again |
 | Live video | Live video | Say "stop video" to end. | Replying | Ends the conversation |
 
 The wake word in these lines is the one the owner chose.
 
-**Seeing** is shown several ways at once, because it matters most: a red ring is drawn around the orb, the glasses chip says "Camera on", a red banner says "Camera on. The capture light on your glasses is lit.", and the title says "Looking" while Jarvis is thinking about what it sees. The ring, the chip, and the banner follow the camera itself and not the phase, so they also show whenever the glasses are streaming for another reason, such as Guide mode.
+**Seeing** is shown several ways at once, because it matters most: a red ring is drawn around the orb, the glasses chip says "Camera on", a red banner says "Camera on. The capture light on your glasses is lit.", and the title says "Looking" while Phoenix is thinking about what it sees. The ring, the chip, and the banner follow the camera itself and not the phase, so they also show whenever the glasses are streaming for another reason, such as Guide mode.
 
 ### The orb
 
@@ -138,11 +138,11 @@ The phone is often in a pocket, so the beats of a turn can be felt. `HapticCue` 
 
 | Moment | Feel |
 | --- | --- |
-| Jarvis started listening | A medium tap |
-| Jarvis heard the request and took it | A selection tick |
+| Phoenix started listening | A medium tap |
+| Phoenix heard the request and took it | A selection tick |
 | The answer started | A soft tap |
 | The glasses camera came on | A rigid tap |
-| An assistant answered while Jarvis was quiet | Success |
+| An assistant answered while Phoenix was quiet | Success |
 | An urgent alert | Warning |
 | Something went wrong | Error |
 
@@ -158,20 +158,20 @@ Five steps, one at a time, each with one main button. There is no swiping betwee
 
 | Step | What it does | Can be skipped |
 | --- | --- | --- |
-| 1. Meet Jarvis | Says what the app is in three short points. | No, it is one tap |
+| 1. Meet Phoenix | Says what the app is in three short points. | No, it is one tap |
 | 2. Connect your glasses | Says what the Meta AI app is about to ask, then opens it. | "I'll do this later" |
-| 3. Let Jarvis hear you | Explains three permissions, then asks for them. | "Not now" |
+| 3. Let Phoenix hear you | Explains three permissions, then asks for them. | "Not now" |
 | 4. Connect your assistants | Takes the relay address and token and tests them. | "Skip, I don't have a relay" |
 | 5. You're set | A checklist of what is ready and what was left, and a sentence to say first. | |
 
 The rules:
 
 - **Every step with something to set up can be skipped.** Someone whose glasses are still in the post can look around.
-- **The reason comes before the question.** Each permission has one or two sentences on the screen before iOS shows its own prompt, and each starts with what it is for: "So Jarvis can hear you through your glasses."
+- **The reason comes before the question.** Each permission has one or two sentences on the screen before iOS shows its own prompt, and each starts with what it is for: "So Phoenix can hear you through your glasses."
 - **Only three permissions are asked for up front**: microphone, speech recognition, and notifications. Location, Photos, Contacts, and the rest are asked for the first time a feature needs them.
 - **A "no" is respected and explained.** A denied permission shows "Turned off. You can turn it on in the Settings app." with a button that opens Settings. The app does not ask again or block.
 - **Plain words.** A test fails if the steps use words such as "register", "authenticate", "endpoint", or "backend".
-- **The glasses step makes the privacy promise** where it belongs: the camera is used only when you ask Jarvis to look, the capture light is on whenever the camera is, and Phoenix Fox cannot turn that light off.
+- **The glasses step makes the privacy promise** where it belongs: the camera is used only when you ask Phoenix to look, the capture light is on whenever the camera is, and Phoenix Fox cannot turn that light off.
 - **Nobody ends on a dead end.** If the relay is set up, your assistants answer. If you had already chosen another AI and it works, it is left alone. If nothing is set up, the app starts on the AI built into the phone when the phone has it. If it does not, the last step says so in plain words and points to Settings.
 - **The step is remembered.** Leaving for Meta AI or Settings and coming back does not start over.
 
@@ -181,17 +181,17 @@ Someone who finished the old onboarding does not see the new one.
 
 A reply on the glasses is heard once, in order, often while walking. So:
 
-- **A quick word back, first.** As soon as a request for an assistant is understood, Jarvis says a short line before anything slow happens: "Asking Indy.", "Asking everyone.", "Taking a look." when a photo is going with it, or one of "On it.", "One moment.", "Right away." in turn. It is spoken before the photo is taken, not after.
+- **A quick word back, first.** As soon as a request for an assistant is understood, Phoenix says a short line before anything slow happens: "Asking Indy.", "Asking everyone.", "Taking a look." when a photo is going with it, or one of "On it.", "One moment.", "Right away." in turn. It is spoken before the photo is taken, not after.
 - **Plain words only.** Text written by a model is cleaned before it is spoken: no markup, no bullets or headings, no emoji, a link becomes its words, and a bare web address becomes the site's name. Text read aloud for a blind wearer, such as a sign or a document, is not altered.
 - **Short first, more on request.** With "Short spoken replies" on, which is the default, an assistant's long answer is cut at a sentence end after about 70 words, roughly half a minute, and ends with "There's more. Say go on." Saying "go on", "continue", "keep going", or "read the rest" speaks the next part. Any other request drops the rest. An answer that is only a little over the limit is spoken whole. The whole answer is always in History.
 - **The persona asks for the same thing**: lead with the answer, one to three short sentences, no lists, and offer more in a few words when there is more.
-- **Easy to stop.** While Jarvis is talking, "Jarvis, stop" stops it, "Jarvis" followed by a new request replaces it, and a tap on the orb stops it and listens again. In the owner build with Nod and shake on, a shake of the head stops it too. Speech without the wake word does not interrupt, on purpose: the microphone also hears the answer, and treating any sound as an interruption cut answers off.
+- **Easy to stop.** While Phoenix is talking, "Hey Phoenix, stop" stops it, "Hey Phoenix" followed by a new request replaces it, and a tap on the orb stops it and listens again. In the owner build with Nod and shake on, a shake of the head stops it too. Speech without the wake word does not interrupt, on purpose: the microphone also hears the answer, and treating any sound as an interruption cut answers off.
 
 `SpokenReplyTests` covers the cleaning, the cutting, and "go on".
 
 ## Accessibility
 
-- **VoiceOver.** The stage is one element named "Jarvis". Its value is the phase and the line under it, plus "The camera on your glasses is on." when it is, and its hint says what a double tap will do. Each team card is one element that says the name, the status, and how long it has been working. Decorative pictures are hidden. Headings are marked as headings.
+- **VoiceOver.** The stage is one element named "Hey Phoenix". Its value is the phase and the line under it, plus "The camera on your glasses is on." when it is, and its hint says what a double tap will do. Each team card is one element that says the name, the status, and how long it has been working. Decorative pictures are hidden. Headings are marked as headings.
 - **The phase is not announced when it changes.** This is deliberate. An announcement plays through the phone's speaker, and the microphone listening for the wake word would hear it. Sound cues on the glasses and haptics on the phone mark the changes. The stage is marked as updating often, so VoiceOver reads the current state whenever it is touched.
 - **First run** moves VoiceOver to each step's title when the step appears, and each permission is read as one sentence: its name, your answer, and the reason.
 - **Dynamic Type.** All text uses text styles. Screens scroll. The header drops the name before it squeezes the glasses chip. The monogram grows with the text.

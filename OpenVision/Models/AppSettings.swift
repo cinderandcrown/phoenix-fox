@@ -266,14 +266,24 @@ struct AppSettings: Codable, Equatable {
     /// Scene-change threshold. Higher keeps fewer frames.
     var smartCaptureSensitivity: Double = 0.12
     var smartCaptureMax: Int = 20
-    /// Grok vision calls allowed in one session.
+    /// Frames sent to the Phoenix rig for keep or skip in one session.
     var smartCaptureCostCap: Int = 12
     var smartCaptureReceipts: Bool = true
     var smartCaptureCards: Bool = true
     var smartCaptureBoards: Bool = true
     var smartCaptureHighlights: Bool = true
-    /// When on, a kept receipt, card, or note is handed to the relay or Contacts.
+    /// When on, a kept card goes to Contacts and a whiteboard to notes on this phone.
     var smartCaptureAutoRoute: Bool = false
+
+    // MARK: - Phoenix rig (Smart Capture stays local)
+
+    /// The owner's own Phoenix server, OpenAI-compatible, ending in /v1. Reached over the
+    /// owner's private network. Empty means Smart Capture can't run: there is no cloud fallback.
+    var phoenixRigURL: String = ""
+    /// Model id the rig serves (from its /v1/models). Empty lets the rig choose.
+    var phoenixRigModel: String = ""
+    /// The rig's key for this app. Keychain only.
+    var phoenixRigKey: String = ""
 
     // MARK: - Hermes Configuration
 
@@ -314,7 +324,7 @@ struct AppSettings: Codable, Equatable {
     // MARK: - Voice Settings
 
     /// Spoken wake nickname. The app on the home screen is Phoenix Fox.
-    var wakeWord: String = "Jarvis"
+    var wakeWord: String = WakePhrase.standard
 
     /// Whether wake word detection is enabled (OpenClaw mode only)
     var wakeWordEnabled: Bool = true
@@ -439,6 +449,11 @@ struct AppSettings: Codable, Equatable {
 
     var isClaudeConfigured: Bool { !claudeAPIKey.isEmpty }
 
+    /// Whether Smart Capture has somewhere local to send frames.
+    var isPhoenixRigConfigured: Bool {
+        PhoenixRig.baseURL(phoenixRigURL) != nil && !phoenixRigKey.isEmpty
+    }
+
     /// The relay to call, or nil until a token has been entered. The token never lives in the repo.
     var relayEndpoint: RelayEndpoint? { RelayEndpoint(address: relayURL, token: relayToken) }
 
@@ -522,5 +537,26 @@ extension OwnerProfile {
         apply(to: &settings.glasses)
         apply(to: &settings.workshop)
         settings.ownerProfileVersion = version
+    }
+}
+
+// MARK: - Wake word
+
+/// The spoken wake word. "Jarvis" shipped in older builds and is retired: a saved Jarvis
+/// becomes Hey Phoenix the next time settings load.
+enum WakePhrase {
+    static let standard = "Hey Phoenix"
+
+    /// What the recognizer may write for the wake word. Bare "phoenix" is left out on
+    /// purpose, because the city and the app's own name come up in ordinary talk.
+    static let variations = [
+        "hey phoenix", "ok phoenix", "okay phoenix", "hi phoenix",
+        "hey fenix", "hey feenix", "hey phenix",
+    ]
+
+    static func migrated(_ stored: String) -> String {
+        let lower = stored.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        if lower.isEmpty || lower.contains("jarvis") { return standard }
+        return stored
     }
 }
