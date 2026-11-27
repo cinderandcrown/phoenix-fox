@@ -27,7 +27,7 @@ struct LiveSignals: Equatable, Sendable {
     /// The wake-word listener has loaded and is running.
     var voiceReady = true
     var wakeWordOn = true
-    var wakeWord = "Jarvis"
+    var wakeWord = "Hey Phoenix"
     /// The glasses camera is on, so the capture light is on.
     var cameraOn = false
     /// The assistant that has been asked and has not answered yet.
@@ -198,7 +198,7 @@ struct StageDescription: Equatable, Sendable {
     let hint: String
 
     init(phase: LivePhase, signals: LiveSignals) {
-        label = "Jarvis"
+        label = "Phoenix"
         var parts = [phase.title, phase.hint(signals)]
         if signals.cameraOn {
             parts.append("The camera on your glasses is on.")

@@ -291,6 +291,7 @@
 		5578999EC921B1B1771043B0 /* CameraAccessParity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A417E52B040B8C61E6555DC /* CameraAccessParity.swift */; };
 		AA6F41FFAD7992A75AEC2F95 /* BluetoothPermission.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10D5636B418FD9CE564ECAAD /* BluetoothPermission.swift */; };
 		735361DAEF13C6F8780AF70E /* DATEligibility.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2ED198064CFDAE75A0B57C5A /* DATEligibility.swift */; };
+		43C496A160C3361D03DC7FA7 /* PhoenixRigTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4369634BB683B1069856567A /* PhoenixRigTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -582,6 +583,7 @@
 		6A417E52B040B8C61E6555DC /* CameraAccessParity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraAccessParity.swift; sourceTree = "<group>"; };
 		10D5636B418FD9CE564ECAAD /* BluetoothPermission.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BluetoothPermission.swift; sourceTree = "<group>"; };
 		2ED198064CFDAE75A0B57C5A /* DATEligibility.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DATEligibility.swift; sourceTree = "<group>"; };
+		4369634BB683B1069856567A /* PhoenixRigTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhoenixRigTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -1076,6 +1078,7 @@
 				1E5E803A1AAD693F3F59E29F /* AudioRoutePolicyTests.swift */,
 				57995089192F8CA478B88A6B /* OnDeviceLookTests.swift */,
 				0C1B2E8F44C4F8E9DF4497E0 /* AIProviderTests.swift */,
+				4369634BB683B1069856567A /* PhoenixRigTests.swift */,
 			);
 			path = OpenVisionTests;
 			sourceTree = "<group>";
@@ -1565,6 +1568,7 @@
 				8BCE34AD6CBF565DB24FFBC6 /* AudioRoutePolicyTests.swift in Sources */,
 				F09B402FB088F7C971E19F3A /* OnDeviceLookTests.swift in Sources */,
 				876B670BF350C504B0B276B5 /* AIProviderTests.swift in Sources */,
+				43C496A160C3361D03DC7FA7 /* PhoenixRigTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -214,7 +214,7 @@ struct Said: Equatable, Sendable {
     init(_ utterance: String) {
         var cased = WorkshopText.words(utterance, keepCase: true)
         var lower = cased.map { $0.lowercased() }
-        let leads = [["hey", "jarvis"], ["jarvis"], ["please"], ["can", "you"], ["could", "you"], ["would", "you"],
+        let leads = [["hey", "phoenix"], ["ok", "phoenix"], ["okay", "phoenix"], ["phoenix"], ["please"], ["can", "you"], ["could", "you"], ["would", "you"],
                      ["i", "want", "you", "to"], ["i", "need", "you", "to"]]
         for lead in leads where lower.count > lead.count && Array(lower.prefix(lead.count)) == lead {
             lower.removeFirst(lead.count)

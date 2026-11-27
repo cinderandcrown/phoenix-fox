@@ -56,7 +56,7 @@ struct LiveCaptionsView: View {
 
             Section {
                 if captions.saved.isEmpty {
-                    Text("Nothing saved. Say \"Jarvis, save this conversation\" while captions are on.")
+                    Text("Nothing saved. Say \"Hey Phoenix, save this conversation\" while captions are on.")
                         .foregroundStyle(.secondary)
                 }
                 ForEach(captions.saved) { transcript in

@@ -29,15 +29,15 @@ struct GlassesLimitsView: View {
 
             Section {
                 Toggle("Touchpad and action button", isOn: $settingsManager.settings.glasses.controls)
-                    .accessibilityHint("A double tap talks to Jarvis. A swipe back stops Jarvis talking.")
+                    .accessibilityHint("A double tap talks to Phoenix. A swipe back stops Phoenix talking.")
                 Toggle("Capture button", isOn: $settingsManager.settings.glasses.captureButton)
                     .accessibilityHint("One press looks, two presses keep a picture, and holding it takes a note.")
                 Toggle("Nod and shake", isOn: $settingsManager.settings.glasses.headGestures)
-                    .accessibilityHint("A shake of the head answers no or stops Jarvis talking. Two nods answer yes to some questions.")
+                    .accessibilityHint("A shake of the head answers no or stops Phoenix talking. Two nods answer yes to some questions.")
             } header: {
                 Text("Controls")
             } footer: {
-                Text("These work while Jarvis is busy with you: from the wake word until about twenty seconds after the answer, and for as long as the camera is on. In that time a double tap on the touchpad talks to Jarvis, a swipe back stops it talking, and the capture button looks with one press, keeps a picture with two, and takes a note when held. A shake of the head says no, or stops Jarvis talking. Two nods say yes, but only to questions about your own lists. A yes that calls someone, saves or erases a face, starts Guide mode, or lets an assistant act must be spoken.\n\nWhile they work, the glasses keep two gestures for themselves: a single tap pauses Phoenix Fox's connection and a long press ends it. The rest of the time the glasses behave as they always do.")
+                Text("These work while Phoenix is busy with you: from the wake word until about twenty seconds after the answer, and for as long as the camera is on. In that time a double tap on the touchpad talks to Phoenix, a swipe back stops it talking, and the capture button looks with one press, keeps a picture with two, and takes a note when held. A shake of the head says no, or stops Phoenix talking. Two nods say yes, but only to questions about your own lists. A yes that calls someone, saves or erases a face, starts Guide mode, or lets an assistant act must be spoken.\n\nWhile they work, the glasses keep two gestures for themselves: a single tap pauses Phoenix Fox's connection and a long press ends it. The rest of the time the glasses behave as they always do.")
             }
 
             Section {
@@ -57,7 +57,7 @@ struct GlassesLimitsView: View {
             } header: {
                 Text("A second ear")
             } footer: {
-                Text("When the phone's microphone is not listening, the glasses turn speech into text themselves. Phoenix Fox acts only on a sentence that starts with the wake word, and the wake word alone starts the phone listening again. Nothing the glasses hear is kept.\n\nThis is the one switch that changes the glasses when Jarvis is not busy: for as long as the phone is not listening, a single tap on the touchpad pauses Phoenix Fox's connection and a long press ends it, in place of what they normally do. It needs the glasses' microphone, which the Meta AI app asks you to allow. In this build the switch starts on, so use the button once.")
+                Text("When the phone's microphone is not listening, the glasses turn speech into text themselves. Phoenix Fox acts only on a sentence that starts with the wake word, and the wake word alone starts the phone listening again. Nothing the glasses hear is kept.\n\nThis is the one switch that changes the glasses when Phoenix is not busy: for as long as the phone is not listening, a single tap on the touchpad pauses Phoenix Fox's connection and a long press ends it, in place of what they normally do. It needs the glasses' microphone, which the Meta AI app asks you to allow. In this build the switch starts on, so use the button once.")
             }
 
             Section {

@@ -8,12 +8,12 @@ This is a core **presence** feature: looking selects a teammate, then conversati
 
 ## Presence checklist
 
-- [x] Shared experience — looking locks a teammate; Jarvis narrates the hand-off.
+- [x] Shared experience — looking locks a teammate; Phoenix narrates the hand-off.
 - [x] Live follow-ups — while held, requests need no assistant name (conversation continues).
 - [x] Memory — lock persists across looks-away until “let go” or idle timeout.
 - [x] Context — camera + on-device OCR/QR; no cloud required to choose.
 - [x] Proactive — confirmation tone + short “Indy, locked.”; Interrupt-aware via existing voice path.
-- [x] Personality — Jarvis speaks the lock; the named bot answers the work.
+- [x] Personality — Phoenix speaks the lock; the named bot answers the work.
 - [x] Privacy — frames read on-device and dropped; capture light on while looking.
 - [x] On-device / cost — selection is local; only the ask may hit the relay.
 - [x] Honesty — does not claim eye tracking; head direction only.
@@ -22,7 +22,7 @@ This is a core **presence** feature: looking selects a teammate, then conversati
 ## Using it
 
 1. Turn it on in **Settings → Owner build → Workshop → Look to Talk**. The assistants must be connected through the relay.
-2. Say **"look to talk"**. Jarvis says the camera light is on.
+2. Say **"look to talk"**. Phoenix says the camera light is on.
 3. Look at an assistant's chat window. Hold still for about two seconds.
 4. You hear three rising notes and "Indy, locked." The camera goes off, and the microphone opens for your request as if you had said the wake word.
 5. Say the request. It goes to Indy. So does the next one, and the one after, until you say **"let go"** or the lock goes unused for ten minutes.
@@ -53,9 +53,9 @@ A name inside a sentence counts for little. "I'll pass this to Indy", read in Dr
 
 The glasses camera points where your head points, not where your eyes do. What is nearest the middle of the frame, left to right, is taken as what you are facing. Height counts for much less, because a window's title is above where you look.
 
-One look is not a choice. A target is taken when two looks in a row agree, about two seconds, or when one look finds a marker or a badge. When the looks agree and are still not clear, because the name was faint or two windows are equally near the middle, Jarvis asks once: **"Talking to Indy?"** Say yes, no, or the right name. Where head gestures are on, a nod or a shake also answers. If you say no, that window is left alone for 45 seconds and the next best one is offered. If you say nothing, the question is dropped and not repeated.
+One look is not a choice. A target is taken when two looks in a row agree, about two seconds, or when one look finds a marker or a badge. When the looks agree and are still not clear, because the name was faint or two windows are equally near the middle, Phoenix asks once: **"Talking to Indy?"** Say yes, no, or the right name. Where head gestures are on, a nod or a shake also answers. If you say no, that window is left alone for 45 seconds and the next best one is offered. If you say nothing, the question is dropped and not repeated.
 
-"Ask this one to…" is stricter, because a request sent to the wrong assistant cannot be taken back. When that look is not clear, Jarvis asks "Send that to Indy? Say yes or no." The yes has to be spoken. A nod is not enough, and a shake still says no.
+"Ask this one to…" is stricter, because a request sent to the wrong assistant cannot be taken back. When that look is not clear, Phoenix asks "Send that to Indy? Say yes or no." The yes has to be spoken. A nod is not enough, and a shake still says no.
 
 ## What is held, and for how long
 
@@ -87,7 +87,7 @@ Each assistant has its own starting note, by its place on the roster, from C5 up
 
 ## The camera and privacy
 
-- With the settings as they come, the camera is on only between "look to talk" and the lock, or the 45-second limit. The capture light is on the whole time, and Jarvis says so when it starts. "Ask this one to…", said with nothing held, turns the camera on for up to six seconds. The light shows it, and Jarvis does not announce it.
+- With the settings as they come, the camera is on only between "look to talk" and the lock, or the 45-second limit. The capture light is on the whole time, and Phoenix says so when it starts. "Ask this one to…", said with nothing held, turns the camera on for up to six seconds. The light shows it, and Phoenix does not announce it.
 - Frames are read on the phone with Apple's Vision framework and dropped. None is saved, and none is sent to an assistant, the relay, or anyone else. Only "look at this" sends a photo, as it always has, and only when you say it.
 - What the phone reads off the screen is used to find a name and then discarded. It is not kept in the conversation history.
 - Other people's screens are read the same way if you look at them while it is searching. Nothing is kept, and the only thing that can come of it is a wrong guess, which the question and the 45-second rest are there for.

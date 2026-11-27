@@ -73,6 +73,7 @@ final class SettingsManager: ObservableObject {
         }
         let merged = SettingsSecrets.merge(file: fileSettings, keychain: keychain)
         var loaded = merged.settings
+        loaded.wakeWord = WakePhrase.migrated(loaded.wakeWord)
         let ownerProfileApplied = OwnerProfile.applyIfNeeded(to: &loaded, flavor: .current)
         settings = loaded
         unreadableSecrets = merged.unreadable

@@ -255,7 +255,7 @@ struct OutcomeLabel: View {
 /// Debug builds only.
 enum OnboardingSamples {
     static let summary = OnboardingSummary(
-        glassesConnected: false, microphone: .allowed, speech: .allowed, brain: .onDevice, wakeWord: "Jarvis"
+        glassesConnected: false, microphone: .allowed, speech: .allowed, brain: .onDevice, wakeWord: WakePhrase.standard
     )
 
     @MainActor @ViewBuilder

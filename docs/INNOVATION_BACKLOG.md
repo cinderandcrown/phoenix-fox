@@ -18,7 +18,7 @@ Two things to know before reading it.
 | Whole-sensor photo | 4032 by 3024. Not while a stream runs. The capture light is on. | Small print: labels, ingredients, model plates |
 | Microphones | Hands-free audio to the phone. The glasses' own room sound only while the camera is on. | Voice, captions, sound alerts |
 | Speakers | Open-ear, heard by the wearer | Every answer |
-| Touchpad, capture button | Only while a session is open, which is only while Jarvis is busy with the wearer | Talk, stop, look, keep, note |
+| Touchpad, capture button | Only while a session is open, which is only while Phoenix is busy with the wearer | Talk, stop, look, keep, note |
 | Head motion | 5 to 60 readings a second, only while a session is open | A shake for no. Two nods for yes, where a spoken yes is not required. |
 | Worn or not, hinge, battery, heat | Always, while the app runs | Automations, warnings |
 | Lens display, Neural Band | Not on Adventurer. Display glasses only. | Later: cards, lists, a pinch |
@@ -36,7 +36,7 @@ The assistants (Fire Fox, Indy, Driver, Rally) are reached through the relay. Th
 5. Health data stays on the phone, sealed, and is not sent to an assistant.
 6. An assistant acts for the wearer only after a spoken yes.
 7. A plugin cannot run code on the phone or name an address to send things to. It can only ask the wearer's own assistants.
-8. Presence rules in [DESIGN_PRINCIPLES.md](DESIGN_PRINCIPLES.md) are binding: on-device triggers for proactive lines, Interrupt respect, no spam, shared memory, consistent Jarvis personality.
+8. Presence rules in [DESIGN_PRINCIPLES.md](DESIGN_PRINCIPLES.md) are binding: on-device triggers for proactive lines, Interrupt respect, no spam, shared memory, consistent Phoenix personality.
 
 ### Presence checklist (each backlog feature before Written → Built)
 
@@ -69,14 +69,14 @@ Each score is 1 to 5, and 5 is always the good end.
 
 | # | Idea | What it does | I | T | C | P | Score | Later, and notes |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| W1 | **Council** | A yes-or-no question, with a photo if it is about "this", goes to every assistant. Each votes with one reason. Jarvis says the count and reads the dissent. | 5 | 5 | 3 | 4 | 22 | Lens: the tally as a card. Band: a pinch picks whose reason to hear. Model councils exist as command-line tools. Not found on glasses. **Chosen.** |
+| W1 | **Council** | A yes-or-no question, with a photo if it is about "this", goes to every assistant. Each votes with one reason. Phoenix says the count and reads the dissent. | 5 | 5 | 3 | 4 | 22 | Lens: the tally as a card. Band: a pinch picks whose reason to hear. Model councils exist as command-line tools. Not found on glasses. **Chosen.** |
 | W2 | **Relay race** | "Ask Indy to find three caterers, then have Driver book the cheapest." Each assistant gets the one before's answer. | 5 | 5 | 3 | 4 | 22 | Lens: who holds the baton. **Chosen.** |
 | W3 | **Close the day** | One sentence gathers what the phone already knows about today (walk-throughs, counts, notes, requests) into a day sheet, and an assistant files it. | 4 | 5 | 4 | 4 | 21 | Lens: the sheet as a list. Health records are left out. **Chosen.** |
 | W4 | Roll call | Every assistant says in one line what it is working on. | 3 | 5 | 3 | 5 | 19 | A fixed question to the council. |
 | W5 | Assistants can ask you | An assistant sends a yes-or-no question to the glasses. A shake says no. Yes is spoken. | 5 | 3 | 5 | 4 | 22 | Needs a `question` field in the relay. Band: a pinch for yes on Display glasses. |
 | W6 | Promise ledger | "I promised Dana the quote by Friday." Read back in the morning, and an assistant can follow up. | 4 | 5 | 5 | 3 | 21 | Shipped elsewhere from recorded conversations (Omi, Fluent, IRIS). Ours would hold only what the wearer says on purpose. |
 | W7 | Meeting bookends | "I'm going into the Acme meeting" gets a brief in the ear. "I'm out" takes a dictated debrief and hands out the tasks. | 4 | 5 | 3 | 5 | 21 | Only the wearer's own words. |
-| W8 | Check that | Mid-conversation, "Jarvis, check that" sends the wearer's last sentence to Indy and whispers the answer. | 3 | 5 | 3 | 4 | 18 | |
+| W8 | Check that | Mid-conversation, "Hey Phoenix, check that" sends the wearer's last sentence to Indy and whispers the answer. | 3 | 5 | 3 | 4 | 18 | |
 | W9 | Whiteboard to tasks | Smart Capture already keeps the board. An assistant pulls out owners and dates, and another schedules them. | 3 | 5 | 3 | 3 | 17 | A relay race with a photo. |
 | W10 | Desk handoff | "Continue this on my computer": the page or screen in view goes to an assistant that opens it there. | 3 | 5 | 3 | 3 | 17 | |
 | W11 | Focus session | Head-down time from the motion sensor, with interruptions counted. | 2 | 3 | 5 | 5 | 17 | The motion sensor needs an open session, which takes over two touchpad gestures. |
@@ -103,7 +103,7 @@ Each score is 1 to 5, and 5 is always the good end.
 
 | # | Idea | What it does | I | T | C | P | Score | Later, and notes |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| H1 | **Ingredient watch** | "Check the ingredients." The label is read on the phone and compared with the wearer's own list of allergens. Jarvis reads out the words it matched. It never says "safe". | 5 | 4 | 5 | 4 | 23 | Lens: the matched words as a card. Not found on glasses. Phone apps do it by barcode. **Chosen.** |
+| H1 | **Ingredient watch** | "Check the ingredients." The label is read on the phone and compared with the wearer's own list of allergens. Phoenix reads out the words it matched. It never says "safe". | 5 | 4 | 5 | 4 | 23 | Lens: the matched words as a card. Not found on glasses. Phone apps do it by barcode. **Chosen.** |
 | H2 | **Dose guard** | "I'm taking this." The label is read, the dose is logged, and a second dose too soon is called out. "Did I take my ibuprofen?" | 5 | 4 | 5 | 4 | 23 | Shipped on phones and smart speakers (TapMe, Track My Medz, Aasa). Not found on glasses, reading the label. **Chosen.** |
 | H3 | Two looks | Read anything that matters from two photos and speak only what both agree on. | 4 | 5 | 5 | 5 | 23 | A building block. Built into H1 and H2. |
 | H4 | Meter reader | Read a blood pressure or glucose display and log it. | 3 | 3 | 5 | 4 | 18 | Segment displays are hard for text recognition. Needs two looks and a spoken check. |
@@ -137,7 +137,7 @@ The accessibility suite and its own list of ideas are in [ACCESSIBILITY.md](ACCE
 | L1 | Walk quiz | Flashcards asked aloud on a walk, spaced over days. A nod means "knew it", a shake means "missed it". | 4 | 5 | 5 | 5 | 23 | **Shipped elsewhere** for the voice part (Loudwalk, Encodr, Cognicard, and SmartGlasses.study on Meta glasses). The nod and cards made from a look would be new. |
 | L2 | Word catcher | Abroad: "what's this called?" The word becomes a card, and is asked again when the same thing is in view. | 4 | 4 | 4 | 5 | 21 | |
 | L3 | Lab notebook | Narrated steps with photos become a dated notebook that an assistant writes up. | 4 | 5 | 4 | 5 | 22 | The walk-through engine with another template. |
-| L4 | Lecture bookmarks | A press of the capture button marks "explain this later". Afterwards Indy explains each one. | 4 | 3 | 3 | 3 | 17 | The button works only while Jarvis is busy. Slides belong to the lecturer. |
+| L4 | Lecture bookmarks | A press of the capture button marks "explain this later". Afterwards Indy explains each one. | 4 | 3 | 3 | 3 | 17 | The button works only while Phoenix is busy. Slides belong to the lecturer. |
 | L5 | Museum companion | A placard is read, and Indy tells the story at the depth asked for. | 3 | 5 | 3 | 5 | 19 | |
 | L6 | Rehearsal coach | Pace and long pauses in a practice talk. | 3 | 5 | 5 | 5 | 21 | Shipped on phones. Speech recognizers drop "um", so filler counts would be wrong. |
 | L7 | Read-along | A child reads aloud and the glasses follow the page. | 3 | 3 | 5 | 3 | 17 | |

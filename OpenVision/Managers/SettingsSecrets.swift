@@ -24,6 +24,7 @@ enum SettingsSecrets {
         ("tavilyAPIKey", \.tavilyAPIKey),
         ("telemetryToken", \.telemetryToken),
         ("telemetryPassword", \.telemetryPassword),
+        ("phoenixRigKey", \.phoenixRigKey),
     ] }
 
     /// What the Keychain said about one account: a value, nothing stored, or no answer (it can't

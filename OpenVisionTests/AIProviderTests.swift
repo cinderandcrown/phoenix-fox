@@ -124,7 +124,7 @@ final class AIProviderTests: XCTestCase {
             AIChatRequest(
                 model: "claude-haiku-4-5",
                 messages: [AIChatMessage(role: "user", content: "hi")],
-                system: "You are Jarvis.",
+                system: "You are Phoenix.",
                 imageJPEG: nil,
                 offerTools: false,
                 maxTokens: 32,

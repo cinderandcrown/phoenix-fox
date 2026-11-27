@@ -216,13 +216,13 @@ struct AssistantSheet: View {
 #if DEBUG
 #Preview("Team") {
     ScrollView {
-        TeamSection(members: HomeSamples.team, now: HomeSamples.now, wakeWord: "Jarvis")
+        TeamSection(members: HomeSamples.team, now: HomeSamples.now, wakeWord: WakePhrase.standard)
             .padding()
     }
     .background(Theme.canvas)
 }
 
 #Preview("Assistant") {
-    AssistantSheet(member: HomeSamples.team[1], now: HomeSamples.now, wakeWord: "Jarvis")
+    AssistantSheet(member: HomeSamples.team[1], now: HomeSamples.now, wakeWord: WakePhrase.standard)
 }
 #endif

@@ -614,10 +614,10 @@ final class LookToTalkTrackerTests: XCTestCase {
     }
 
     func testStartingAndStopping() {
-        for phrase in ["look to talk", "Look to Talk.", "Hey Jarvis, look to talk", "start look to talk please", "turn on look to talk"] {
+        for phrase in ["look to talk", "Look to Talk.", "Hey Phoenix, look to talk", "start look to talk please", "turn on look to talk"] {
             XCTAssertEqual(parse(phrase), .start, phrase)
         }
-        for phrase in ["stop look to talk", "turn off look to talk", "look to talk off", "Jarvis, end look to talk"] {
+        for phrase in ["stop look to talk", "turn off look to talk", "look to talk off", "Phoenix, end look to talk"] {
             XCTAssertEqual(parse(phrase), .stop, phrase)
         }
     }
@@ -631,7 +631,7 @@ final class LookToTalkTrackerTests: XCTestCase {
     func testLockingOnByName() {
         XCTAssertEqual(parse("lock on to Indy"), .lock("Indy"))
         XCTAssertEqual(parse("lock onto driver"), .lock("Driver"))
-        XCTAssertEqual(parse("Jarvis, lock on Rally"), .lock("Rally"))
+        XCTAssertEqual(parse("Phoenix, lock on Rally"), .lock("Rally"))
         XCTAssertEqual(parse("switch to fire fox"), .lock("Fire Fox"))
         XCTAssertEqual(parse("talk to Indy please"), .lock("Indy"))
         XCTAssertEqual(parse("stay with Driver"), .lock("Driver"))
@@ -652,7 +652,7 @@ final class LookToTalkTrackerTests: XCTestCase {
         XCTAssertEqual(parse("ask this one to check the build"), .once("check the build"))
         XCTAssertEqual(parse("tell that one that the build is green"), .once("the build is green"))
         XCTAssertEqual(parse("ask this bot how the tests went"), .once("how the tests went"))
-        XCTAssertEqual(parse("Hey Jarvis, ask this assistant to draft a reply to Sam"), .once("draft a reply to Sam"))
+        XCTAssertEqual(parse("Hey Phoenix, ask this assistant to draft a reply to Sam"), .once("draft a reply to Sam"))
         XCTAssertEqual(parse("tell this window to stop"), .once("stop"))
         XCTAssertNil(parse("ask this one"), "With no request there is nothing to send")
         XCTAssertNil(parse("ask Indy to check the build"), "A named request goes on as it always did")

@@ -268,7 +268,7 @@ struct RestartPacer: Sendable {
 /// listening it hears the same sentence, so the glasses' copy is dropped and the request
 /// runs once.
 enum GlassesSpeechGate {
-    /// How many characters may come before the wake word: "uh, hey Jarvis" is fine, and
+    /// How many characters may come before the wake word: "uh, hey Phoenix" is fine, and
     /// a sentence that only mentions the name is not a command.
     static let leeway = 12
 
@@ -298,7 +298,7 @@ enum GlassesSpeechGate {
         let lower = text.lowercased()
         guard let found = lower.range(of: word),
               lower.distance(from: lower.startIndex, to: found.lowerBound) <= leeway else { return .nothing }
-        // The wake word must be a whole word: "Jarvis" and not "Jarvison".
+        // The wake word must be a whole word: "Hey Phoenix" and not "Hey Phoenixes".
         if found.upperBound < lower.endIndex, lower[found.upperBound].isLetter { return .nothing }
         if found.lowerBound > lower.startIndex, lower[lower.index(before: found.lowerBound)].isLetter { return .nothing }
         // Lowercasing can change a string's length in rare scripts, so the cut is made by

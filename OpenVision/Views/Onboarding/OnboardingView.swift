@@ -261,8 +261,8 @@ struct OnboardingView: View {
 struct WelcomePoints: View {
     var body: some View {
         VStack(spacing: Theme.Space.normal) {
-            OnboardingPoint(symbol: "waveform", title: "Talk, hands-free", text: "Say “Jarvis” and ask. The answer is spoken in your glasses.")
-            OnboardingPoint(symbol: "eye.fill", title: "Ask it to look", text: "Jarvis can see what you see, only when you ask. The capture light shows when.")
+            OnboardingPoint(symbol: "waveform", title: "Talk, hands-free", text: "Say “Hey Phoenix” and ask. The answer is spoken in your glasses.")
+            OnboardingPoint(symbol: "eye.fill", title: "Ask it to look", text: "Phoenix can see what you see, only when you ask. The capture light shows when.")
             OnboardingPoint(symbol: "person.3.fill", title: "Your team, at work", text: "Hand a task to one of your assistants by name and see what each is doing.")
         }
         .padding(.top, Theme.Space.tight)

@@ -108,7 +108,7 @@ final class AccessPlatformTests: XCTestCase {
     }
 
     func testHelpIsAnsweredOnThePhone() async {
-        let help = await say("Jarvis, what can I say?")
+        let help = await say("Phoenix, what can I say?")
         XCTAssertEqual(help, AccessHelp.spoken)
     }
 

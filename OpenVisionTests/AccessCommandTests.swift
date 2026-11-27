@@ -16,7 +16,7 @@ final class AccessCommandTests: XCTestCase {
 
     func testSeeing() {
         XCTAssertEqual(parse("Read this."), .read(.everything))
-        XCTAssertEqual(parse("Jarvis, can you read this to me?"), .read(.everything))
+        XCTAssertEqual(parse("Phoenix, can you read this to me?"), .read(.everything))
         XCTAssertEqual(parse("read the menu"), .read(.everything))
         XCTAssertEqual(parse("What does this say?"), .read(.everything))
         XCTAssertEqual(parse("read the sign"), .read(.sign))

@@ -1,6 +1,6 @@
 # Phoenix Fox setup
 
-Phoenix Fox is the name on the phone and on the App Store. **Jarvis** is only the wake word inside the app. "Hey Meta" stays Meta's and cannot be replaced.
+Phoenix Fox is the name on the phone and on the App Store. **Hey Phoenix** is only the wake word inside the app. "Hey Meta" stays Meta's and cannot be replaced.
 
 You do not need a Mac. GitHub Actions compiles and signs the app, and TestFlight installs it on the iPhone.
 
@@ -79,24 +79,24 @@ The first-run step **Connect your assistants** takes the relay address and token
 
 ## Try it
 
-Put the glasses on with Phoenix Fox open. If you skipped the permissions step in first run, iOS asks for the microphone and speech recognition now. The orange dot at the top of the iPhone screen is on while Jarvis is listening. That is iOS showing that the microphone is in use.
+Put the glasses on with Phoenix Fox open. If you skipped the permissions step in first run, iOS asks for the microphone and speech recognition now. The orange dot at the top of the iPhone screen is on while Phoenix is listening. That is iOS showing that the microphone is in use.
 
-The home screen shows what Jarvis is doing in a word or two under the orb: Ready, Listening, Looking, Asking Indy, Replying. Below it is a card for each assistant with what it is doing. A red banner and a red ring around the orb mean the glasses camera is on. [docs/DESIGN.md](docs/DESIGN.md) describes the screen.
+The home screen shows what Phoenix is doing in a word or two under the orb: Ready, Listening, Looking, Asking Indy, Replying. Below it is a card for each assistant with what it is doing. A red banner and a red ring around the orb mean the glasses camera is on. [docs/DESIGN.md](docs/DESIGN.md) describes the screen.
 
 | You say | What should happen |
 | --- | --- |
-| **Jarvis** | A chime. The app is listening for one request, and stays open for a follow-up until you stop talking. |
-| Jarvis, what time is it | The time is spoken. No network and no model are used. |
-| Jarvis, ask Indy about the gate | Jarvis says "Asking Indy." at once. The request goes to Indy through the relay, Indy's card on the home screen shows the task, and Indy's reply is spoken with Indy's name. |
+| **Hey Phoenix** | A chime. The app is listening for one request, and stays open for a follow-up until you stop talking. |
+| Hey Phoenix, what time is it | The time is spoken. No network and no model are used. |
+| Hey Phoenix, ask Indy about the gate | Phoenix says "Asking Indy." at once. The request goes to Indy through the relay, Indy's card on the home screen shows the task, and Indy's reply is spoken with Indy's name. |
 | go on | After a long answer that ended with "There's more. Say go on.", the next part is spoken. Turn this off with **Short spoken replies** under Assistants. |
-| Jarvis, what do you see | The capture light comes on, one picture is taken, the light goes off, and the answer is spoken. |
-| Jarvis, take a picture | The picture is saved to Photos. iOS asks for Photos access the first time. |
-| Jarvis, remember this | An encrypted note is kept on the phone. |
-| Jarvis, stop | Speech stops. A tap on the orb while Jarvis is talking does the same. |
+| Hey Phoenix, what do you see | The capture light comes on, one picture is taken, the light goes off, and the answer is spoken. |
+| Hey Phoenix, take a picture | The picture is saved to Photos. iOS asks for Photos access the first time. |
+| Hey Phoenix, remember this | An encrypted note is kept on the phone. |
+| Hey Phoenix, stop | Speech stops. A tap on the orb while Phoenix is talking does the same. |
 
 If a reply comes from the phone and not the glasses, the glasses are not the audio route. Check that they show as connected in iOS Bluetooth settings.
 
-If no assistant is set up, Jarvis says so and tells you to open Settings. A request is not dropped in silence.
+If no assistant is set up, Phoenix says so and tells you to open Settings. A request is not dropped in silence.
 
 To try an alert, send one from any machine that has the relay token:
 
@@ -129,15 +129,15 @@ None of this has run on glasses yet. These are the checks, with the glasses on:
 
 | Do this | What should happen |
 | --- | --- |
-| Say **Jarvis**, then double-tap the touchpad while it is answering a question | Jarvis listens again |
-| Swipe back on the touchpad while Jarvis is talking | Jarvis stops talking |
-| After **Jarvis**, press the capture button once | The light comes on and Jarvis says what it sees |
-| After **Jarvis**, press it twice | A picture is saved to Photos at 4032 by 3024 |
-| After **Jarvis**, hold it | A note is taken |
-| Teach a routine, say **Jarvis, delete my morning routine**, then nod twice | The routine is deleted. Shake your head and it is kept. |
-| Shake your head while Jarvis is talking | Jarvis stops talking |
-| Say **Jarvis, record a clip**, then stop it | The clip in Photos is 720 by 1280 with the sound of the room |
-| Long-press the touchpad while Jarvis is answering | The connection ends and is not reopened until you next say Jarvis |
+| Say **Hey Phoenix**, then double-tap the touchpad while it is answering a question | Phoenix listens again |
+| Swipe back on the touchpad while Phoenix is talking | Phoenix stops talking |
+| After **Hey Phoenix**, press the capture button once | The light comes on and Phoenix says what it sees |
+| After **Hey Phoenix**, press it twice | A picture is saved to Photos at 4032 by 3024 |
+| After **Hey Phoenix**, hold it | A note is taken |
+| Teach a routine, say **Hey Phoenix, delete my morning routine**, then nod twice | The routine is deleted. Shake your head and it is kept. |
+| Shake your head while Phoenix is talking | Phoenix stops talking |
+| Say **Hey Phoenix, record a clip**, then stop it | The clip in Photos is 720 by 1280 with the sound of the room |
+| Long-press the touchpad while Phoenix is answering | The connection ends and is not reopened until you next say Hey Phoenix |
 | **Settings → Glasses** while the camera is on | The Stream row shows the size and frame rate in use |
 
 Speech on the glasses only matters in the moments the phone is not listening, which are hard to stage, so it has no row here.
@@ -156,7 +156,7 @@ Before you try them:
 2. Open **Workshop → Skills**, pick an example, read what it captures and asks, and add it. Three of the examples name Indy, Rally, and Fire Fox.
 3. Place notes ask for location the first time you leave one.
 
-None of this has run on glasses or against your relay. These are the checks, each after saying **Jarvis**:
+None of this has run on glasses or against your relay. These are the checks, each after saying **Hey Phoenix**:
 
 | Say this | What should happen |
 | --- | --- |
@@ -177,7 +177,7 @@ If one misbehaves, switch it off under Workshop and the rest keep working. **Era
 
 ## Accessibility
 
-Guide mode, reading, money and label reading, colors, face recognition with consent, live captions, sound alerts, step-by-step tasks, and "what was I doing?" are set under Settings, then Accessibility, and each has a spoken command. Say "Jarvis, what can I say?" to hear them.
+Guide mode, reading, money and label reading, colors, face recognition with consent, live captions, sound alerts, step-by-step tasks, and "what was I doing?" are set under Settings, then Accessibility, and each has a spoken command. Say "Hey Phoenix, what can I say?" to hear them.
 
 Read the safety section of [docs/ACCESSIBILITY.md](docs/ACCESSIBILITY.md) first. Guide mode is an aid and does not replace a cane or a guide dog. The same file has the status of each feature and the eleven checks to run on the glasses.
 

@@ -306,15 +306,15 @@ final class HeadGestureTests: XCTestCase {
 
 final class GlassesSpeechGateTests: XCTestCase {
     private func command(_ text: String, phoneListening: Bool = false) -> String? {
-        GlassesSpeechGate.command(in: text, wakeWord: "Jarvis", phoneListening: phoneListening)
+        GlassesSpeechGate.command(in: text, wakeWord: "Hey Phoenix", phoneListening: phoneListening)
     }
 
     func testASentenceNeedsTheWakeWordAtItsStart() {
-        XCTAssertEqual(command("Jarvis, what's on my calendar?"), "what's on my calendar")
-        XCTAssertEqual(command("hey jarvis ask Indy about the order"), "ask Indy about the order")
-        XCTAssertEqual(command("Uh, Jarvis take a picture."), "take a picture")
+        XCTAssertEqual(command("Hey Phoenix, what's on my calendar?"), "what's on my calendar")
+        XCTAssertEqual(command("hey phoenix ask Indy about the order"), "ask Indy about the order")
+        XCTAssertEqual(command("Uh, hey Phoenix take a picture."), "take a picture")
         XCTAssertNil(command("what's on my calendar"))
-        XCTAssertNil(command("I was telling my brother about Jarvis and what it does"))
+        XCTAssertNil(command("I was telling my brother about Hey Phoenix and what it does"))
     }
 
     func testOtherPeoplesTalkIsNotACommand() {
@@ -323,30 +323,30 @@ final class GlassesSpeechGateTests: XCTestCase {
     }
 
     func testTheWakeWordAloneIsNotACommand() {
-        XCTAssertNil(command("Jarvis"))
-        XCTAssertNil(command("Hey Jarvis."))
+        XCTAssertNil(command("Hey Phoenix"))
+        XCTAssertNil(command("Hey Phoenix."))
         XCTAssertNil(command("   "))
     }
 
     func testTheWakeWordMustBeAWholeWord() {
-        XCTAssertNil(command("Jarvison called about the car"))
+        XCTAssertNil(command("Hey Phoenixes called about the car"))
     }
 
     func testTheWakeWordAloneAsksToBeListenedTo() {
         func heard(_ text: String, phoneListening: Bool = false) -> GlassesSpeechGate.Heard {
-            GlassesSpeechGate.hear(text, wakeWord: "Jarvis", phoneListening: phoneListening)
+            GlassesSpeechGate.hear(text, wakeWord: "Hey Phoenix", phoneListening: phoneListening)
         }
-        XCTAssertEqual(heard("Jarvis"), .wake)
-        XCTAssertEqual(heard("Hey Jarvis."), .wake)
-        XCTAssertEqual(heard("Jarvis, read this"), .command("read this"))
+        XCTAssertEqual(heard("Hey Phoenix"), .wake)
+        XCTAssertEqual(heard("Hey Phoenix."), .wake)
+        XCTAssertEqual(heard("Hey Phoenix, read this"), .command("read this"))
         XCTAssertEqual(heard("pass the salt"), .nothing)
         XCTAssertEqual(heard("   "), .nothing)
         // The phone heard it too, and wakes by itself.
-        XCTAssertEqual(heard("Jarvis", phoneListening: true), .nothing)
+        XCTAssertEqual(heard("Hey Phoenix", phoneListening: true), .nothing)
     }
 
     func testThePhoneHearsItFirstWhenThePhoneIsListening() {
-        XCTAssertNil(command("Jarvis, take a picture", phoneListening: true))
+        XCTAssertNil(command("Hey Phoenix, take a picture", phoneListening: true))
     }
 
     func testAnEmptyWakeWordMatchesNothing() {
